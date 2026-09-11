@@ -1,7 +1,7 @@
 {
-  "name": "system-zawodow",
+  "name": "ika-poland-system-zawodow",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.2.23",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 19464",

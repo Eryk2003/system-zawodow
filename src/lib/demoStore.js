@@ -30,33 +30,6 @@ const write = (key, value) => localStorage.setItem(key, JSON.stringify(value))
 const uid = (prefix = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 const emit = (event = 'ika:data') => window.dispatchEvent(new Event(event))
 
-function ageOnDate(birthDate, eventDate) {
-  if (!birthDate || !eventDate) return null
-  const birth = new Date(`${birthDate}T00:00:00`)
-  const event = new Date(`${eventDate}T00:00:00`)
-  if (Number.isNaN(birth.getTime()) || Number.isNaN(event.getTime())) return null
-  let age = event.getFullYear() - birth.getFullYear()
-  const beforeBirthday = event.getMonth() < birth.getMonth() || (event.getMonth() === birth.getMonth() && event.getDate() < birth.getDate())
-  if (beforeBirthday) age -= 1
-  return age
-}
-
-function athleteMatchesCategory(athlete, category) {
-  if (!athlete || !category) return false
-  if (['K', 'M'].includes(category.gender) && athlete.gender !== category.gender) return false
-  const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
-  const competition = read(KEYS.competitions, DEFAULT_COMPETITIONS).find((item) => item.id === category.competitionId)
-  const minAge = category.minAge == null ? null : Number(category.minAge)
-  const categoryMaxAge = category.maxAge == null ? null : Number(category.maxAge)
-  const competitionMaxAge = competition?.maxAge == null ? null : Number(competition.maxAge)
-  const maxAge = competitionMaxAge == null ? categoryMaxAge : (categoryMaxAge == null ? competitionMaxAge : Math.min(categoryMaxAge, competitionMaxAge))
-  const age = ageOnDate(athlete.birthDate, tournament.date)
-  if ((minAge != null || maxAge != null) && age == null) return false
-  if (minAge != null && age < minAge) return false
-  if (maxAge != null && age > maxAge) return false
-  return true
-}
-
 export function ensureSeed() {
   if (!localStorage.getItem(KEYS.accounts)) {
     write(KEYS.accounts, [
@@ -574,7 +547,6 @@ export const db = {
       name: String(category.name || '').trim(),
       competitionId: category.competitionId || '',
       gender: category.gender,
-      ageRange: String(category.ageRange || '').trim(),
       minAge: category.minAge === '' || category.minAge == null ? null : Number(category.minAge),
       maxAge: category.maxAge === '' || category.maxAge == null ? null : Number(category.maxAge),
       createdAt: category.createdAt || Date.now(),
@@ -608,10 +580,8 @@ export const db = {
   setCategoryAthletesForClub: (categoryId, clubId, athleteIds) => {
     const category = read(KEYS.tournamentCategories, []).find((item) => item.id === categoryId)
     if (!category) throw new Error('Nie znaleziono kategorii.')
-    const athleteRows = read(KEYS.athletes, []).filter((athlete) => athlete.clubId === clubId)
-    const clubAthletes = new Set(athleteRows.map((athlete) => athlete.id))
-    const eligibleAthletes = new Set(athleteRows.filter((athlete) => athleteMatchesCategory(athlete, category)).map((athlete) => athlete.id))
-    const selected = new Set((athleteIds || []).filter((athleteId) => clubAthletes.has(athleteId) && eligibleAthletes.has(athleteId)))
+    const clubAthletes = new Set(read(KEYS.athletes, []).filter((athlete) => athlete.clubId === clubId).map((athlete) => athlete.id))
+    const selected = new Set((athleteIds || []).filter((athleteId) => clubAthletes.has(athleteId)))
     const entries = read(KEYS.entries, [])
     const belongsToCategory = (entry) => entry.categoryId === categoryId || (entry.competitionId === category.competitionId && entry.category === category.name)
     const ownExisting = entries.filter((entry) => belongsToCategory(entry) && clubAthletes.has(entry.athleteId))
@@ -640,9 +610,7 @@ export const db = {
   setCategoryAthletes: (categoryId, athleteIds) => {
     const category = read(KEYS.tournamentCategories, []).find((item) => item.id === categoryId)
     if (!category) throw new Error('Nie znaleziono kategorii.')
-    const athleteRows = read(KEYS.athletes, [])
-    const eligibleAthletes = new Set(athleteRows.filter((athlete) => athleteMatchesCategory(athlete, category)).map((athlete) => athlete.id))
-    const selected = new Set((athleteIds || []).filter((athleteId) => eligibleAthletes.has(athleteId)))
+    const selected = new Set(athleteIds || [])
     const entries = read(KEYS.entries, [])
     const existingForCategory = entries.filter((entry) => entry.categoryId === categoryId || (entry.competitionId === category.competitionId && entry.category === category.name))
     const byAthlete = new Map(existingForCategory.map((entry) => [entry.athleteId, entry]))

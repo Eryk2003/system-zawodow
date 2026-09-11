@@ -1,14 +1,8 @@
+# IKA Poland — System Zawodów ETAP 29
 
-## GitHub i Vercel
+Ten etap ustawia oficjalne logo IKA Poland jako logo systemu, faviconę strony i znak marki zamiast domyślnej ikony.
 
-Docelowa nazwa repozytorium GitHub: `system-zawodow`
-
-Docelowa nazwa projektu Vercel: `system-zawodow`
-
-Aplikacja jest przygotowana pod Vite i zawiera `vercel.json` z obsługą tras React Router.
-Po wdrożeniu adres może mieć postać `https://system-zawodow.vercel.app`, jeśli ta nazwa będzie dostępna na koncie Vercel.
-
-# System Zawodów — IKA Poland
+# IKA Poland — System Zawodów — ETAP 26
 
 ## Organizator jest jednocześnie klubem
 
@@ -99,7 +93,7 @@ Adres: `http://localhost:19464`
 - Wyniki kata są uwzględniane w klasyfikacji medalowej zawodników i klubów (6 / 4 / 2 pkt).
 
 
-## ETAP 28 — podium TV i pełny ekran
+## ETAP 26 — podium TV i pełny ekran
 - Tablica TV kata i kumite korzysta z jednego, spójnego ekranu podium po zakończeniu kategorii.
 - Podium ma formę rzeczywistych stopni: 1. miejsce na najwyższym stopniu, 2. miejsce po lewej i 3. miejsce po prawej.
 - W kumite obsługiwane są dwa równorzędne 3. miejsca — obaj zawodnicy są pokazani nad wspólnym stopniem 3. miejsca.
@@ -108,12 +102,12 @@ Adres: `http://localhost:19464`
 - Tryb pełnoekranowy pozostaje aktywny podczas automatycznych przejść: walka / wynik / lista / kolejny zawodnik / podium, dopóki użytkownik z niego nie wyjdzie.
 
 
-## ETAP 28 — pole nazwy kata
+## ETAP 26 — pole nazwy kata
 
 W panelu sędziego kata przy aktualnym zawodniku znajduje się pole **„Wykonywane kata”**. Można wpisać nazwę, np. `Bassai Dai`, `Kanku Dai` albo inną nazwę kata. Nazwa jest zapisywana osobno dla każdego zawodnika i pojawia się automatycznie na tablicy TV: przy prezentacji zawodnika, podczas pokazywania ocen, przy końcowej ocenie oraz na liście uczestników.
 
 
-## ETAP 28 — szybsze wpisywanie ocen kata
+## ETAP 26 — szybsze wpisywanie ocen kata
 
 - po wpisaniu pierwszej cyfry oceny system automatycznie dopisuje kropkę, np. `8` → `8.`;
 - po wpisaniu cyfry dziesiętnej, np. `8.5`, fokus automatycznie przechodzi do następnego sędziego;
@@ -122,29 +116,7 @@ W panelu sędziego kata przy aktualnym zawodniku znajduje się pole **„Wykonyw
 - Backspace przy wartości zakończonej samą kropką czyści pole, żeby łatwo poprawić pierwszą cyfrę.
 
 
-## ETAP 28 – punktacja kumite
+## ETAP 26 – punktacja kumite
 - WAZARI = 1 punkt
 - IPPON = 2 punkty
 - COFNIJ = -1 punkt
-
-
-## ETAP 28 — automatyczne kategorie wiekowe
-- Przy dodawaniu kategorii wybierz konkurencję i wpisz zakres wieku, np. `8-9`, `12` albo `18+`.
-- Wiek jest liczony dokładnie na dzień zawodów na podstawie daty urodzenia zawodnika.
-- Lista zgłoszeń pokazuje wyłącznie zawodników własnego klubu, którzy spełniają płeć i zakres wieku kategorii.
-- Zawodnik bez daty urodzenia nie może zostać przypisany do kategorii z limitem wieku.
-- Walidacja wieku działa także w warstwie danych, więc nieprawidłowego zawodnika nie da się zapisać do kategorii przez obejście filtra interfejsu.
-
-
-## Udostępnienie systemu na laptop w tej samej sieci
-
-Na komputerze, na którym znajduje się projekt, uruchom plik `START-UDOSTEPNIJ-NA-LAPTOP.bat`. Skrypt:
-
-- uruchomi serwer Vite na wszystkich interfejsach sieciowych,
-- wykryje lokalny adres IPv4 komputera,
-- pokaże link w formacie `http://ADRES-IP:19464`,
-- skopiuje ten link do schowka.
-
-Wyślij link na laptop i otwórz go w przeglądarce. Oba urządzenia muszą być w tej samej sieci Wi‑Fi/LAN. Jeśli Zapora systemu Windows zapyta o dostęp dla Node.js, zezwól na sieci prywatne.
-
-Uwaga: aktualna wersja demonstracyjna nadal przechowuje część danych lokalnie w przeglądarce. Sam interfejs otworzy się na laptopie, ale pełna wspólna synchronizacja danych między urządzeniami wymaga podłączenia wspólnej bazy Supabase.

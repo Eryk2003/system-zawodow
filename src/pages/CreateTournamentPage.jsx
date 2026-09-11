@@ -18,34 +18,7 @@ const ageOnDate = (birthDate, eventDate) => {
   return age
 }
 
-const normalizeAgeRangeInput = (value) => value
-  .replace(/lat/gi, '')
-  .replace(/[–—]/g, '-')
-  .replace(/[^0-9+\- ]/g, '')
-  .replace(/\s+/g, ' ')
-  .trimStart()
-
-const parseAgeRange = (value) => {
-  const normalized = String(value || '').trim().toLowerCase().replace(/lat/g, '').replace(/[–—]/g, '-').replace(/\s+/g, '')
-  if (!normalized) return null
-  const plus = normalized.match(/^(\d{1,2})\+$/)
-  if (plus) return { minAge: Number(plus[1]), maxAge: null, label: `${Number(plus[1])}+ lat` }
-  const range = normalized.match(/^(\d{1,2})-(\d{1,2})$/)
-  if (range) {
-    const minAge = Number(range[1])
-    const maxAge = Number(range[2])
-    if (minAge > maxAge) return null
-    return { minAge, maxAge, label: `${minAge}–${maxAge} lat` }
-  }
-  const single = normalized.match(/^(\d{1,2})$/)
-  if (single) {
-    const age = Number(single[1])
-    return { minAge: age, maxAge: age, label: `${age} lat` }
-  }
-  return null
-}
-
-const emptyCategory = { competitionId: '', name: '', gender: '', ageRange: '', minAge: '', maxAge: '' }
+const emptyCategory = { competitionId: '', name: '', gender: '', minAge: '', maxAge: '' }
 
 export default function CreateTournamentPage() {
   const navigate = useNavigate()
@@ -146,28 +119,17 @@ export default function CreateTournamentPage() {
     setMessage('')
     const competition = competitions.find((item) => item.id === categoryForm.competitionId)
     if (!competition) return setError('Wybierz konkurencję dla kategorii.')
+    if (!categoryForm.name.trim()) return setError('Wpisz nazwę kategorii.')
     if (!['K', 'M'].includes(categoryForm.gender)) return setError('Wybierz płeć kategorii: Kobieta albo Mężczyzna.')
-    const parsedAge = parseAgeRange(categoryForm.ageRange)
-    if (!parsedAge) return setError('Wpisz prawidłowy wiek kategorii, np. 8-9, 12 albo 18+.')
-
-    const competitionMaxAge = competition.maxAge == null ? null : Number(competition.maxAge)
-    const effectiveMaxAge = competitionMaxAge == null
-      ? parsedAge.maxAge
-      : (parsedAge.maxAge == null ? competitionMaxAge : Math.min(competitionMaxAge, parsedAge.maxAge))
-    if (effectiveMaxAge != null && parsedAge.minAge > effectiveMaxAge) return setError(`Ta konkurencja ma limit wieku do ${competitionMaxAge} lat.`)
-
-    const genderLabel = categoryForm.gender === 'K' ? 'Kobiety' : 'Mężczyźni'
-    const autoName = `${genderLabel} ${parsedAge.label}`
-    const categoryName = categoryForm.name.trim() || autoName
-    const duplicate = categories.some((item) => item.competitionId === categoryForm.competitionId && item.name.toLocaleLowerCase('pl') === categoryName.toLocaleLowerCase('pl'))
+    const duplicate = categories.some((item) => item.competitionId === categoryForm.competitionId && item.name.toLocaleLowerCase('pl') === categoryForm.name.trim().toLocaleLowerCase('pl'))
     if (duplicate) return setError('Taka kategoria w tej konkurencji już istnieje.')
 
+    const competitionMaxAge = competition.maxAge == null ? null : Number(competition.maxAge)
+    const requestedMaxAge = categoryForm.maxAge === '' ? null : Number(categoryForm.maxAge)
     const saved = db.saveTournamentCategory({
       ...categoryForm,
-      name: categoryName,
-      ageRange: parsedAge.label,
-      minAge: parsedAge.minAge,
-      maxAge: effectiveMaxAge,
+      name: categoryForm.name.trim(),
+      maxAge: competitionMaxAge == null ? requestedMaxAge : (requestedMaxAge == null ? competitionMaxAge : Math.min(competitionMaxAge, requestedMaxAge)),
     })
     setCategories(db.getTournamentCategories())
     setCategoryForm(emptyCategory)
@@ -190,9 +152,8 @@ export default function CreateTournamentPage() {
     return athletes.filter((athlete) => {
       const age = ageOnDate(athlete.birthDate, createdTournament?.date)
       if (['K', 'M'].includes(category.gender) && athlete.gender !== category.gender) return false
-      if ((category.minAge != null || maxAge != null) && age == null) return false
-      if (category.minAge != null && age < Number(category.minAge)) return false
-      if (maxAge != null && age > Number(maxAge)) return false
+      if (category.minAge != null && age != null && age < Number(category.minAge)) return false
+      if (maxAge != null && age != null && age > Number(maxAge)) return false
       return true
     })
   }
@@ -294,9 +255,10 @@ export default function CreateTournamentPage() {
           </div>
           <form className="category-builder" onSubmit={addCategory}>
             <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{competitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
+            <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10–11 lat, 6–5 kyu" /></label>
             <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
-            <label>Wiek kategorii<input required className="numeric-input" inputMode="text" value={categoryForm.ageRange} onChange={(event) => setCategoryForm({ ...categoryForm, ageRange: normalizeAgeRangeInput(event.target.value) })} placeholder="np. 8-9, 12 albo 18+" /><small className="field-hint">System liczy wiek zawodnika dokładnie na dzień zawodów i pokaże tylko osoby mieszczące się w tym zakresie.</small></label>
-            <label className="category-name-field">Nazwa kategorii (opcjonalnie)<input value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. 8–9 lat, 6–5 kyu — puste pole = nazwa automatyczna" /></label>
+            <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
+            <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
             <button className="btn btn-primary">+ Dodaj kategorię</button>
           </form>
         </section>
@@ -318,7 +280,7 @@ export default function CreateTournamentPage() {
                     <div>
                       <span className="eyebrow">{competition?.name || 'Konkurencja'}</span>
                       <h2>{category.name}</h2>
-                      <p>{category.minAge != null || category.maxAge != null ? `Wiek: ${category.minAge ?? 0}${category.maxAge == null ? '+' : category.minAge === category.maxAge ? '' : `–${category.maxAge}`} lat • ` : ''}{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników` : 'Brak zawodników — harmonogram pojawi się po zapisaniu składu.'}</p>
+                      <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników` : 'Brak zawodników — harmonogram pojawi się po zapisaniu składu.'}</p>
                     </div>
                     <div className="category-card-actions">
                       <button type="button" className="btn btn-outline" onClick={() => setOpenCategoryId(isOpen ? null : category.id)}>{isOpen ? 'Zwiń zawodników' : 'Wybierz zawodników'}</button>
@@ -328,7 +290,7 @@ export default function CreateTournamentPage() {
 
                   {isOpen && (
                     <div className="category-athlete-picker">
-                      <div className="category-subhead"><div><span className="eyebrow">Krok 3 • {organizerClub?.shortName || organizerClub?.name}</span><h3>Zgłoś swoich zawodników</h3><p>Lista jest już przefiltrowana automatycznie po płci i wieku na dzień {createdTournament.date}. Widzisz tylko zawodników swojego klubu, którzy spełniają kryteria kategorii.</p></div><strong>{candidates.length} spełnia kryteria • {selectedSet.size} wybranych</strong></div>
+                      <div className="category-subhead"><div><span className="eyebrow">Krok 3 • {organizerClub?.shortName || organizerClub?.name}</span><h3>Zgłoś swoich zawodników</h3><p>Widzisz tylko zawodników należących do Twojego klubu.</p></div><strong>{selectedSet.size} wybranych</strong></div>
                       {!candidates.length ? (
                         <div className="alert alert-info">Brak zawodników z Twojego klubu spełniających kryteria tej kategorii. <Link to="/organizator/klub">Dodaj zawodnika w swoim klubie</Link>.</div>
                       ) : (

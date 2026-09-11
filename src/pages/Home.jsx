@@ -27,7 +27,7 @@ export default function Home() {
           <div className="hero-card">
             <div className="live-pill"><span /> SYSTEM LIVE</div>
             <div className="hero-screen">
-              <div className="hero-photo">IKA</div>
+              <div className="hero-photo"><img src="/ika-poland-logo.png" alt="IKA Poland" className="hero-logo" /></div>
               <div>
                 <small>INFORMACJE PODCZAS ZAWODÓW</small>
                 <h2>Na bieżąco</h2>
@@ -69,7 +69,7 @@ export default function Home() {
           <div><strong>4</strong><h3>Klasyfikacja LIVE</h3><p>Kluby są klasyfikowane medalowo: najpierw złote, potem srebrne i brązowe. Punkty klubowe: złoto 6, srebro 4, brąz 2.</p></div>
         </section>
       </main>
-      <footer className="footer">IKA Poland — System Zawodów • ETAP 19</footer>
+      <footer className="footer">IKA Poland — System Zawodów • ETAP 29</footer>
     </div>
   )
 }

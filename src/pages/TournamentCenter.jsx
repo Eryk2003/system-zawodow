@@ -54,9 +54,8 @@ export default function TournamentCenter() {
   const entryCategories = categories.filter((category) => {
     const competition = competitions.find((c) => c.id === category.competitionId)
     const maxAge = category.maxAge ?? competition?.maxAge ?? null
-    if (!entryForm.athleteId) return true
+    if (!entryForm.athleteId || selectedAthleteAge == null) return true
     if (['K', 'M'].includes(category.gender) && selectedAthlete?.gender !== category.gender) return false
-    if ((category.minAge != null || maxAge != null) && selectedAthleteAge == null) return false
     if (category.minAge != null && selectedAthleteAge < Number(category.minAge)) return false
     if (maxAge != null && selectedAthleteAge > Number(maxAge)) return false
     return true
@@ -112,9 +111,8 @@ export default function TournamentCenter() {
     if (!athlete || !category || !competition) return setError('Wybierz zawodnika i istniejącą kategorię.')
     const age = ageOnDate(athlete.birthDate, tournament.date)
     const maxAge = category.maxAge ?? competition.maxAge ?? null
-    if ((category.minAge != null || maxAge != null) && age == null) return setError('Zawodnik musi mieć wpisaną datę urodzenia, aby system mógł sprawdzić kategorię wiekową.')
-    if (maxAge != null && age > Number(maxAge)) return setError(`Zawodnik nie spełnia limitu wieku tej kategorii.`)
-    if (category.minAge != null && age < Number(category.minAge)) return setError(`Zawodnik nie spełnia limitu wieku tej kategorii.`)
+    if (maxAge != null && age != null && age > Number(maxAge)) return setError(`Zawodnik nie spełnia limitu wieku tej kategorii.`)
+    if (category.minAge != null && age != null && age < Number(category.minAge)) return setError(`Zawodnik nie spełnia limitu wieku tej kategorii.`)
     if (['K', 'M'].includes(category.gender) && athlete.gender !== category.gender) return setError('Zawodnik nie spełnia kryterium płci tej kategorii.')
     db.saveEntry({ athleteId: athlete.id, competitionId: category.competitionId, category: category.name, categoryId: category.id, status: 'scheduled' })
     setEntryForm(emptyEntry)
