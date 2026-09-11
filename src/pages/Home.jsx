@@ -20,8 +20,8 @@ export default function Home() {
               telebim, drabinki kumite i tablice punktowe przy tatami.
             </p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" to="/rejestracja">Załóż konto klubu</Link>
-              <Link className="btn btn-outline" to="/rodzic">Sprawdź start zawodnika</Link>
+              <Link className="btn btn-primary" to="/rejestracja">Zarejestruj się</Link>
+              <Link className="btn btn-outline" to="/logowanie">Zaloguj</Link>
             </div>
           </div>
           <div className="hero-card">
@@ -68,7 +68,7 @@ export default function Home() {
           <div><strong>4</strong><h3>Klasyfikacja LIVE</h3><p>Kluby są klasyfikowane medalowo: najpierw złote, potem srebrne i brązowe. Punkty klubowe: złoto 6, srebro 4, brąz 2.</p></div>
         </section>
       </main>
-      <footer className="footer">IKA Poland — System Zawodów • ETAP 30</footer>
+      <footer className="footer">IKA Poland — System Zawodów • ETAP 31</footer>
     </div>
   )
 }
