@@ -5,7 +5,7 @@ import { useAuth } from '../lib/AuthContext'
 export function Brand() {
   return (
     <Link className="brand" to="/">
-      <img className="brand-logo" src="/ika-poland-logo.png" alt="IKA Poland" />
+      <img className="brand-logo" src="/ika-poland-logo.jpg" alt="IKA Poland" />
       <span>
         <strong>IKA Poland</strong>
         <small>System Zawodów</small>

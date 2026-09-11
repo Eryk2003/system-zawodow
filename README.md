@@ -1,8 +1,10 @@
+ETAP 32: podmieniono logo systemu na dokładnie przesłane oficjalne logo IKA Poland. Logo jest używane w nagłówku i jako favicon, bez dużego logo w sekcji głównej.
+
 Na stronie głównej w sekcji głównej pozostawiono tylko dwa przyciski: „Zarejestruj się” i „Zaloguj”.
 
 Usunięto duże logo z sekcji głównej strony startowej. Logo w nagłówku i ikona strony pozostają bez zmian.
 
-# IKA Poland — System Zawodów ETAP 31
+# IKA Poland — System Zawodów ETAP 32
 
 Ten etap ustawia oficjalne logo IKA Poland jako logo systemu, faviconę strony i znak marki zamiast domyślnej ikony.
 
