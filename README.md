@@ -1,4 +1,6 @@
-# IKA Poland — System Zawodów ETAP 29
+Usunięto duże logo z sekcji głównej strony startowej. Logo w nagłówku i ikona strony pozostają bez zmian.
+
+# IKA Poland — System Zawodów ETAP 30
 
 Ten etap ustawia oficjalne logo IKA Poland jako logo systemu, faviconę strony i znak marki zamiast domyślnej ikony.
 
