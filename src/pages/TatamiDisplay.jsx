@@ -233,8 +233,13 @@ export default function TatamiDisplay() {
     const first = byPlace(1)[0] || null
     const second = byPlace(2)[0] || null
     const thirds = byPlace(3)
+    const firstRevealDelay = 800
+    const revealGap = 1600
+    const bronzeDelays = thirds.map((_, index) => firstRevealDelay + index * revealGap)
+    const silverDelay = firstRevealDelay + thirds.length * revealGap
+    const goldDelay = silverDelay + revealGap
 
-    const athleteTile = (result, place) => {
+    const athleteTile = (result, place, revealDelay = 0) => {
       if (!result) {
         return (
           <div className={`podium-athlete podium-athlete-${place} podium-athlete-empty`}>
@@ -246,7 +251,10 @@ export default function TatamiDisplay() {
       const info = athleteInfo(result.athleteId)
       const initials = result.athleteName.split(' ').map((part) => part[0]).slice(0, 2).join('')
       return (
-        <article className={`podium-athlete podium-athlete-${place}`}>
+        <article
+          className={`podium-athlete podium-athlete-${place} podium-athlete-reveal`}
+          style={{ '--podium-reveal-delay': `${revealDelay}ms` }}
+        >
           <div className="podium-photo">
             {info?.photo ? <img src={info.photo} alt={result.athleteName} /> : <div>{initials}</div>}
           </div>
@@ -257,7 +265,10 @@ export default function TatamiDisplay() {
     }
 
     return (
-      <main className="tatami-screen podium-screen podium-screen-v2">
+      <main
+        key={payload.podium.key || `${payload.podium.competitionName}-${payload.podium.categoryName}`}
+        className="tatami-screen podium-screen podium-screen-v2 podium-screen-animated"
+      >
         <FullscreenControl />
         <header className="podium-header">
           <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
@@ -273,18 +284,18 @@ export default function TatamiDisplay() {
 
           <div className="podium-platform-wrap">
             <div className="podium-slot podium-slot-second">
-              <div className="podium-athletes-on-step">{athleteTile(second, 'silver')}</div>
+              <div className="podium-athletes-on-step">{athleteTile(second, 'silver', silverDelay)}</div>
               <div className="podium-step podium-step-silver"><span>2</span><small>2. MIEJSCE</small></div>
             </div>
 
             <div className="podium-slot podium-slot-first">
-              <div className="podium-athletes-on-step">{athleteTile(first, 'gold')}</div>
+              <div className="podium-athletes-on-step">{athleteTile(first, 'gold', goldDelay)}</div>
               <div className="podium-step podium-step-gold"><span>1</span><small>1. MIEJSCE</small></div>
             </div>
 
             <div className="podium-slot podium-slot-third">
               <div className={`podium-athletes-on-step ${thirds.length > 1 ? 'podium-two-bronzes' : ''}`}>
-                {thirds.length ? thirds.map((item) => <React.Fragment key={item.athleteId}>{athleteTile(item, 'bronze')}</React.Fragment>) : athleteTile(null, 'bronze')}
+                {thirds.length ? thirds.map((item, index) => <React.Fragment key={item.athleteId}>{athleteTile(item, 'bronze', bronzeDelays[index])}</React.Fragment>) : athleteTile(null, 'bronze')}
               </div>
               <div className="podium-step podium-step-bronze"><span>3</span><small>{thirds.length > 1 ? '3. MIEJSCA' : '3. MIEJSCE'}</small></div>
             </div>

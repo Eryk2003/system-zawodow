@@ -237,3 +237,15 @@ ETAP 39:
 - Wyszukiwanie zawodnika działa po imieniu, nazwisku lub fragmencie nazwy.
 - Przy zawodniku system pokazuje szacowaną godzinę startu oraz "za około N min".
 - Szacunek LIVE uwzględnia kolejkę walk, pozostały czas aktywnej walki i czas pojedynku ustawiony dla kategorii.
+
+
+## ETAP 48 - animowane podium
+
+Po zakonczeniu kategorii podium na telebimie nie pokazuje wszystkich medalistow od razu. Zawodnicy pojawiaja sie kolejno z animacja spadania z gory i lekkiego odbicia przy ladowaniu:
+
+1. pierwszy zawodnik z 3. miejsca,
+2. drugi zawodnik z 3. miejsca, jesli wystepuje,
+3. zawodnik z 2. miejsca,
+4. na koncu zwyciezca z 1. miejsca.
+
+Zmiana dotyczy tylko prezentacji podium. Klasyfikacja, wyniki i naliczanie punktow pozostaja bez zmian.

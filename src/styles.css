@@ -337,3 +337,41 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .academy-bracket-round-grid{grid-template-rows:repeat(var(--academy-bracket-rows),72px)}
   .academy-bracket-slot{min-height:140px}
 }
+
+/* ETAP 48 - ceremonialne wejscie podium na telebimie.
+   Kolejnosc: 3. miejsce, drugie 3. miejsce, 2. miejsce, 1. miejsce. */
+.podium-screen-animated .podium-athlete-reveal{
+  opacity:0;
+  transform:translateY(-72vh) scale(.9);
+  transform-origin:50% 100%;
+  filter:blur(5px);
+  animation:podium-athlete-drop 1.28s cubic-bezier(.18,.82,.2,1.12) var(--podium-reveal-delay,0ms) forwards;
+  will-change:transform,opacity,filter;
+}
+.podium-screen-animated .podium-athlete-reveal .podium-photo{
+  animation:podium-photo-landing .9s ease-out calc(var(--podium-reveal-delay,0ms) + .86s) both;
+}
+.podium-screen-animated .podium-athlete-gold{
+  z-index:4;
+}
+@keyframes podium-athlete-drop{
+  0%{opacity:0;transform:translateY(-72vh) scale(.88);filter:blur(7px)}
+  38%{opacity:1;filter:blur(0)}
+  68%{transform:translateY(18px) scale(1.035)}
+  82%{transform:translateY(-11px) scale(.995)}
+  92%{transform:translateY(5px) scale(1.01)}
+  100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+@keyframes podium-photo-landing{
+  0%,100%{box-shadow:0 16px 38px rgba(0,0,0,.36)}
+  45%{box-shadow:0 0 0 5px rgba(255,255,255,.2),0 0 42px rgba(217,178,76,.55),0 16px 38px rgba(0,0,0,.36)}
+}
+@media(prefers-reduced-motion:reduce){
+  .podium-screen-animated .podium-athlete-reveal,
+  .podium-screen-animated .podium-athlete-reveal .podium-photo{
+    opacity:1;
+    transform:none;
+    filter:none;
+    animation:none;
+  }
+}
