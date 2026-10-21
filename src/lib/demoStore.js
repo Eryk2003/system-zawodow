@@ -133,7 +133,7 @@ export function resolveMatch(match, matches = read(KEYS.matches, [])) {
 
 export function getComputedRemaining(match) {
   if (!match) return 0
-  const base = Number.isFinite(match.timerRemaining) ? match.timerRemaining : Number(DEFAULT_TOURNAMENT.boutSeconds)
+  const base = Number.isFinite(match.timerRemaining) ? match.timerRemaining : Number(match.boutSeconds || DEFAULT_TOURNAMENT.boutSeconds)
   if (!match.timerRunning || !match.timerStartedAt) return Math.max(0, base)
   const elapsed = Math.floor((Date.now() - match.timerStartedAt) / 1000)
   return Math.max(0, base - elapsed)
@@ -159,21 +159,47 @@ function scheduleGroupKey(competitionId, category) {
   return `${competitionId || ''}|||${(category || '').trim()}`
 }
 
-function timeToMinutes(value) {
-  const [hours, minutes] = String(value || '09:00').split(':').map(Number)
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return 9 * 60
-  return Math.max(0, Math.min(23 * 60 + 59, hours * 60 + minutes))
+function timeToSeconds(value) {
+  const parts = String(value || '09:00').split(':').map(Number)
+  const hours = parts[0]
+  const minutes = parts[1]
+  const seconds = parts[2] || 0
+  if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds)) return 9 * 60 * 60
+  return Math.max(0, Math.min(24 * 60 * 60 - 1, hours * 3600 + minutes * 60 + seconds))
 }
 
-function minutesToTime(value) {
-  const normalized = Math.max(0, Math.round(value)) % (24 * 60)
-  return `${String(Math.floor(normalized / 60)).padStart(2, '0')}:${String(normalized % 60).padStart(2, '0')}`
+function secondsToTime(value, forceSeconds = false) {
+  const normalized = Math.max(0, Math.round(value)) % (24 * 60 * 60)
+  const hours = Math.floor(normalized / 3600)
+  const minutes = Math.floor((normalized % 3600) / 60)
+  const seconds = normalized % 60
+  const base = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+  return forceSeconds || seconds ? `${base}:${String(seconds).padStart(2, '0')}` : base
 }
 
-function estimateScheduleDuration(entryCount, competition, tournament) {
-  const avg = Math.max(1, Number(tournament.avgBoutMinutes || 2))
-  const units = competition?.group === 'Kumite' ? Math.max(1, entryCount - 1) : Math.max(1, entryCount)
-  return Math.max(1, Math.ceil(units * avg))
+function getCategoryBoutSeconds(categoryRecord, tournament) {
+  const categorySeconds = Number(categoryRecord?.boutSeconds)
+  if (Number.isFinite(categorySeconds) && categorySeconds > 0) return Math.max(1, Math.round(categorySeconds))
+
+  const tournamentSeconds = Number(tournament?.boutSeconds)
+  if (Number.isFinite(tournamentSeconds) && tournamentSeconds > 0) return Math.max(1, Math.round(tournamentSeconds))
+
+  const tournamentMinutes = Number(tournament?.avgBoutMinutes)
+  if (Number.isFinite(tournamentMinutes) && tournamentMinutes > 0) return Math.max(1, Math.round(tournamentMinutes * 60))
+
+  return Number(DEFAULT_TOURNAMENT.boutSeconds) || 120
+}
+
+function estimateScheduleTiming(entryCount, competition, tournament, categoryRecord) {
+  const boutSeconds = getCategoryBoutSeconds(categoryRecord, tournament)
+  const boutCount = competition?.group === 'Kumite' ? Math.max(1, entryCount - 1) : Math.max(1, entryCount)
+  const durationSeconds = Math.max(1, boutCount * boutSeconds)
+  return {
+    boutSeconds,
+    boutCount,
+    durationSeconds,
+    durationMinutes: Math.round((durationSeconds / 60) * 100) / 100,
+  }
 }
 
 function normalizeMatName(mat, matCount) {
@@ -203,10 +229,54 @@ function findEarliestFreeSlot(reservationsByMat, duration, tournamentStart, matC
 function syncEntriesWithSchedule(schedule) {
   const slotsByKey = new Map(schedule.map((slot) => [slot.groupKey, slot]))
   const entries = read(KEYS.entries, [])
+  const competitions = read(KEYS.competitions, DEFAULT_COMPETITIONS)
+  const categories = read(KEYS.tournamentCategories, [])
+  const matches = read(KEYS.matches, [])
+  const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
+
+  const groupEntries = new Map()
+  entries.forEach((entry) => {
+    const key = scheduleGroupKey(entry.competitionId, entry.category)
+    if (!groupEntries.has(key)) groupEntries.set(key, [])
+    groupEntries.get(key).push(entry)
+  })
+  groupEntries.forEach((items) => items.sort((a, b) => Number(a.createdAt || 0) - Number(b.createdAt || 0)))
+
   const synced = entries.map((entry) => {
-    const slot = slotsByKey.get(scheduleGroupKey(entry.competitionId, entry.category))
+    const key = scheduleGroupKey(entry.competitionId, entry.category)
+    const slot = slotsByKey.get(key)
     if (!slot) return { ...entry, estimatedStart: '', mat: '', scheduleSlotId: null }
-    return { ...entry, estimatedStart: slot.startTime, mat: slot.mat, scheduleSlotId: slot.id }
+
+    const competition = competitions.find((item) => item.id === entry.competitionId)
+    const categoryRecord = categories.find((item) =>
+      item.id === entry.categoryId || (item.competitionId === entry.competitionId && item.name === entry.category)
+    )
+    const boutSeconds = Number(slot.boutSeconds) || getCategoryBoutSeconds(categoryRecord, tournament)
+    const startSeconds = timeToSeconds(slot.startTime)
+    const items = groupEntries.get(key) || []
+    let sequenceIndex = Math.max(0, items.findIndex((item) => item.id === entry.id))
+
+    if (competition?.group === 'Kumite') {
+      const categoryMatches = matches
+        .filter((match) =>
+          match.competitionId === entry.competitionId &&
+          match.category === entry.category &&
+          (!entry.categoryId || !match.categoryId || match.categoryId === entry.categoryId)
+        )
+        .sort((a, b) => Number(a.queueOrder || 0) - Number(b.queueOrder || 0))
+      const firstOwnMatch = categoryMatches.find((match) =>
+        match.redAthleteId === entry.athleteId || match.blueAthleteId === entry.athleteId
+      )
+      if (firstOwnMatch) sequenceIndex = Math.max(0, Number(firstOwnMatch.queueOrder || 1) - 1)
+      else sequenceIndex = Math.floor(sequenceIndex / 2)
+    }
+
+    return {
+      ...entry,
+      estimatedStart: secondsToTime(startSeconds + sequenceIndex * boutSeconds, true),
+      mat: slot.mat,
+      scheduleSlotId: slot.id,
+    }
   })
   write(KEYS.entries, synced)
   return synced
@@ -216,6 +286,7 @@ function regenerateScheduleInternal() {
   const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
   const entries = read(KEYS.entries, [])
   const competitions = read(KEYS.competitions, DEFAULT_COMPETITIONS)
+  const categories = read(KEYS.tournamentCategories, [])
   const existing = read(KEYS.schedule, [])
   const existingByKey = new Map(existing.map((slot) => [slot.groupKey || scheduleGroupKey(slot.competitionId, slot.category), slot]))
   const grouped = new Map()
@@ -223,7 +294,7 @@ function regenerateScheduleInternal() {
   entries.forEach((entry) => {
     if (!entry.competitionId || !String(entry.category || '').trim()) return
     const key = scheduleGroupKey(entry.competitionId, entry.category)
-    if (!grouped.has(key)) grouped.set(key, { key, competitionId: entry.competitionId, category: entry.category.trim(), entries: [] })
+    if (!grouped.has(key)) grouped.set(key, { key, competitionId: entry.competitionId, category: entry.category.trim(), categoryId: entry.categoryId || null, entries: [] })
     grouped.get(key).entries.push(entry)
   })
 
@@ -236,7 +307,7 @@ function regenerateScheduleInternal() {
   })
 
   const matCount = Math.max(1, Number(tournament.matCount) || 1)
-  const tournamentStart = timeToMinutes(tournament.startTime || '09:00')
+  const tournamentStart = timeToSeconds(tournament.startTime || '09:00')
   const reservationsByMat = {}
   for (let i = 1; i <= matCount; i += 1) reservationsByMat[`Tatami ${i}`] = []
 
@@ -245,51 +316,63 @@ function regenerateScheduleInternal() {
   manualGroups.forEach((group) => {
     const old = existingByKey.get(group.key)
     const competition = competitions.find((item) => item.id === group.competitionId)
-    const durationMinutes = estimateScheduleDuration(group.entries.length, competition, tournament)
+    const categoryRecord = categories.find((item) =>
+      item.id === group.categoryId || (item.competitionId === group.competitionId && item.name === group.category)
+    )
+    const timing = estimateScheduleTiming(group.entries.length, competition, tournament, categoryRecord)
     const mat = normalizeMatName(old.mat, matCount)
-    const start = timeToMinutes(old.startTime || tournament.startTime)
+    const start = timeToSeconds(old.startTime || tournament.startTime)
     const slot = {
       ...old,
       id: old.id || uid('slot'),
       groupKey: group.key,
       competitionId: group.competitionId,
       category: group.category,
+      categoryId: group.categoryId || categoryRecord?.id || null,
       mat,
-      startTime: minutesToTime(start),
-      endTime: minutesToTime(start + durationMinutes),
-      durationMinutes,
+      startTime: secondsToTime(start),
+      endTime: secondsToTime(start + timing.durationSeconds, true),
+      durationSeconds: timing.durationSeconds,
+      durationMinutes: timing.durationMinutes,
+      boutSeconds: timing.boutSeconds,
       athleteCount: group.entries.length,
-      estimatedBoutCount: competition?.group === 'Kumite' ? Math.max(1, group.entries.length - 1) : group.entries.length,
+      estimatedBoutCount: timing.boutCount,
       manual: true,
       order: Number.isFinite(old.order) ? old.order : schedule.length,
     }
     schedule.push(slot)
-    reservationsByMat[mat].push({ start, end: start + durationMinutes, slotId: slot.id })
+    reservationsByMat[mat].push({ start, end: start + timing.durationSeconds, slotId: slot.id })
   })
 
   const autoGroups = groups.filter((group) => !existingByKey.get(group.key)?.manual)
   autoGroups.forEach((group, index) => {
     const old = existingByKey.get(group.key)
     const competition = competitions.find((item) => item.id === group.competitionId)
-    const durationMinutes = estimateScheduleDuration(group.entries.length, competition, tournament)
-    const placement = findEarliestFreeSlot(reservationsByMat, durationMinutes, tournamentStart, matCount)
+    const categoryRecord = categories.find((item) =>
+      item.id === group.categoryId || (item.competitionId === group.competitionId && item.name === group.category)
+    )
+    const timing = estimateScheduleTiming(group.entries.length, competition, tournament, categoryRecord)
+    const placement = findEarliestFreeSlot(reservationsByMat, timing.durationSeconds, tournamentStart, matCount)
     const slot = {
       ...(old || {}),
       id: old?.id || uid('slot'),
       groupKey: group.key,
       competitionId: group.competitionId,
       category: group.category,
+      categoryId: group.categoryId || categoryRecord?.id || null,
       mat: placement.mat,
-      startTime: minutesToTime(placement.start),
-      endTime: minutesToTime(placement.start + durationMinutes),
-      durationMinutes,
+      startTime: secondsToTime(placement.start),
+      endTime: secondsToTime(placement.start + timing.durationSeconds, true),
+      durationSeconds: timing.durationSeconds,
+      durationMinutes: timing.durationMinutes,
+      boutSeconds: timing.boutSeconds,
       athleteCount: group.entries.length,
-      estimatedBoutCount: competition?.group === 'Kumite' ? Math.max(1, group.entries.length - 1) : group.entries.length,
+      estimatedBoutCount: timing.boutCount,
       manual: false,
       order: Number.isFinite(old?.order) ? old.order : manualGroups.length + index,
     }
     schedule.push(slot)
-    reservationsByMat[placement.mat].push({ start: placement.start, end: placement.start + durationMinutes, slotId: slot.id })
+    reservationsByMat[placement.mat].push({ start: placement.start, end: placement.start + timing.durationSeconds, slotId: slot.id })
   })
 
   const sorted = schedule.sort((a, b) => a.startTime.localeCompare(b.startTime) || a.mat.localeCompare(b.mat, 'pl', { numeric: true }) || a.order - b.order)
@@ -554,6 +637,7 @@ export const db = {
       gender: category.gender,
       minAge: category.minAge === '' || category.minAge == null ? null : Number(category.minAge),
       maxAge: category.maxAge === '' || category.maxAge == null ? null : Number(category.maxAge),
+      boutSeconds: category.boutSeconds === '' || category.boutSeconds == null ? null : Math.max(1, Math.round(Number(category.boutSeconds))),
       createdAt: category.createdAt || Date.now(),
     }
     const idx = items.findIndex((item) => item.id === next.id)
@@ -956,6 +1040,12 @@ export const db = {
     }
     if (athleteIds.length < 2) throw new Error('Do utworzenia drabinki kumite potrzeba co najmniej 2 zawodników.')
 
+    const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
+    const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
+      item.id === categoryId || (item.competitionId === competitionId && item.name === category)
+    )
+    const categoryBoutSeconds = getCategoryBoutSeconds(categoryRecord, tournament)
+
     const allMatches = read(KEYS.matches, []).filter(
       (m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat),
     )
@@ -975,7 +1065,7 @@ export const db = {
           roundName: roundName(prelimCount * 2, true), matchNo: i + 1, queueOrder: queueOrder++,
           redAthleteId: athleteIds[cursor++], blueAthleteId: athleteIds[cursor++],
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, status: 'scheduled',
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
         slots.push({ sourceMatchId: match.id })
@@ -998,7 +1088,7 @@ export const db = {
           roundName: name, matchNo: i / 2 + 1, queueOrder: queueOrder++,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, status: 'scheduled',
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
         nextSlots.push({ sourceMatchId: match.id })
@@ -1008,6 +1098,7 @@ export const db = {
     }
 
     write(KEYS.matches, [...allMatches, ...created])
+    syncEntriesWithSchedule(read(KEYS.schedule, []))
     setMatStateInternal(mat, { mode: 'bracket', competitionId, category, categoryId, currentMatchId: null, lastCompletedMatchId: null })
     emit()
     return created
@@ -1020,12 +1111,17 @@ export const db = {
     const match = resolveMatch(raw, matches)
     if (!match.redResolvedId || !match.blueResolvedId) throw new Error('Ta walka nie jest jeszcze gotowa - czeka na wynik wcześniejszej walki.')
     const tournament = db.getTournament()
+    const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
+      item.id === raw.categoryId || (item.competitionId === raw.competitionId && item.name === raw.category)
+    )
+    const boutSeconds = Number(raw.boutSeconds) || getCategoryBoutSeconds(categoryRecord, tournament)
     const next = {
       ...raw,
+      boutSeconds,
       status: 'active',
       redScore: raw.redScore || 0,
       blueScore: raw.blueScore || 0,
-      timerRemaining: Number.isFinite(raw.timerRemaining) ? raw.timerRemaining : Number(tournament.boutSeconds || 120),
+      timerRemaining: Number.isFinite(raw.timerRemaining) ? raw.timerRemaining : boutSeconds,
       timerStartedAt: Date.now(),
       timerRunning: true,
     }
@@ -1174,15 +1270,18 @@ export const db = {
   },
 
   parentLookup: (fullName) => buildParentLookup(fullName),
+  publicTatamiLookup: (mat) => buildPublicTatamiLookup(mat),
 }
 
 export function buildParentLookup(fullName) {
   ensureSeed()
   const normalized = fullName.trim().toLocaleLowerCase('pl')
   if (!normalized) return []
-  const athletes = db.getAthletes().filter(
-    (a) => `${a.firstName} ${a.lastName}`.trim().toLocaleLowerCase('pl') === normalized,
-  )
+  const queryTokens = normalized.split(/\s+/).filter(Boolean)
+  const athletes = db.getAthletes().filter((a) => {
+    const haystack = `${a.firstName} ${a.lastName}`.trim().toLocaleLowerCase('pl')
+    return queryTokens.every((token) => haystack.includes(token))
+  })
   const entries = db.getEntries()
   const comps = db.getCompetitions()
   const clubs = db.getClubs()
@@ -1229,16 +1328,31 @@ export function buildParentLookup(fullName) {
         const currentCategory = matState?.category || activeEntryOnMat?.category
         const currentCompetition = currentCompetitionId ? comps.find((c) => c.id === currentCompetitionId) : null
         let dynamicEstimate = entry.estimatedStart || ''
+        let etaMinutes = null
         const today = new Date().toISOString().slice(0, 10)
-        if (Number.isInteger(fightsRemaining) && liveStatus !== 'active' && liveStatus !== 'done' && tournament.date === today) {
-          const minutes = Math.max(1, Number(tournament.avgBoutMinutes || 2)) * (fightsRemaining + 1)
-          const liveProjection = Date.now() + minutes * 60000
-          const scheduledProjection = entry.estimatedStart
-            ? new Date(`${tournament.date}T${entry.estimatedStart}:00`).getTime()
-            : 0
-          dynamicEstimate = new Date(Math.max(liveProjection, scheduledProjection || 0)).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+        const scheduledProjection = entry.estimatedStart
+          ? new Date(`${tournament.date}T${entry.estimatedStart}`).getTime()
+          : 0
+
+        if (Number.isInteger(fightsRemaining) && liveStatus !== 'active' && liveStatus !== 'done' && tournament.date === today && nextMatch) {
+          const beforeOwnMatch = resolved.filter((m) =>
+            m.status !== 'done' && Number(m.queueOrder || 0) < Number(nextMatch.queueOrder || 0)
+          )
+          const waitSeconds = beforeOwnMatch.reduce((sum, m) => {
+            if (m.status === 'active') return sum + getComputedRemaining(m)
+            return sum + Math.max(1, Number(m.boutSeconds || nextMatch.boutSeconds || tournament.boutSeconds || DEFAULT_TOURNAMENT.boutSeconds))
+          }, 0)
+          const liveProjection = Date.now() + waitSeconds * 1000
+          const projection = Math.max(liveProjection, scheduledProjection || 0)
+          dynamicEstimate = new Date(projection).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })
+          etaMinutes = Math.max(0, Math.ceil((projection - Date.now()) / 60000))
+        } else if (liveStatus !== 'active' && liveStatus !== 'done' && scheduledProjection) {
+          etaMinutes = Math.max(0, Math.ceil((scheduledProjection - Date.now()) / 60000))
         }
-        if (liveStatus === 'active') dynamicEstimate = 'TERAZ'
+        if (liveStatus === 'active') {
+          dynamicEstimate = 'TERAZ'
+          etaMinutes = 0
+        }
 
         return {
           ...entry,
@@ -1247,11 +1361,43 @@ export function buildParentLookup(fullName) {
           liveStatus,
           liveLabel,
           dynamicEstimate,
+          etaMinutes,
           currentOnMat: currentCompetition ? `${currentCompetition.name}${currentCategory ? ` • ${currentCategory}` : ''}` : 'Brak aktywnej konkurencji',
         }
       })
       .sort((a, b) => (a.estimatedStart || '').localeCompare(b.estimatedStart || '')),
   }))
+}
+
+
+export function buildPublicTatamiLookup(mat) {
+  ensureSeed()
+  const normalizedMat = String(mat || '').trim()
+  if (!normalizedMat) return []
+
+  const athletes = db.getAthletes()
+  const entries = db.getEntries().filter((entry) => entry.mat === normalizedMat)
+  const rows = []
+
+  entries.forEach((entry) => {
+    const athlete = athletes.find((item) => item.id === entry.athleteId)
+    if (!athlete) return
+    const lookup = buildParentLookup(`${athlete.firstName} ${athlete.lastName}`)
+      .find((item) => item.athlete.id === athlete.id)
+    const decorated = lookup?.entries.find((item) => item.id === entry.id)
+    if (!decorated || decorated.liveStatus === 'done') return
+    rows.push({ athlete: lookup.athlete, entry: decorated })
+  })
+
+  return rows
+    .sort((a, b) => {
+      if (a.entry.liveStatus === 'active' && b.entry.liveStatus !== 'active') return -1
+      if (b.entry.liveStatus === 'active' && a.entry.liveStatus !== 'active') return 1
+      const etaA = Number.isFinite(a.entry.etaMinutes) ? a.entry.etaMinutes : Number.MAX_SAFE_INTEGER
+      const etaB = Number.isFinite(b.entry.etaMinutes) ? b.entry.etaMinutes : Number.MAX_SAFE_INTEGER
+      return etaA - etaB || String(a.entry.dynamicEstimate || a.entry.estimatedStart || '').localeCompare(String(b.entry.dynamicEstimate || b.entry.estimatedStart || ''))
+    })
+    .slice(0, 20)
 }
 
 export function getLivePayload() {

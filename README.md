@@ -1,3 +1,13 @@
+# ETAP 44 - harmonogram liczony z rzeczywistego czasu walki
+
+- Harmonogram liczy czas w sekundach, więc obsługuje dokładnie 1:00, 1:30, 2:00 i 3:00.
+- Kategorie kumite mogą mieć własny czas walki; brak ustawienia oznacza domyślny czas zawodów.
+- Dla 4 zawodników kumite system liczy 3 walki, np. przy 1:30 = 4 min 30 s.
+- Zawodnicy nie dostają już wszyscy tej samej godziny: pierwsze pary otrzymują kolejne orientacyjne czasy zgodnie z kolejnością walk.
+- Po wylosowaniu drabinki orientacyjne godziny są przeliczane zgodnie z kolejnością walk w drabince.
+- Zegar panelu sędziego używa czasu przypisanego do danej kategorii.
+- `vercel.json` pozostaje poprawnym plikiem JSON.
+
 # ETAP 42 - kary Shobu
 
 Dodano cztery poziomy kar w kumite Shobu: ATTENAI 1, ATTENAI 2, CHUI i HANSOKU. HANSOKU automatycznie kończy walkę: zawodnik ukarany przegrywa, przeciwnik zostaje zwycięzcą i awansuje dalej. Po zakończeniu walki nie można zmieniać punktów ani kar. Kary są widoczne w Panelu Sędziego, Centrum Zawodów i na tablicy TV.
@@ -216,3 +226,10 @@ ETAP 39:
 - Następna gotowa walka jest podświetlona złotą ramką i oznaczona NASTĘPNA WALKA.
 - Przy dużej drabince telebim automatycznie przewija widok do następnej walki.
 - Po uruchomieniu następnej walki telebim wraca do tablicy punktowej.
+
+## ETAP 45
+- Publiczny wybór tatami przy zawodach z więcej niż jednym tatami.
+- Lista najbliższych startów na wybranym tatami aktualizowana LIVE.
+- Wyszukiwanie zawodnika działa po imieniu, nazwisku lub fragmencie nazwy.
+- Przy zawodniku system pokazuje szacowaną godzinę startu oraz "za około N min".
+- Szacunek LIVE uwzględnia kolejkę walk, pozostały czas aktywnej walki i czas pojedynku ustawiony dla kategorii.

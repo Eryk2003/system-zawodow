@@ -18,7 +18,16 @@ const ageOnDate = (birthDate, eventDate) => {
   return age
 }
 
-const emptyCategory = { competitionId: '', name: '', gender: '', minAge: '', maxAge: '' }
+
+const formatBoutDuration = (seconds) => {
+  const total = Number(seconds)
+  if (!Number.isFinite(total) || total <= 0) return '-'
+  const minutes = Math.floor(total / 60)
+  const rest = Math.round(total % 60)
+  return rest ? `${minutes}:${String(rest).padStart(2, '0')}` : `${minutes}:00`
+}
+
+const emptyCategory = { competitionId: '', name: '', gender: '', minAge: '', maxAge: '', boutSeconds: '' }
 
 export default function CreateTournamentPage() {
   const navigate = useNavigate()
@@ -168,6 +177,7 @@ export default function CreateTournamentPage() {
     const saved = db.saveTournamentCategory({
       ...categoryForm,
       name: categoryForm.name.trim(),
+      boutSeconds: categoryForm.boutSeconds === '' ? null : Number(categoryForm.boutSeconds),
       maxAge: competitionMaxAge == null ? requestedMaxAge : (requestedMaxAge == null ? competitionMaxAge : Math.min(competitionMaxAge, requestedMaxAge)),
     })
     setCategories(db.getTournamentCategories())
@@ -248,6 +258,8 @@ export default function CreateTournamentPage() {
     const athlete = allAthletes.find((item) => item.id === id)
     return athlete ? `${athlete.firstName} ${athlete.lastName}` : 'Oczekiwanie'
   }
+
+  const categoryCompetition = competitions.find((item) => item.id === categoryForm.competitionId) || null
 
   const categoryCards = useMemo(() => categories.map((category) => {
     const competition = competitions.find((item) => item.id === category.competitionId)
@@ -336,6 +348,9 @@ export default function CreateTournamentPage() {
               <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
               <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
               <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
+              {categoryCompetition?.group === 'Kumite' && (
+                <label>Czas walki<select value={categoryForm.boutSeconds} onChange={(event) => setCategoryForm({ ...categoryForm, boutSeconds: event.target.value })}><option value="">Domyślny czas zawodów ({formatBoutDuration(createdTournament?.boutSeconds || form.boutSeconds)})</option><option value="60">1:00 min</option><option value="90">1:30 min</option><option value="120">2:00 min</option><option value="180">3:00 min</option></select></label>
+              )}
               <button className="btn btn-primary">+ Dodaj kategorię</button>
             </form>
           </section>
@@ -360,7 +375,7 @@ export default function CreateTournamentPage() {
                     <div>
                       <span className="eyebrow">{competition?.name || 'Konkurencja'}</span>
                       <h2>{category.name}</h2>
-                      <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników` : 'Brak zawodników - harmonogram pojawi się po zapisaniu składu.'}</p>
+                      <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników${competition?.group === 'Kumite' ? ` • walka ${formatBoutDuration(slot.boutSeconds || category.boutSeconds || createdTournament?.boutSeconds)}` : ''}` : 'Brak zawodników - harmonogram pojawi się po zapisaniu składu.'}</p>
                     </div>
                     <div className="category-card-actions">
                       <button type="button" className="btn btn-outline" onClick={() => setOpenCategoryId(isOpen ? null : category.id)}>{isOpen ? 'Zwiń zawodników' : 'Wybierz zawodników'}</button>

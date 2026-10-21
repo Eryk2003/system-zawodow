@@ -14,6 +14,17 @@ const parseBracketKey = (key) => {
 }
 const clock = (seconds) => `${String(Math.floor(Math.max(0, seconds) / 60)).padStart(2, '0')}:${String(Math.max(0, seconds) % 60).padStart(2, '0')}`
 const scoreText = (value) => String(Number(value || 0)).replace('.', ',')
+const durationText = (seconds) => {
+  const total = Math.max(0, Math.round(Number(seconds) || 0))
+  const minutes = Math.floor(total / 60)
+  const rest = total % 60
+  if (!rest) return `${minutes} min`
+  return `${minutes} min ${rest} s`
+}
+const boutTimeText = (seconds) => {
+  const total = Math.max(0, Math.round(Number(seconds) || 0))
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
+}
 
 const ageOnDate = (birthDate, eventDate) => {
   if (!birthDate) return null
@@ -100,6 +111,30 @@ export default function TournamentCenter() {
 
   const saveTournamentField = (field, value) => {
     db.saveTournament({ ...db.getTournament(), [field]: value })
+    refresh()
+  }
+
+  const saveTournamentBoutMinutes = (rawValue) => {
+    const value = rawValue.replace(',', '.').replace(/[^0-9.]/g, '')
+    const parsed = Number(value)
+    const current = db.getTournament()
+    db.saveTournament({
+      ...current,
+      avgBoutMinutes: value === '' || !Number.isFinite(parsed) ? '' : parsed,
+      boutSeconds: value === '' || !Number.isFinite(parsed) ? '' : Math.max(1, Math.round(parsed * 60)),
+    })
+    refresh()
+  }
+
+  const saveTournamentBoutSeconds = (rawValue) => {
+    const value = rawValue.replace(/\D/g, '')
+    const parsed = Number(value)
+    const current = db.getTournament()
+    db.saveTournament({
+      ...current,
+      boutSeconds: value === '' || !Number.isFinite(parsed) ? '' : parsed,
+      avgBoutMinutes: value === '' || !Number.isFinite(parsed) ? '' : Math.round((parsed / 60) * 100) / 100,
+    })
     refresh()
   }
 
@@ -242,13 +277,13 @@ export default function TournamentCenter() {
           <label>Data<input type="date" value={tournament.date} onChange={(e) => saveTournamentField('date', e.target.value)} /></label>
           <label>Godzina rozpoczęcia<input type="time" value={tournament.startTime || ''} onChange={(e) => saveTournamentField('startTime', e.target.value)} /></label>
           <label>Miejsce<input value={tournament.venue} onChange={(e) => saveTournamentField('venue', e.target.value)} /></label>
-          <label>Średni czas jednej walki (min)<input className="numeric-input" inputMode="decimal" value={tournament.avgBoutMinutes ?? ''} onChange={(e) => { const value = e.target.value.replace(',', '.').replace(/[^0-9.]/g, ''); saveTournamentField('avgBoutMinutes', value === '' ? '' : Number(value)) }} /></label>
-          <label>Czas walki na tablicy (sek.)<input className="numeric-input" inputMode="numeric" value={tournament.boutSeconds ?? ''} onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); saveTournamentField('boutSeconds', value === '' ? '' : Number(value)) }} /></label>
+          <label>Domyślny czas jednej walki (min)<input className="numeric-input" inputMode="decimal" value={tournament.avgBoutMinutes ?? ''} onChange={(e) => saveTournamentBoutMinutes(e.target.value)} /></label>
+          <label>Domyślny czas walki (sek.)<input className="numeric-input" inputMode="numeric" value={tournament.boutSeconds ?? ''} onChange={(e) => saveTournamentBoutSeconds(e.target.value)} /><small className="field-hint">Minuty i sekundy są zsynchronizowane. Kategoria może mieć własny czas 1:00, 1:30, 2:00 lub 3:00.</small></label>
         </div>
       </section>
 
       <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Nie wpisujesz godziny przy zawodniku. System sam rozkłada kategorie od godziny rozpoczęcia zawodów na dostępne tatami. Harmonogram możesz później poprawić ręcznie.</p></div></div>
+        <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Nie wpisujesz godziny przy zawodniku. System rozkłada kategorie na dostępne tatami i liczy każdą walkę według czasu ustawionego dla kategorii. Przy 1:30 kolejne walki dostają czasy np. 09:00:00, 09:01:30, 09:03:00. Harmonogram możesz później poprawić ręcznie.</p></div></div>
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}
         <form className="entry-builder auto-entry-builder" onSubmit={addEntry}>
           <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select></label>
@@ -266,8 +301,8 @@ export default function TournamentCenter() {
               const matOptions = Array.from({ length: Math.max(1, Number(tournament.matCount) || 1) }, (_, index) => `Tatami ${index + 1}`)
               return (
                 <article className={`schedule-editor-row ${slot.manual ? 'manual' : ''}`} key={slot.id}>
-                  <div className="schedule-editor-info"><strong>{competition?.name || 'Konkurencja'}</strong><span>{slot.category}</span><small>{slot.athleteCount} zawodników • ok. {slot.durationMinutes} min{slot.manual ? ' • ustawione ręcznie' : ' • automat'}</small></div>
-                  <label>Start<input type="time" value={slot.startTime} onChange={(e) => updateScheduleSlot(slot.id, { startTime: e.target.value })} /></label>
+                  <div className="schedule-editor-info"><strong>{competition?.name || 'Konkurencja'}</strong><span>{slot.category}</span><small>{slot.athleteCount} zawodników • {slot.estimatedBoutCount || 0} {competition?.group === 'Kumite' ? 'walk' : 'startów'} × {boutTimeText(slot.boutSeconds || tournament.boutSeconds)} • {durationText(slot.durationSeconds || Math.round(Number(slot.durationMinutes || 0) * 60))}{slot.manual ? ' • ustawione ręcznie' : ' • automat'}</small></div>
+                  <label>Start<input type="time" step="1" value={slot.startTime} onChange={(e) => updateScheduleSlot(slot.id, { startTime: e.target.value })} /></label>
                   <label>Tatami<select value={slot.mat} onChange={(e) => updateScheduleSlot(slot.id, { mat: e.target.value })}>{matOptions.map((mat) => <option value={mat} key={mat}>{mat}</option>)}</select></label>
                   <div className="schedule-editor-end"><small>Orientacyjny koniec</small><strong>{slot.endTime}</strong></div>
                   {slot.manual && <button type="button" className="btn btn-ghost btn-sm" onClick={() => resetScheduleSlot(slot.id)}>Przywróć automat</button>}
