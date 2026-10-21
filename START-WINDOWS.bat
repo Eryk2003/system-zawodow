@@ -1,15 +1,18 @@
-<!doctype html>
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b0b0d" />
-    <link rel="icon" type="image/png" href="/ika-poland-logo.jpg" />
-    <link rel="apple-touch-icon" href="/ika-poland-logo.jpg" />
-    <title>System Zawodów - IKA Poland</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+@echo off
+cd /d %~dp0
+if not exist node_modules (
+  echo Instalowanie zaleznosci...
+  call npm.cmd install
+  if errorlevel 1 (
+    echo.
+    echo Nie udalo sie zainstalowac zaleznosci.
+    pause
+    exit /b 1
+  )
+)
+echo.
+echo IKA Poland - System Zawodow
+start "IKA Poland - serwer" cmd /k npm.cmd run dev
+timeout /t 3 /nobreak >nul
+start "" http://localhost:19464
+exit

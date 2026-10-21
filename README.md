@@ -1,14 +1,61 @@
+# IKA Poland - System Zawodów ETAP 40
+
+## Najważniejsza zmiana
+Kluby korzystają teraz z Supabase Auth (e-mail + hasło), jeśli Supabase jest skonfigurowany.
+Dzięki temu ten sam klub może zalogować się na komputerze, laptopie lub telefonie tym samym kontem.
+
+Zawody utworzone przez organizatora są zapisywane w wspólnym stanie Supabase i są automatycznie widoczne w panelach wszystkich zalogowanych klubów. Realtime odświeża widok bez ręcznego kopiowania danych.
+
+Przepływ:
+1. Organizator tworzy zawody.
+2. `visibleToClubs` jest automatycznie ustawione na `true`.
+3. Supabase synchronizuje zawody na wszystkie urządzenia.
+4. Klub loguje się swoim kontem e-mail/hasło.
+5. Klub widzi zawody, dodaje swoich zawodników i zgłasza ich do kategorii.
+6. Organizator widzi wspólne zgłoszenia wszystkich klubów.
+
+Konto demonstracyjne organizatora pozostaje lokalne:
+- admin@ikapoland.demo
+- IKA12345
+
+Jeśli w Supabase Auth jest włączone potwierdzanie e-maili, nowy klub musi najpierw kliknąć link potwierdzający. Jeśli chcesz rejestrację od razu bez potwierdzenia, wyłącz Confirm email w Supabase -> Authentication -> Providers -> Email.
+
+# IKA Poland - System Zawodów ETAP 38
+
+## Drabinki i panel sędziego kumite jak w Systemie Akademii
+
+- Przeniesiono układ drabinek wzorowany na Systemie Akademii: kolumny rund, karty walk, połączenia między rundami, statusy i wyróżnienie zwycięzcy.
+- Kumite Shobu Ippon: AKA czerwony, SHIRO biały.
+- Kumite Shobu Sanbon: AKA czerwony, AO niebieski.
+- Kumite Shobu Nihon: AKA czerwony, AO niebieski.
+- Panel sędziego ma punktację WAZARI +1 i IPPON +2.
+- Dodano korektę wyniku -1 i -2 dla obu stron.
+- Oznaczenia AKA/SHIRO/AO są widoczne w panelu sędziego, drabince organizatora i drabince TV.
+- Pozostała logika zawodów, podium, harmonogramu i Supabase nie została przebudowana.
+
+# IKA Poland - System Zawodów ETAP 34
+
+Synchronizacja Supabase Realtime między komputerem, laptopem i telefonem.
+
+# IKA Poland - System Zawodów ETAP 34
+
+## Synchronizacja między urządzeniami
+
+Ten etap dodaje wspólny zapis Supabase. Zawody, kluby, zawodnicy, kategorie, harmonogram, drabinki, kata, wyniki i ekrany LIVE są synchronizowane pomiędzy urządzeniami przez tabelę `app_shared_state`.
+
+Wykonaj jednorazowo `supabase/cloud-sync.sql`, a w Vercel ustaw `VITE_SUPABASE_URL` i `VITE_SUPABASE_ANON_KEY`. Szczegóły: `INSTRUKCJA-SYNCHRONIZACJA-SUPABASE.txt`.
+
 ETAP 32: podmieniono logo systemu na dokładnie przesłane oficjalne logo IKA Poland. Logo jest używane w nagłówku i jako favicon, bez dużego logo w sekcji głównej.
 
 Na stronie głównej w sekcji głównej pozostawiono tylko dwa przyciski: „Zarejestruj się” i „Zaloguj”.
 
 Usunięto duże logo z sekcji głównej strony startowej. Logo w nagłówku i ikona strony pozostają bez zmian.
 
-# IKA Poland — System Zawodów ETAP 32
+# IKA Poland - System Zawodów ETAP 32
 
 Ten etap ustawia oficjalne logo IKA Poland jako logo systemu, faviconę strony i znak marki zamiast domyślnej ikony.
 
-# IKA Poland — System Zawodów — ETAP 26
+# IKA Poland - System Zawodów - ETAP 26
 
 ## Organizator jest jednocześnie klubem
 
@@ -48,7 +95,7 @@ Adres: `http://localhost:19464`
 > Wersja demonstracyjna zapisuje dane lokalnie w przeglądarce. Wspólna praca klubów na różnych komputerach wymaga podłączenia do Supabase.
 
 
-## ETAP 17 — płeć i klasyfikacja LIVE
+## ETAP 17 - płeć i klasyfikacja LIVE
 - Płeć przy zawodniku i kategorii: tylko Kobieta albo Mężczyzna.
 - Klasyfikacja zawodników i klubów aktualizowana automatycznie po zakończeniu finału kategorii kumite.
 - Początkowo klasyfikacja zawodników używała punktacji 3 / 2 / 1; od ETAPU 20 została zastąpiona klasyfikacją medalową 6 / 4 / 2.
@@ -56,7 +103,7 @@ Adres: `http://localhost:19464`
 - Publiczny ekran `/klasyfikacja` odświeża się na żywo.
 
 
-## ETAP 18 — podium po zakończeniu kategorii
+## ETAP 18 - podium po zakończeniu kategorii
 - Po zakończeniu finału kumite tablica TV automatycznie przełącza się z punktacji na podium ukończonej kategorii.
 - Podium pokazuje 1. miejsce, 2. miejsce oraz dwa 3. miejsca, jeśli wynikają z drabinki.
 - Wyświetlane są imię i nazwisko, klub oraz zdjęcie zawodnika; przy braku zdjęcia pojawiają się inicjały.
@@ -64,7 +111,7 @@ Adres: `http://localhost:19464`
 - Przycisk „Drabinka na TV” nadal pozwala ręcznie wrócić do drabinki.
 
 
-## ETAP 19 — klasyfikacja klubowa medalowa
+## ETAP 19 - klasyfikacja klubowa medalowa
 - O pozycji klubu decyduje najpierw liczba złotych medali.
 - Przy równej liczbie złotych decydują srebrne, a następnie brązowe medale.
 - Złoty medal zawodnika daje klubowi 6 pkt.
@@ -75,7 +122,7 @@ Adres: `http://localhost:19464`
 - Od ETAPU 20 klasyfikacja zawodników działa medalowo na tych samych zasadach co klasyfikacja klubów.
 
 
-## ETAP 20 — klasyfikacja zawodników medalowa
+## ETAP 20 - klasyfikacja zawodników medalowa
 - Klasyfikacja zawodników działa teraz dokładnie tak samo jak klasyfikacja klubowa.
 - O pozycji zawodnika decyduje najpierw liczba złotych medali.
 - Przy równej liczbie złotych porównywane są srebrne, a następnie brązowe medale.
@@ -86,11 +133,11 @@ Adres: `http://localhost:19464`
 - Przy dwóch trzecich miejscach każdy brąz jest naliczany osobno.
 
 
-## ETAP 21 — punktacja kata zamiast drabinek
+## ETAP 21 - punktacja kata zamiast drabinek
 - Kategorie kata nie korzystają z drabinki. Organizator losuje listę startową zawodników.
 - Przy tworzeniu listy wybiera się 3 albo 5 sędziów.
 - Panel sędziego kata prowadzi zawodników kolejno z listy.
-- Przycisk **GWIZDEK — POKAŻ OCENY** uruchamia etap prezentacji punktów i krótki sygnał dźwiękowy.
+- Przycisk **GWIZDEK - POKAŻ OCENY** uruchamia etap prezentacji punktów i krótki sygnał dźwiękowy.
 - Oceny każdego sędziego wpisuje się ręcznie w panelu; każda wpisana nota od razu pojawia się na tablicy TV.
 - Dla 3 sędziów końcowa ocena jest sumą wszystkich 3 not.
 - Dla 5 sędziów system automatycznie odrzuca jedną najwyższą i jedną najniższą notę i sumuje pozostałe 3.
@@ -99,21 +146,21 @@ Adres: `http://localhost:19464`
 - Wyniki kata są uwzględniane w klasyfikacji medalowej zawodników i klubów (6 / 4 / 2 pkt).
 
 
-## ETAP 26 — podium TV i pełny ekran
+## ETAP 26 - podium TV i pełny ekran
 - Tablica TV kata i kumite korzysta z jednego, spójnego ekranu podium po zakończeniu kategorii.
 - Podium ma formę rzeczywistych stopni: 1. miejsce na najwyższym stopniu, 2. miejsce po lewej i 3. miejsce po prawej.
-- W kumite obsługiwane są dwa równorzędne 3. miejsca — obaj zawodnicy są pokazani nad wspólnym stopniem 3. miejsca.
+- W kumite obsługiwane są dwa równorzędne 3. miejsca - obaj zawodnicy są pokazani nad wspólnym stopniem 3. miejsca.
 - Na podium są zdjęcia zawodników, imię i nazwisko oraz klub.
 - Każda tablica TV ma przycisk **Pełny ekran**. W pełnym ekranie przycisk chowa się po 3 sekundach i pojawia ponownie po poruszeniu myszą lub dotknięciu ekranu.
 - Tryb pełnoekranowy pozostaje aktywny podczas automatycznych przejść: walka / wynik / lista / kolejny zawodnik / podium, dopóki użytkownik z niego nie wyjdzie.
 
 
-## ETAP 26 — pole nazwy kata
+## ETAP 26 - pole nazwy kata
 
 W panelu sędziego kata przy aktualnym zawodniku znajduje się pole **„Wykonywane kata”**. Można wpisać nazwę, np. `Bassai Dai`, `Kanku Dai` albo inną nazwę kata. Nazwa jest zapisywana osobno dla każdego zawodnika i pojawia się automatycznie na tablicy TV: przy prezentacji zawodnika, podczas pokazywania ocen, przy końcowej ocenie oraz na liście uczestników.
 
 
-## ETAP 26 — szybsze wpisywanie ocen kata
+## ETAP 26 - szybsze wpisywanie ocen kata
 
 - po wpisaniu pierwszej cyfry oceny system automatycznie dopisuje kropkę, np. `8` → `8.`;
 - po wpisaniu cyfry dziesiętnej, np. `8.5`, fokus automatycznie przechodzi do następnego sędziego;
@@ -122,7 +169,28 @@ W panelu sędziego kata przy aktualnym zawodniku znajduje się pole **„Wykonyw
 - Backspace przy wartości zakończonej samą kropką czyści pole, żeby łatwo poprawić pierwszą cyfrę.
 
 
-## ETAP 26 – punktacja kumite
+## ETAP 26 - punktacja kumite
 - WAZARI = 1 punkt
 - IPPON = 2 punkty
 - COFNIJ = -1 punkt
+
+
+ETAP 35: Na ekranie oczekiwania telebimu napis „IKA” jest biały, a „POLAND” czerwony.
+
+## ETAP 36 - zgłoszenia klubu na zawody
+- Klub może wyszukiwać własnych zawodników po imieniu, nazwisku, dacie urodzenia, stopniu lub danych opiekuna.
+- System pokazuje zawodnikowi tylko kategorie pasujące do płci i wieku na dzień zawodów.
+- Klub może sam zgłosić/wycofać swojego zawodnika do/z kategorii.
+- Przy każdej kategorii widoczna jest aktualna liczba wszystkich zgłoszonych zawodników, bez ujawniania danych innych klubów.
+- W tabeli własnych zgłoszeń również widoczny jest licznik zawodników w kategorii.
+
+
+ETAP 37: Ujednolicono wszystkie myślniki i kreski do zwykłego znaku "-" w całym projekcie.
+
+
+ETAP 39:
+- po utworzeniu zawodów organizator może dodać kilka konkurencji do jednych zawodów,
+- konkurencje wybiera się wielokrotnie checkboxami,
+- kategorie można tworzyć wyłącznie dla konkurencji dodanych do danych zawodów,
+- wybrana konkurencja pozostaje w zawodach nawet jeśli nie ma jeszcze kategorii,
+- konkurencji z istniejącymi kategoriami nie można przypadkowo odznaczyć.
