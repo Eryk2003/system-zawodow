@@ -25,6 +25,7 @@ export default function KumiteBracket({
   clubs = [],
   sideTheme,
   variant = 'panel',
+  highlightMatchId = null,
 }) {
   const resolved = useMemo(
     () => matches.map((match) => resolveMatch(match, matches)),
@@ -105,6 +106,7 @@ export default function KumiteBracket({
                 const redWinner = Boolean(match.winnerId && match.winnerId === match.redResolvedId)
                 const blueWinner = Boolean(match.winnerId && match.winnerId === match.blueResolvedId)
                 const pairTop = matchIndex % 2 === 0
+                const isHighlighted = Boolean(highlightMatchId && match.id === highlightMatchId)
 
                 return (
                   <div
@@ -113,10 +115,13 @@ export default function KumiteBracket({
                     key={match.id}
                   >
                     {roundPosition > 0 && <i className="academy-bracket-connector-in" aria-hidden="true" />}
-                    <article className={`academy-bracket-match academy-bracket-match-${match.status}`}>
+                    <article
+                      className={`academy-bracket-match academy-bracket-match-${match.status} ${isHighlighted ? 'academy-bracket-match-next' : ''}`}
+                      data-match-id={match.id}
+                    >
                       <div className="academy-bracket-match-head">
                         <span>{boutCode(round.name, match.matchNo, match.queueOrder)}</span>
-                        <em>{statusLabel(match)}</em>
+                        <em>{isHighlighted ? 'NASTĘPNA WALKA' : statusLabel(match)}</em>
                       </div>
 
                       <div className={`academy-bracket-player academy-bracket-player-aka ${redWinner ? 'winner' : ''}`}>

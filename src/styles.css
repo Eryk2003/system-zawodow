@@ -223,3 +223,42 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .tv-penalty{margin-top:10px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.2);font-size:14px;font-weight:950;letter-spacing:.06em;opacity:.62}
 .fighter-white .tv-penalty{border-color:#bbb;color:#222}
 .tv-penalty.active{opacity:1;background:rgba(255,196,0,.18);border-color:#e8bb36}
+
+
+/* ETAP 43 - telebim po walce: podświetlenie następnej walki */
+.academy-bracket-tv .academy-bracket-match-next {
+  border-color: #d5b451;
+  box-shadow: 0 0 0 3px rgba(213,180,81,.34), 0 0 34px rgba(213,180,81,.34), 0 14px 34px rgba(0,0,0,.34);
+  transform: scale(1.035);
+  z-index: 8;
+  animation: next-fight-pulse 1.35s ease-in-out infinite;
+}
+.academy-bracket-tv .academy-bracket-match-next .academy-bracket-match-head {
+  background: #d5b451;
+  border-color: #d5b451;
+}
+.academy-bracket-tv .academy-bracket-match-next .academy-bracket-match-head span,
+.academy-bracket-tv .academy-bracket-match-next .academy-bracket-match-head em {
+  color: #111;
+  font-weight: 1000;
+}
+.academy-bracket-tv .academy-bracket-match-next::after {
+  content: 'NASTĘPNA WALKA';
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #d5b451;
+  color: #111;
+  font-size: 10px;
+  font-weight: 1000;
+  letter-spacing: .09em;
+  white-space: nowrap;
+  box-shadow: 0 5px 18px rgba(0,0,0,.3);
+}
+@keyframes next-fight-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(213,180,81,.28), 0 0 22px rgba(213,180,81,.22), 0 14px 34px rgba(0,0,0,.34); }
+  50% { box-shadow: 0 0 0 5px rgba(213,180,81,.48), 0 0 48px rgba(213,180,81,.46), 0 14px 34px rgba(0,0,0,.34); }
+}

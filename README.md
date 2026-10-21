@@ -208,3 +208,11 @@ ETAP 39:
 - Po osiągnięciu progu system natychmiast kończy walkę, zatrzymuje czas i przekazuje zwycięzcę do kolejnej rundy.
 - Zakończonej walki nie można dalej punktować ani korygować przyciskami - blokada działa również w warstwie danych.
 - Panel sędziego pokazuje regułę wygranej dla aktualnej konkurencji.
+
+
+## ETAP 43 - drabinka na telebimie po walce
+- Po zakończeniu walki telebim automatycznie przechodzi na drabinkę.
+- Zwycięzca jest już widoczny jako awansujący dalej.
+- Następna gotowa walka jest podświetlona złotą ramką i oznaczona NASTĘPNA WALKA.
+- Przy dużej drabince telebim automatycznie przewija widok do następnej walki.
+- Po uruchomieniu następnej walki telebim wraca do tablicy punktowej.

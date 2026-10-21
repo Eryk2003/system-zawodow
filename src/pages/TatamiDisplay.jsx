@@ -87,6 +87,21 @@ export default function TatamiDisplay() {
     }
   }, [matName])
 
+
+  useEffect(() => {
+    const displayMode = payload.displayMode || payload.state?.mode
+    const nextId = payload.nextMatch?.id
+    if (displayMode !== 'bracket' || !nextId) return undefined
+
+    const timer = window.setTimeout(() => {
+      const board = document.querySelector('.academy-bracket-tv-wrap')
+      const target = board?.querySelector(`[data-match-id="${nextId}"]`)
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+    }, 180)
+
+    return () => window.clearTimeout(timer)
+  }, [payload.displayMode, payload.state?.mode, payload.nextMatch?.id])
+
   const athletes = db.getAthletes()
   const sideTheme = getKumiteSideTheme(payload.competition)
   const clubs = db.getClubs()
@@ -346,6 +361,7 @@ export default function TatamiDisplay() {
           clubs={clubs}
           sideTheme={sideTheme}
           variant="tv"
+          highlightMatchId={payload.nextMatch?.id || null}
         />
       </section>
     </main>
