@@ -85,6 +85,17 @@ export default function JudgePanel() {
     )
   }
 
+  const changeScore = (side, delta) => {
+    if (!active) return
+    run(() => {
+      const result = db.changeScore(active.id, side, delta)
+      if (result?.status === 'done') {
+        const winner = athlete(result.winnerId)
+        setMessage(`Walka zakończona automatycznie - ${winner.name} wygrywa zgodnie z zasadami ${theme.winRule?.title || 'Shobu'}. Wynik został zablokowany.`)
+      }
+    })
+  }
+
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
@@ -116,13 +127,13 @@ export default function JudgePanel() {
           <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
           {active && <>
             <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => run(() => db.changeScore(active.id, 'red', 1))}><strong>+1</strong><small>WAZARI</small></button>
-              <button onClick={() => run(() => db.changeScore(active.id, 'red', 2))}><strong>+2</strong><small>IPPON</small></button>
+              <button onClick={() => changeScore('red', 1)}><strong>+1</strong><small>WAZARI</small></button>
+              <button onClick={() => changeScore('red', 2)}><strong>+2</strong><small>IPPON</small></button>
             </div>
             <div className="judge-correction-row">
               <span>Korekta wyniku</span>
-              <button onClick={() => run(() => db.changeScore(active.id, 'red', -1))}>-1</button>
-              <button onClick={() => run(() => db.changeScore(active.id, 'red', -2))}>-2</button>
+              <button onClick={() => changeScore('red', -1)}>-1</button>
+              <button onClick={() => changeScore('red', -2)}>-2</button>
             </div>
           </>}
         </div>
@@ -131,6 +142,7 @@ export default function JudgePanel() {
           <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
           <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
           <small>WAZARI = 1 • IPPON = 2 • korekta: -1 / -2</small>
+          {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
             <div className="judge-main-controls">
               <button className="btn btn-outline" onClick={() => run(() => activeRaw.timerRunning ? db.pauseMatch(active.id) : db.resumeMatch(active.id))}>{activeRaw.timerRunning ? 'PAUZA' : 'WZNÓW'}</button>
@@ -147,13 +159,13 @@ export default function JudgePanel() {
           <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
           {active && <>
             <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => run(() => db.changeScore(active.id, 'blue', 1))}><strong>+1</strong><small>WAZARI</small></button>
-              <button onClick={() => run(() => db.changeScore(active.id, 'blue', 2))}><strong>+2</strong><small>IPPON</small></button>
+              <button onClick={() => changeScore('blue', 1)}><strong>+1</strong><small>WAZARI</small></button>
+              <button onClick={() => changeScore('blue', 2)}><strong>+2</strong><small>IPPON</small></button>
             </div>
             <div className="judge-correction-row">
               <span>Korekta wyniku</span>
-              <button onClick={() => run(() => db.changeScore(active.id, 'blue', -1))}>-1</button>
-              <button onClick={() => run(() => db.changeScore(active.id, 'blue', -2))}>-2</button>
+              <button onClick={() => changeScore('blue', -1)}>-1</button>
+              <button onClick={() => changeScore('blue', -2)}>-2</button>
             </div>
           </>}
         </div>

@@ -1,5 +1,6 @@
 import { DEFAULT_COMPETITIONS, DEFAULT_TOURNAMENT } from './defaults.js'
 import { queueCloudWrite } from './cloudSync.js'
+import { getKumiteWinRule } from './kumiteRules.js'
 
 const KEYS = {
   accounts: 'ika_accounts_v1',
@@ -1063,23 +1064,52 @@ export const db = {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
+
+    // Po zakończeniu walki wynik jest zamknięty. Chroni to także przed
+    // szybkim podwójnym kliknięciem, zmianą z innej karty albo urządzenia.
+    if (match.status === 'done' || match.winnerId) {
+      throw new Error('Walka została już zakończona. Nie można zmieniać punktów.')
+    }
+    if (match.status !== 'active') {
+      throw new Error('Punkty można zmieniać tylko podczas aktywnej walki.')
+    }
     if (![1, 2, -1, -2].includes(delta)) return match
+
     const key = side === 'red' ? 'redScore' : 'blueScore'
     const nextScore = Math.round((Math.max(0, Number(match[key] || 0) + delta) + Number.EPSILON) * 10) / 10
     const next = { ...match, [key]: nextScore }
     saveMatchInternal(next)
+
+    // Zasady Shobu z Systemu Akademii w aktualnej skali punktów:
+    // Ippon Shobu = 2 pkt, Nihon Shobu = 4 pkt, Sanbon Shobu = 6 pkt.
+    // Po osiągnięciu progu walka kończy się natychmiast i zwycięzca
+    // automatycznie przechodzi do kolejnej rundy.
+    if (delta > 0) {
+      const competition = read(KEYS.competitions, []).find((item) => item.id === match.competitionId) || null
+      const winRule = getKumiteWinRule(competition)
+
+      if (winRule && nextScore >= winRule.targetScore) {
+        const resolved = resolveMatch(next, read(KEYS.matches, []))
+        const winnerId = side === 'red' ? resolved.redResolvedId : resolved.blueResolvedId
+        if (winnerId) {
+          return db.finishMatch(matchId, winnerId, { automatic: true, reason: winRule.title })
+        }
+      }
+    }
+
     emit()
     return next
   },
 
-  finishMatch: (matchId, winnerId) => {
+  finishMatch: (matchId, winnerId, options = {}) => {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
+    if (match.status === 'done' || match.winnerId) return match
     const resolved = resolveMatch(match, matches)
     if (![resolved.redResolvedId, resolved.blueResolvedId].includes(winnerId)) throw new Error('Wybierz zwycięzcę tej walki.')
     const next = {
-      ...match, winnerId, status: 'done', timerRemaining: getComputedRemaining(match), timerRunning: false, timerStartedAt: null, completedAt: Date.now(),
+      ...match, winnerId, status: 'done', timerRemaining: getComputedRemaining(match), timerRunning: false, timerStartedAt: null, completedAt: Date.now(), automaticFinish: Boolean(options.automatic), finishReason: options.reason || null,
     }
     const idx = matches.findIndex((m) => m.id === matchId)
     matches[idx] = next

@@ -194,3 +194,13 @@ ETAP 39:
 - kategorie można tworzyć wyłącznie dla konkurencji dodanych do danych zawodów,
 - wybrana konkurencja pozostaje w zawodach nawet jeśli nie ma jeszcze kategorii,
 - konkurencji z istniejącymi kategoriami nie można przypadkowo odznaczyć.
+
+
+## ETAP 41 - zasady wygranej Shobu i blokada punktów
+
+- Kumite Ippon Shobu: automatyczna wygrana po 2 pkt (1 IPPON albo 2 WAZARI).
+- Kumite Shobu Nihon: automatyczna wygrana po 4 pkt.
+- Kumite Sanbon Shobu: automatyczna wygrana po 6 pkt.
+- Po osiągnięciu progu system natychmiast kończy walkę, zatrzymuje czas i przekazuje zwycięzcę do kolejnej rundy.
+- Zakończonej walki nie można dalej punktować ani korygować przyciskami - blokada działa również w warstwie danych.
+- Panel sędziego pokazuje regułę wygranej dla aktualnej konkurencji.

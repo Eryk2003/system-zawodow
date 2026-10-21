@@ -193,3 +193,13 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 
 /* ETAP 39 - wiele konkurencji w jednych zawodach */
 .tournament-competition-section{margin-bottom:18px}.competition-selection-head{align-items:center}.selected-competition-counter{white-space:nowrap;padding:9px 13px;border-radius:999px;background:#171719;color:#fff;font-size:12px}.competition-picker-item.locked{box-shadow:inset 3px 0 0 #e1261c}.competition-picker-item.locked small{color:#a43731}.tournament-flow-steps{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:1000px){.tournament-flow-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:680px){.competition-selection-head{align-items:flex-start}.selected-competition-counter{margin-top:8px}.tournament-flow-steps{grid-template-columns:1fr}}
+
+/* ETAP 41 - czytelna reguła wygranej Shobu w panelu sędziego */
+.judge-win-rule {
+  display: block;
+  max-width: 560px;
+  margin: 6px auto 0;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+}
