@@ -210,7 +210,7 @@ export default function ClubPanel() {
                 {visibleTournament.venue ? ` • ${visibleTournament.venue}` : ''}
               </p>
             </div>
-            <span className="club-tournament-live">Dostępne dla klubów</span>
+            <span className="club-tournament-live">LIVE - widoczne dla wszystkich klubów</span>
           </div>
 
           <div className="club-tournament-meta">
@@ -256,7 +256,7 @@ export default function ClubPanel() {
         </div>
 
         {!visibleTournament ? (
-          <EmptyState title="Brak otwartych zawodów" text="Kiedy organizator utworzy zawody, pojawią się tutaj automatycznie." />
+          <EmptyState title="Brak otwartych zawodów" text="Kiedy organizator utworzy zawody, pojawią się tutaj automatycznie także na innych urządzeniach." />
         ) : !tournamentCategories.length ? (
           <EmptyState title="Organizator nie dodał jeszcze kategorii" text="Po dodaniu kategorii będziesz mógł od razu zgłaszać swoich zawodników." />
         ) : !athletes.length ? (

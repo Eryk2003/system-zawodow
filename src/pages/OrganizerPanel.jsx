@@ -28,7 +28,7 @@ export default function OrganizerPanel() {
         {hasTournament && (
           <Link className="current-tournament-card" to="/organizator/zawody">
             <div>
-              <span className="eyebrow">Aktualnie utworzone zawody</span>
+              <span className="eyebrow">Aktualnie utworzone zawody - widoczne dla klubów</span>
               <h3>{tournament.name}</h3>
               <p>{tournament.date}{tournament.startTime ? ` • ${tournament.startTime}` : ''} • {tournament.venue}</p>
             </div>

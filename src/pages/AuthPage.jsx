@@ -9,18 +9,21 @@ export default function AuthPage({ mode = 'login' }) {
   const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', email: '', password: '' })
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [busy, setBusy] = useState(false)
 
   const submit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     if (form.password.length < 6) return setError('Hasło musi mieć co najmniej 6 znaków.')
     try {
       setBusy(true)
       const user = isRegister ? await register(form) : await login(form)
       navigate(user.role === 'organizer' ? '/organizator' : '/panel')
     } catch (err) {
-      setError(err.message)
+      if (err?.code === 'EMAIL_CONFIRMATION_REQUIRED') setSuccess(err.message)
+      else setError(err.message)
     } finally {
       setBusy(false)
     }
@@ -32,7 +35,7 @@ export default function AuthPage({ mode = 'login' }) {
       <div className="auth-card">
         <span className="eyebrow">{isRegister ? 'Nowy klub' : 'Logowanie'}</span>
         <h1>{isRegister ? 'Utwórz konto w systemie' : 'Zaloguj się do systemu'}</h1>
-        <p>{isRegister ? 'Po rejestracji od razu przejdziesz do tworzenia swojego klubu.' : 'Wprowadź e-mail i hasło.'}</p>
+        <p>{isRegister ? 'Konto klubu działa na wszystkich urządzeniach. Po rejestracji utworzysz profil klubu i zobaczysz zawody opublikowane przez IKA Poland.' : 'Wprowadź e-mail i hasło.'}</p>
         <form onSubmit={submit} className="form-stack">
           {isRegister && (
             <label>Imię i nazwisko właściciela konta<input required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="np. Jan Kowalski" /></label>
@@ -40,6 +43,7 @@ export default function AuthPage({ mode = 'login' }) {
           <label>Adres e-mail<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="klub@example.pl" /></label>
           <label>Hasło<input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Minimum 6 znaków" /></label>
           {error && <div className="alert alert-error">{error}</div>}
+          {success && <div className="alert alert-success">{success}</div>}
           <button disabled={busy} className="btn btn-primary btn-wide">{busy ? 'Proszę czekać…' : isRegister ? 'Utwórz konto' : 'Zaloguj się'}</button>
         </form>
         <div className="auth-switch">

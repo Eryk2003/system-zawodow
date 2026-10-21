@@ -12,14 +12,15 @@ export const cloudSyncConfigured = Boolean(
 
 export const supabase = cloudSyncConfigured
   ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
       realtime: { params: { eventsPerSecond: 10 } },
     })
   : null
 
-// Dane kont i lokalnej sesji NIE są synchronizowane tą warstwą.
-// Organizator demonstracyjny istnieje lokalnie na każdym urządzeniu, natomiast
-// dane zawodów/klubów są wspólne. Docelowo konta można przenieść na Supabase Auth.
+// Dane zawodów, klubów i zgłoszeń są synchronizowane przez wspólny stan.
+// Konta klubów korzystają z Supabase Auth (e-mail + hasło), dzięki czemu ten sam
+// klub może zalogować się na komputerze, laptopie i telefonie. Konto organizatora
+// demonstracyjnego pozostaje lokalne jako konto administracyjne projektu.
 export const CLOUD_KEYS = new Set([
   'ika_clubs_v1',
   'ika_athletes_v1',
