@@ -1,3 +1,7 @@
+# ETAP 47 - większe kafelki drabinki
+
+Poprawka wyłącznie wyglądu drabinki Kumite. Cofnięto niepotrzebną zmianę logiki z ETAPU 46. Kafelki walk są szersze i wyższe, odstępy pionowe są większe, a oba nazwiska zawodników mieszczą się bez nachodzenia sąsiednich walk. Zmiana działa w Centrum Zawodów i na telebimie.
+
 # ETAP 44 - harmonogram liczony z rzeczywistego czasu walki
 
 - Harmonogram liczy czas w sekundach, więc obsługuje dokładnie 1:00, 1:30, 2:00 i 3:00.
