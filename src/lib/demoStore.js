@@ -1,4 +1,5 @@
 import { DEFAULT_COMPETITIONS, DEFAULT_TOURNAMENT } from './defaults.js'
+import { queueCloudWrite } from './cloudSync.js'
 
 const KEYS = {
   accounts: 'ika_accounts_v1',
@@ -26,7 +27,10 @@ const read = (key, fallback) => {
     return fallback
   }
 }
-const write = (key, value) => localStorage.setItem(key, JSON.stringify(value))
+const write = (key, value) => {
+  localStorage.setItem(key, JSON.stringify(value))
+  queueCloudWrite(key, value)
+}
 const uid = (prefix = 'id') => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
 const emit = (event = 'ika:data') => window.dispatchEvent(new Event(event))
 

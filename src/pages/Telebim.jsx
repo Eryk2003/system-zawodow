@@ -21,7 +21,7 @@ export default function Telebim() {
   if (!payload) {
     return (
       <main className="telebim telebim-idle">
-        <div className="telebim-logo">IKA POLAND</div>
+        <div className="telebim-logo"><span className="telebim-logo-ika">IKA</span> <span className="telebim-logo-poland">POLAND</span></div>
         <h1>Za chwilę kolejny start</h1>
         <p>Oczekiwanie na wywołanie zawodnika</p>
       </main>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
+import CloudStatus from './CloudStatus.jsx'
 
 export function Brand() {
   return (
@@ -42,6 +43,7 @@ export function DashboardLayout({ title, children, organizer = false, showHeadin
       <header className="topbar dashboard-topbar">
         <Brand />
         <div className="dashboard-user">
+          <CloudStatus />
           <span>{user?.fullName}</span>
           <button className="btn btn-ghost btn-sm" onClick={onLogout}>Wyloguj</button>
         </div>
