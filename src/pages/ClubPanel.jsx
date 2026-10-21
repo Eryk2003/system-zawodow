@@ -9,6 +9,19 @@ const emptyAthlete = {
   firstName: '', lastName: '', birthDate: '', gender: '', grade: '', parentName: '', parentEmail: '', photo: '',
 }
 
+const normalize = (value) => String(value || '').trim().toLocaleLowerCase('pl')
+
+function ageOnDate(birthDate, eventDate) {
+  if (!birthDate) return null
+  const birth = new Date(`${birthDate}T12:00:00`)
+  const event = eventDate ? new Date(`${eventDate}T12:00:00`) : new Date()
+  if (Number.isNaN(birth.getTime()) || Number.isNaN(event.getTime())) return null
+  let age = event.getFullYear() - birth.getFullYear()
+  const monthDiff = event.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && event.getDate() < birth.getDate())) age -= 1
+  return age
+}
+
 function ClubSetup({ user, onCreated }) {
   const [form, setForm] = useState({ name: '', shortName: '', city: '', country: 'Polska', phone: '', email: user.email })
   const submit = (e) => {
@@ -20,7 +33,7 @@ function ClubSetup({ user, onCreated }) {
     <div className="setup-card">
       <span className="eyebrow">Pierwsze uruchomienie</span>
       <h2>Utwórz profil klubu</h2>
-      <p>Ten krok wykonujesz tylko raz. Później w panelu dodasz zawodników i ich zdjęcia.</p>
+      <p>Ten krok wykonujesz tylko raz. Później w panelu dodasz zawodników i zgłosisz ich na zawody.</p>
       <form className="form-grid" onSubmit={submit}>
         <label className="span-2">Pełna nazwa klubu<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="np. Klub Karate ..." /></label>
         <label>Skrócona nazwa<input value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} placeholder="np. KKA" /></label>
@@ -82,26 +95,40 @@ export default function ClubPanel() {
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [visibleTournament, setVisibleTournament] = useState(() => db.getVisibleTournamentForClubs())
-  const entries = db.getEntries()
-  const comps = db.getCompetitions()
-  const tournamentCategories = db.getTournamentCategories()
+  const [athleteSearch, setAthleteSearch] = useState('')
+  const [registrationMessage, setRegistrationMessage] = useState('')
+  const [dataTick, setDataTick] = useState(0)
+
+  const entries = useMemo(() => db.getEntries(), [dataTick])
+  const comps = useMemo(() => db.getCompetitions(), [dataTick])
+  const tournamentCategories = useMemo(() => db.getTournamentCategories(), [dataTick])
 
   const clubEntries = useMemo(() => {
     const ids = new Set(athletes.map((a) => a.id))
     return entries.filter((e) => ids.has(e.athleteId))
   }, [athletes, entries])
 
-  const refreshAthletes = () => setAthletes(db.getAthletesForClub(club.id))
+  const refreshAthletes = () => {
+    if (!club) return
+    setAthletes(db.getAthletesForClub(club.id))
+    setDataTick((value) => value + 1)
+  }
 
   useEffect(() => {
-    const refreshTournament = () => setVisibleTournament(db.getVisibleTournamentForClubs())
-    window.addEventListener('ika:data', refreshTournament)
-    window.addEventListener('storage', refreshTournament)
-    return () => {
-      window.removeEventListener('ika:data', refreshTournament)
-      window.removeEventListener('storage', refreshTournament)
+    const refreshAll = () => {
+      setVisibleTournament(db.getVisibleTournamentForClubs())
+      if (club) setAthletes(db.getAthletesForClub(club.id))
+      setDataTick((value) => value + 1)
     }
-  }, [])
+    window.addEventListener('ika:data', refreshAll)
+    window.addEventListener('storage', refreshAll)
+    window.addEventListener('ika:cloud', refreshAll)
+    return () => {
+      window.removeEventListener('ika:data', refreshAll)
+      window.removeEventListener('storage', refreshAll)
+      window.removeEventListener('ika:cloud', refreshAll)
+    }
+  }, [club?.id])
 
   const visibleCompetitionNames = useMemo(() => {
     if (!visibleTournament) return []
@@ -115,19 +142,67 @@ export default function ClubPanel() {
     return comps.filter((competition) => selected.has(competition.id)).map((competition) => competition.name)
   }, [visibleTournament, comps, tournamentCategories])
 
+  const searchedAthletes = useMemo(() => {
+    const query = normalize(athleteSearch)
+    if (!query) return athletes
+    return athletes.filter((athlete) => normalize([
+      athlete.firstName,
+      athlete.lastName,
+      `${athlete.firstName} ${athlete.lastName}`,
+      athlete.birthDate,
+      athlete.grade,
+      athlete.parentName,
+    ].filter(Boolean).join(' ')).includes(query))
+  }, [athletes, athleteSearch])
+
+  const categoryEntries = (category) => entries.filter((entry) => (
+    entry.categoryId === category.id || (entry.competitionId === category.competitionId && entry.category === category.name)
+  ))
+
+  const isEligibleForCategory = (athlete, category) => {
+    const competition = comps.find((item) => item.id === category.competitionId)
+    const age = ageOnDate(athlete.birthDate, visibleTournament?.date)
+    const maxAge = category.maxAge ?? competition?.maxAge ?? null
+    if (category.gender && athlete.gender !== category.gender) return false
+    if (category.minAge != null && (age == null || age < Number(category.minAge))) return false
+    if (maxAge != null && (age == null || age > Number(maxAge))) return false
+    return true
+  }
+
+  const athleteIsRegistered = (athleteId, category) => categoryEntries(category).some((entry) => entry.athleteId === athleteId)
+
+  const toggleTournamentRegistration = (athlete, category) => {
+    if (!club || !visibleTournament) return
+    const ownAthleteIds = new Set(athletes.map((item) => item.id))
+    const currentlyRegistered = categoryEntries(category)
+      .filter((entry) => ownAthleteIds.has(entry.athleteId))
+      .map((entry) => entry.athleteId)
+    const next = new Set(currentlyRegistered)
+    const wasRegistered = next.has(athlete.id)
+    if (wasRegistered) next.delete(athlete.id)
+    else next.add(athlete.id)
+    db.setCategoryAthletesForClub(category.id, club.id, [...next])
+    setRegistrationMessage(
+      wasRegistered
+        ? `Usunięto zgłoszenie: ${athlete.firstName} ${athlete.lastName} — ${category.name}.`
+        : `Zgłoszono: ${athlete.firstName} ${athlete.lastName} — ${category.name}.`,
+    )
+    setDataTick((value) => value + 1)
+  }
+
   if (!club) {
     return <DashboardLayout title="Twój klub" organizer={organizerMode}><ClubSetup user={user} onCreated={(saved) => { setClub(saved); setAthletes([]) }} /></DashboardLayout>
   }
 
   return (
     <DashboardLayout title={club.name} organizer={organizerMode}>
-      {organizerMode && <div className="organizer-club-note"><div><strong>Twój klub organizatora</strong><span>Zawodnicy z tej bazy będą jedynymi zawodnikami widocznymi dla Ciebie podczas zgłaszania do tworzonych zawodów.</span></div><Link className="btn btn-outline btn-sm" to="/organizator">Wróć do organizatora</Link></div>}
+      {organizerMode && <div className="organizer-club-note"><div><strong>Twój klub organizatora</strong><span>Organizator może równocześnie prowadzić swój klub i zgłaszać własnych zawodników na zawody.</span></div><Link className="btn btn-outline btn-sm" to="/organizator">Wróć do organizatora</Link></div>}
 
       {visibleTournament && (
         <section className="club-tournament-card" aria-label="Dostępne zawody IKA Poland">
           <div className="club-tournament-card-head">
             <div>
-              <span className="eyebrow">Nowe zawody IKA Poland</span>
+              <span className="eyebrow">Zawody otwarte do zgłoszeń</span>
               <h2>{visibleTournament.name}</h2>
               <p>
                 {visibleTournament.date || 'Data do ustalenia'}
@@ -141,7 +216,7 @@ export default function ClubPanel() {
           <div className="club-tournament-meta">
             <div><small>Liczba tatami</small><strong>{visibleTournament.matCount || '—'}</strong></div>
             <div><small>Czas walki</small><strong>{visibleTournament.boutSeconds ? `${visibleTournament.boutSeconds} sek.` : '—'}</strong></div>
-            <div><small>Status</small><strong>Przygotowanie</strong></div>
+            <div><small>Twoje zgłoszenia</small><strong>{clubEntries.length}</strong></div>
           </div>
 
           <div className="club-tournament-competitions">
@@ -155,7 +230,7 @@ export default function ClubPanel() {
 
       <div className="stats-grid">
         <div className="stat-card"><span>Zawodnicy</span><strong>{athletes.length}</strong><small>dodani do klubu</small></div>
-        <div className="stat-card"><span>Zgłoszenia</span><strong>{clubEntries.length}</strong><small>przypisane przez organizatora</small></div>
+        <div className="stat-card"><span>Zgłoszenia</span><strong>{clubEntries.length}</strong><small>na aktualne zawody</small></div>
         <div className="stat-card"><span>Miasto</span><strong className="stat-text">{club.city}</strong><small>{club.shortName || 'IKA Poland'}</small></div>
       </div>
 
@@ -171,11 +246,108 @@ export default function ClubPanel() {
         )}
       </section>
 
+      <section className="panel-section club-registration-section">
+        <div className="panel-section-head">
+          <div>
+            <span className="eyebrow">Zgłoszenia na zawody</span>
+            <h2>Wyszukaj zawodnika i zgłoś go do konkurencji</h2>
+            <p>System pokazuje tylko pasujące kategorie według płci i wieku zawodnika. Przy każdej kategorii widzisz aktualną liczbę wszystkich zgłoszonych.</p>
+          </div>
+        </div>
+
+        {!visibleTournament ? (
+          <EmptyState title="Brak otwartych zawodów" text="Kiedy organizator utworzy zawody, pojawią się tutaj automatycznie." />
+        ) : !tournamentCategories.length ? (
+          <EmptyState title="Organizator nie dodał jeszcze kategorii" text="Po dodaniu kategorii będziesz mógł od razu zgłaszać swoich zawodników." />
+        ) : !athletes.length ? (
+          <EmptyState title="Najpierw dodaj zawodników" text="Dodaj zawodnika do bazy klubu, a następnie wyszukaj go tutaj i wybierz konkurencję." />
+        ) : (
+          <>
+            <div className="club-athlete-search-wrap">
+              <label>
+                <span>Wyszukaj po danych zawodnika</span>
+                <input
+                  type="search"
+                  value={athleteSearch}
+                  onChange={(event) => setAthleteSearch(event.target.value)}
+                  placeholder="Imię, nazwisko, data urodzenia lub stopień..."
+                />
+              </label>
+              <div className="club-search-count"><strong>{searchedAthletes.length}</strong><span>znalezionych</span></div>
+            </div>
+
+            {registrationMessage && <div className="alert alert-success">{registrationMessage}</div>}
+
+            {!searchedAthletes.length ? (
+              <div className="empty-state compact"><h3>Nie znaleziono zawodnika</h3><p>Sprawdź wpisane dane albo dodaj zawodnika do bazy klubu.</p></div>
+            ) : (
+              <div className="club-registration-athletes">
+                {searchedAthletes.map((athlete) => {
+                  const eligible = tournamentCategories.filter((category) => isEligibleForCategory(athlete, category))
+                  const age = ageOnDate(athlete.birthDate, visibleTournament.date)
+                  return (
+                    <article className="club-registration-athlete" key={athlete.id}>
+                      <div className="club-registration-athlete-head">
+                        <div className="athlete-cell">
+                          <AthleteAvatar athlete={athlete} large />
+                          <div>
+                            <h3>{athlete.firstName} {athlete.lastName}</h3>
+                            <p>{athlete.birthDate || 'brak daty urodzenia'}{age != null ? ` • ${age} lat` : ''}{athlete.grade ? ` • ${athlete.grade}` : ''}</p>
+                          </div>
+                        </div>
+                        <span className="registration-total-badge">{clubEntries.filter((entry) => entry.athleteId === athlete.id).length} zgłoszeń</span>
+                      </div>
+
+                      {!eligible.length ? (
+                        <div className="alert alert-info">Brak kategorii pasujących do wieku i płci tego zawodnika.</div>
+                      ) : (
+                        <div className="club-category-registration-list">
+                          {eligible.map((category) => {
+                            const competition = comps.find((item) => item.id === category.competitionId)
+                            const registered = athleteIsRegistered(athlete.id, category)
+                            const participantCount = categoryEntries(category).length
+                            return (
+                              <div className={`club-category-registration-row ${registered ? 'registered' : ''}`} key={category.id}>
+                                <div>
+                                  <small>{competition?.name || 'Konkurencja'}</small>
+                                  <strong>{category.name}</strong>
+                                </div>
+                                <div className="category-participant-count">
+                                  <strong>{participantCount}</strong>
+                                  <span>{participantCount === 1 ? 'zawodnik' : 'zawodników'} w kategorii</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`}
+                                  onClick={() => toggleTournamentRegistration(athlete, category)}
+                                >
+                                  {registered ? 'Usuń zgłoszenie' : '+ Zgłoś'}
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
+                    </article>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Zawody</span><h2>Konkurencje Twoich zawodników</h2></div></div>
-        {!clubEntries.length ? <EmptyState title="Brak przypisanych konkurencji" text="Po zgłoszeniu i ułożeniu harmonogramu przez organizatora zobaczysz tutaj starty zawodników." /> : (
-          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Konkurencja</th><th>Kategoria</th><th>Tatami</th><th>Orientacyjnie</th><th>Status</th></tr></thead><tbody>
-            {clubEntries.map((entry) => { const athlete = athletes.find((a) => a.id === entry.athleteId); const comp = comps.find((c) => c.id === entry.competitionId); return <tr key={entry.id}><td>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</td><td>{comp?.name || '—'}</td><td>{entry.category || '—'}</td><td>{entry.mat || '—'}</td><td><strong>{entry.estimatedStart || '—'}</strong></td><td><StatusBadge status={entry.status} /></td></tr> })}
+        <div className="panel-section-head"><div><span className="eyebrow">Twoje zgłoszenia</span><h2>Konkurencje Twoich zawodników</h2><p>Przy każdym zgłoszeniu widzisz także, ilu zawodników jest obecnie w tej samej kategorii.</p></div></div>
+        {!clubEntries.length ? <EmptyState title="Brak zgłoszeń" text="Wyszukaj zawodnika wyżej i zgłoś go do jednej z pasujących kategorii." /> : (
+          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Konkurencja</th><th>Kategoria</th><th>W kategorii</th><th>Tatami</th><th>Orientacyjnie</th><th>Status</th></tr></thead><tbody>
+            {clubEntries.map((entry) => {
+              const athlete = athletes.find((a) => a.id === entry.athleteId)
+              const comp = comps.find((c) => c.id === entry.competitionId)
+              const category = tournamentCategories.find((item) => item.id === entry.categoryId) || { id: entry.categoryId, competitionId: entry.competitionId, name: entry.category }
+              const participantCount = categoryEntries(category).length
+              return <tr key={entry.id}><td>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</td><td>{comp?.name || '—'}</td><td>{entry.category || '—'}</td><td><strong>{participantCount}</strong></td><td>{entry.mat || '—'}</td><td><strong>{entry.estimatedStart || '—'}</strong></td><td><StatusBadge status={entry.status} /></td></tr>
+            })}
           </tbody></table></div>
         )}
       </section>
