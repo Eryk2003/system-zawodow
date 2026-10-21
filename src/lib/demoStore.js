@@ -560,7 +560,7 @@ export const db = {
     else items.push(next)
     write(KEYS.tournamentCategories, items)
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
-    const competitionIds = [...new Set(items.map((item) => item.competitionId).filter(Boolean))]
+    const competitionIds = [...new Set([...(tournament.competitionIds || []), next.competitionId].filter(Boolean))]
     write(KEYS.tournament, { ...tournament, competitionIds })
     emit()
     return next
@@ -575,9 +575,10 @@ export const db = {
       write(KEYS.matches, read(KEYS.matches, []).filter((match) => match.categoryId !== categoryId && !(match.competitionId === target.competitionId && match.category === target.name)))
       write(KEYS.kataSessions, read(KEYS.kataSessions, []).filter((session) => session.categoryId !== categoryId))
     }
+    // Usunięcie kategorii nie usuwa samej konkurencji z zawodów.
+    // Organizator może mieć wybraną konkurencję jeszcze bez żadnej kategorii.
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
-    const competitionIds = [...new Set(nextCategories.map((item) => item.competitionId).filter(Boolean))]
-    write(KEYS.tournament, { ...tournament, competitionIds })
+    write(KEYS.tournament, { ...tournament, competitionIds: tournament.competitionIds || [] })
     regenerateScheduleInternal()
     emit()
   },

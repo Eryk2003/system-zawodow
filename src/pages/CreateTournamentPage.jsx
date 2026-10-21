@@ -109,8 +109,46 @@ export default function CreateTournamentPage() {
     setCreatedTournament(created)
     setCategories([])
     setSelectedByCategory({})
-    setMessage('Zawody zostały utworzone. Teraz dodaj kategorie.')
+    setMessage('Zawody zostały utworzone. Teraz wybierz konkurencje, które będą rozgrywane.')
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const selectedCompetitionIds = createdTournament?.competitionIds || []
+  const selectedCompetitionSet = new Set(selectedCompetitionIds)
+  const selectedCompetitions = competitions.filter((competition) => selectedCompetitionSet.has(competition.id))
+  const competitionGroups = [...new Set(competitions.map((competition) => competition.group || 'Pozostałe'))]
+
+  const toggleTournamentCompetition = (competition) => {
+    if (!createdTournament) return
+
+    const selected = selectedCompetitionSet.has(competition.id)
+    const hasCategories = categories.some((category) => category.competitionId === competition.id)
+
+    if (selected && hasCategories) {
+      setError(`Nie można usunąć konkurencji „${competition.name}”, ponieważ ma już utworzone kategorie. Najpierw usuń jej kategorie.`)
+      setMessage('')
+      return
+    }
+
+    const competitionIds = selected
+      ? selectedCompetitionIds.filter((id) => id !== competition.id)
+      : [...selectedCompetitionIds, competition.id]
+
+    const updatedTournament = { ...createdTournament, competitionIds }
+    db.saveTournament(updatedTournament)
+    setCreatedTournament(updatedTournament)
+
+    if (selected && categoryForm.competitionId === competition.id) {
+      setCategoryForm(emptyCategory)
+    }
+
+    setError('')
+    setMessage(
+      selected
+        ? `Usunięto konkurencję „${competition.name}” z zawodów.`
+        : `Dodano konkurencję „${competition.name}” do zawodów. Możesz wybrać kolejne.`,
+    )
+    setRefreshKey((value) => value + 1)
   }
 
   const addCategory = (event) => {
@@ -119,6 +157,7 @@ export default function CreateTournamentPage() {
     setMessage('')
     const competition = competitions.find((item) => item.id === categoryForm.competitionId)
     if (!competition) return setError('Wybierz konkurencję dla kategorii.')
+    if (!selectedCompetitionSet.has(competition.id)) return setError('Najpierw dodaj tę konkurencję do zawodów.')
     if (!categoryForm.name.trim()) return setError('Wpisz nazwę kategorii.')
     if (!['K', 'M'].includes(categoryForm.gender)) return setError('Wybierz płeć kategorii: Kobieta albo Mężczyzna.')
     const duplicate = categories.some((item) => item.competitionId === categoryForm.competitionId && item.name.toLocaleLowerCase('pl') === categoryForm.name.trim().toLocaleLowerCase('pl'))
@@ -132,6 +171,7 @@ export default function CreateTournamentPage() {
       maxAge: competitionMaxAge == null ? requestedMaxAge : (requestedMaxAge == null ? competitionMaxAge : Math.min(competitionMaxAge, requestedMaxAge)),
     })
     setCategories(db.getTournamentCategories())
+    setCreatedTournament(db.getTournament())
     setCategoryForm(emptyCategory)
     setOpenCategoryId(saved.id)
     setSelectedByCategory((current) => ({ ...current, [saved.id]: new Set() }))
@@ -194,6 +234,7 @@ export default function CreateTournamentPage() {
     if (!confirm(`Usunąć kategorię „${category.name}” wraz ze zgłoszeniami i drabinką?`)) return
     db.deleteTournamentCategory(category.id)
     setCategories(db.getTournamentCategories())
+    setCreatedTournament(db.getTournament())
     setSelectedByCategory((previous) => {
       const next = { ...previous }
       delete next[category.id]
@@ -241,27 +282,66 @@ export default function CreateTournamentPage() {
 
         <div className="tournament-flow-steps">
           <div className="flow-step done"><b>1</b><span>Zawody</span></div>
-          <div className="flow-step active"><b>2</b><span>Kategorie</span></div>
-          <div className="flow-step"><b>3</b><span>Zawodnicy</span></div>
-          <div className="flow-step"><b>4</b><span>Losowanie drabinki</span></div>
+          <div className={`flow-step ${selectedCompetitionIds.length ? 'done' : 'active'}`}><b>2</b><span>Konkurencje</span></div>
+          <div className={`flow-step ${selectedCompetitionIds.length ? 'active' : ''}`}><b>3</b><span>Kategorie</span></div>
+          <div className="flow-step"><b>4</b><span>Zawodnicy</span></div>
+          <div className="flow-step"><b>5</b><span>Losowanie drabinki</span></div>
         </div>
 
         {message && <div className="alert alert-success">{message}</div>}
         {error && <div className="alert alert-error">{error}</div>}
 
-        <section className="panel-section category-create-section">
-          <div className="panel-section-head">
-            <div><span className="eyebrow">Krok 2</span><h2>Dodaj kategorie do zawodów</h2><p>Najpierw tworzysz kategorię, a dopiero później wybierasz zawodników, którzy mają w niej wystartować.</p></div>
+        <section className="panel-section tournament-competition-section">
+          <div className="panel-section-head competition-selection-head">
+            <div><span className="eyebrow">Krok 2</span><h2>Dodaj konkurencje do zawodów</h2><p>Możesz zaznaczyć kilka konkurencji. Dopiero z wybranych konkurencji utworzysz kategorie wiekowe i płci.</p></div>
+            <strong className="selected-competition-counter">{selectedCompetitionIds.length} wybranych</strong>
           </div>
-          <form className="category-builder" onSubmit={addCategory}>
-            <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{competitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
-            <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10-11 lat, 6-5 kyu" /></label>
-            <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
-            <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
-            <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
-            <button className="btn btn-primary">+ Dodaj kategorię</button>
-          </form>
+
+          <div className="competition-picker-groups">
+            {competitionGroups.map((group) => (
+              <div className="competition-picker-group" key={group}>
+                <h3>{group}</h3>
+                <div className="competition-picker-list">
+                  {competitions.filter((competition) => (competition.group || 'Pozostałe') === group).map((competition) => {
+                    const checked = selectedCompetitionSet.has(competition.id)
+                    const locked = checked && categories.some((category) => category.competitionId === competition.id)
+                    return (
+                      <label className={`competition-picker-item ${checked ? 'selected' : ''} ${locked ? 'locked' : ''}`} key={competition.id}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleTournamentCompetition(competition)}
+                        />
+                        <span>
+                          <strong>{competition.name}</strong>
+                          <small>{locked ? 'Ma już utworzone kategorie' : checked ? 'Dodana do zawodów' : 'Kliknij, aby dodać'}</small>
+                        </span>
+                      </label>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
+
+        {selectedCompetitionIds.length > 0 ? (
+          <section className="panel-section category-create-section">
+            <div className="panel-section-head">
+              <div><span className="eyebrow">Krok 3</span><h2>Dodaj kategorie do zawodów</h2><p>Wybierz jedną z dodanych konkurencji, utwórz kategorię, a następnie przypisz zawodników.</p></div>
+            </div>
+            <form className="category-builder" onSubmit={addCategory}>
+              <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{selectedCompetitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
+              <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10-11 lat, 6-5 kyu" /></label>
+              <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+              <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
+              <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
+              <button className="btn btn-primary">+ Dodaj kategorię</button>
+            </form>
+          </section>
+        ) : (
+          <div className="alert alert-info">Najpierw zaznacz co najmniej jedną konkurencję. Możesz wybrać ich kilka jednocześnie.</div>
+        )}
 
         {!categories.length ? (
           <EmptyState title="Nie ma jeszcze kategorii" text="Dodaj pierwszą kategorię. Następnie system pokaże listę zawodników do wyboru i przycisk losowania drabinki." />
@@ -290,7 +370,7 @@ export default function CreateTournamentPage() {
 
                   {isOpen && (
                     <div className="category-athlete-picker">
-                      <div className="category-subhead"><div><span className="eyebrow">Krok 3 • {organizerClub?.shortName || organizerClub?.name}</span><h3>Zgłoś swoich zawodników</h3><p>Widzisz tylko zawodników należących do Twojego klubu.</p></div><strong>{selectedSet.size} wybranych</strong></div>
+                      <div className="category-subhead"><div><span className="eyebrow">Krok 4 • {organizerClub?.shortName || organizerClub?.name}</span><h3>Zgłoś swoich zawodników</h3><p>Widzisz tylko zawodników należących do Twojego klubu.</p></div><strong>{selectedSet.size} wybranych</strong></div>
                       {!candidates.length ? (
                         <div className="alert alert-info">Brak zawodników z Twojego klubu spełniających kryteria tej kategorii. <Link to="/organizator/klub">Dodaj zawodnika w swoim klubie</Link>.</div>
                       ) : (
@@ -316,7 +396,7 @@ export default function CreateTournamentPage() {
 
                   <div className="category-draw-zone">
                     <div>
-                      <span className="eyebrow">Krok 4</span>
+                      <span className="eyebrow">Krok 5</span>
                       <h3>{isKumite ? 'Losowanie drabinki' : 'Lista startowa'}</h3>
                       <p>{isKumite ? 'Po zapisaniu zawodników kliknij losowanie. Kolejność zawodników w drabince zostanie ustalona losowo.' : 'Ta konkurencja nie korzysta z drabinki kumite. Zawodnicy są już przypisani do kategorii.'}</p>
                     </div>
@@ -354,7 +434,7 @@ export default function CreateTournamentPage() {
         <section className="create-tournament-section">
           <div className="create-section-head">
             <span className="create-step">1</span>
-            <div><h2>Utwórz zawody</h2><p>Na tym etapie wpisujesz tylko dane wydarzenia. Kategorie dodasz dopiero po utworzeniu zawodów.</p></div>
+            <div><h2>Utwórz zawody</h2><p>Na tym etapie wpisujesz dane wydarzenia. Po utworzeniu zawodów wybierzesz kilka konkurencji, a następnie dodasz do nich kategorie.</p></div>
           </div>
           {error && <div className="alert alert-error">{error}</div>}
           <div className="form-grid tournament-create-grid">

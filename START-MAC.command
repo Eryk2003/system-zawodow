@@ -164,3 +164,11 @@ ETAP 35: Na ekranie oczekiwania telebimu napis „IKA” jest biały, a „POLAN
 
 
 ETAP 37: Ujednolicono wszystkie myślniki i kreski do zwykłego znaku "-" w całym projekcie.
+
+
+ETAP 39:
+- po utworzeniu zawodów organizator może dodać kilka konkurencji do jednych zawodów,
+- konkurencje wybiera się wielokrotnie checkboxami,
+- kategorie można tworzyć wyłącznie dla konkurencji dodanych do danych zawodów,
+- wybrana konkurencja pozostaje w zawodach nawet jeśli nie ma jeszcze kategorii,
+- konkurencji z istniejącymi kategoriami nie można przypadkowo odznaczyć.
