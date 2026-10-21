@@ -1,3 +1,16 @@
+# IKA Poland - System Zawodów ETAP 38
+
+## Drabinki i panel sędziego kumite jak w Systemie Akademii
+
+- Przeniesiono układ drabinek wzorowany na Systemie Akademii: kolumny rund, karty walk, połączenia między rundami, statusy i wyróżnienie zwycięzcy.
+- Kumite Shobu Ippon: AKA czerwony, SHIRO biały.
+- Kumite Shobu Sanbon: AKA czerwony, AO niebieski.
+- Kumite Shobu Nihon: AKA czerwony, AO niebieski.
+- Panel sędziego ma punktację WAZARI +1 i IPPON +2.
+- Dodano korektę wyniku -1 i -2 dla obu stron.
+- Oznaczenia AKA/SHIRO/AO są widoczne w panelu sędziego, drabince organizatora i drabince TV.
+- Pozostała logika zawodów, podium, harmonogramu i Supabase nie została przebudowana.
+
 # IKA Poland - System Zawodów ETAP 34
 
 Synchronizacja Supabase Realtime między komputerem, laptopem i telefonem.

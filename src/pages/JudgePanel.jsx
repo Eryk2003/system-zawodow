@@ -110,16 +110,27 @@ export default function JudgePanel() {
 
       <section className="judge-current">
         <div className={`judge-fighter ${theme.red.className}`}>
+          <span className="judge-side-code">{theme.red.code}</span>
           <h2>{red.name}</h2>
           <p>{red.club}</p>
           <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
-          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'red', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'red', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'red', -1))}>COFNIJ -1</button></div>}
+          {active && <>
+            <div className="judge-score-buttons judge-score-buttons-awards">
+              <button onClick={() => run(() => db.changeScore(active.id, 'red', 1))}><strong>+1</strong><small>WAZARI</small></button>
+              <button onClick={() => run(() => db.changeScore(active.id, 'red', 2))}><strong>+2</strong><small>IPPON</small></button>
+            </div>
+            <div className="judge-correction-row">
+              <span>Korekta wyniku</span>
+              <button onClick={() => run(() => db.changeScore(active.id, 'red', -1))}>-1</button>
+              <button onClick={() => run(() => db.changeScore(active.id, 'red', -2))}>-2</button>
+            </div>
+          </>}
         </div>
 
         <div className="judge-center">
           <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
           <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
-          <small>WAZARI = 1 • IPPON = 2</small>
+          <small>WAZARI = 1 • IPPON = 2 • korekta: -1 / -2</small>
           {active ? (
             <div className="judge-main-controls">
               <button className="btn btn-outline" onClick={() => run(() => activeRaw.timerRunning ? db.pauseMatch(active.id) : db.resumeMatch(active.id))}>{activeRaw.timerRunning ? 'PAUZA' : 'WZNÓW'}</button>
@@ -130,14 +141,25 @@ export default function JudgePanel() {
         </div>
 
         <div className={`judge-fighter ${theme.blue.className}`}>
+          <span className="judge-side-code">{theme.blue.code}</span>
           <h2>{blue.name}</h2>
           <p>{blue.club}</p>
           <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
-          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'blue', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', -1))}>COFNIJ -1</button></div>}
+          {active && <>
+            <div className="judge-score-buttons judge-score-buttons-awards">
+              <button onClick={() => run(() => db.changeScore(active.id, 'blue', 1))}><strong>+1</strong><small>WAZARI</small></button>
+              <button onClick={() => run(() => db.changeScore(active.id, 'blue', 2))}><strong>+2</strong><small>IPPON</small></button>
+            </div>
+            <div className="judge-correction-row">
+              <span>Korekta wyniku</span>
+              <button onClick={() => run(() => db.changeScore(active.id, 'blue', -1))}>-1</button>
+              <button onClick={() => run(() => db.changeScore(active.id, 'blue', -2))}>-2</button>
+            </div>
+          </>}
         </div>
       </section>
 
-      {active && <section className="judge-winner-row"><span>ZAKOŃCZ WALKĘ I WSKAŻ ZWYCIĘZCĘ</span><button className="judge-winner red" onClick={() => finish(active.redResolvedId)}>{athlete(active.redResolvedId).name}</button><button className={`judge-winner ${theme.mode === 'red-white' ? 'white' : 'blue'}`} onClick={() => finish(active.blueResolvedId)}>{athlete(active.blueResolvedId).name}</button></section>}
+      {active && <section className="judge-winner-row"><span>ZAKOŃCZ WALKĘ I WSKAŻ ZWYCIĘZCĘ</span><button className="judge-winner red" onClick={() => finish(active.redResolvedId)}>{theme.red.code} - {athlete(active.redResolvedId).name}</button><button className={`judge-winner ${theme.mode === 'red-white' ? 'white' : 'blue'}`} onClick={() => finish(active.blueResolvedId)}>{theme.blue.code} - {athlete(active.blueResolvedId).name}</button></section>}
 
       <section className="judge-queue">
         <div className="judge-queue-head"><h3>Kolejność walk</h3><span>Po zakończeniu walki zwycięzca automatycznie przechodzi dalej.</span></div>
@@ -145,7 +167,7 @@ export default function JudgePanel() {
           {resolvedMatches.map((m) => {
             const r = athlete(m.redResolvedId)
             const b = athlete(m.blueResolvedId)
-            return <article className={`judge-queue-match ${m.status}`} key={m.id}><span>{m.roundName} • {m.matchNo}</span><strong><i className="dot red" />{r.name}</strong><b>VS</b><strong><i className={`dot ${theme.mode === 'red-white' ? 'white' : 'blue'}`} />{b.name}</strong><em>{m.status === 'done' ? `✓ ${athlete(m.winnerId).name}` : m.status === 'active' ? 'TRWA' : 'OCZEKUJE'}</em></article>
+            return <article className={`judge-queue-match ${m.status}`} key={m.id}><span>{m.roundName} • {m.matchNo}</span><strong><i className="dot red" /><small className="judge-queue-side-label">{theme.red.code}</small>{r.name}</strong><b>VS</b><strong><i className={`dot ${theme.mode === 'red-white' ? 'white' : 'blue'}`} /><small className="judge-queue-side-label">{theme.blue.code}</small>{b.name}</strong><em>{m.status === 'done' ? `✓ ${athlete(m.winnerId).name}` : m.status === 'active' ? 'TRWA' : 'OCZEKUJE'}</em></article>
           })}
         </div>
       </section>

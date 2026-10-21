@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
+import KumiteBracket from '../components/KumiteBracket'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
 
@@ -350,6 +351,23 @@ export default function TournamentCenter() {
                 <button type="button" className="btn btn-ghost" onClick={() => { if (confirm('Usunąć tę drabinkę?')) { db.resetBracket(selected); setSelectedBracket(''); refresh() } }}>Usuń drabinkę</button>
               </div>
             </div>
+            <div className="academy-bracket-panel-wrap">
+              <div className="academy-bracket-panel-head">
+                <div>
+                  <span>DRABINKA</span>
+                  <strong>{selectedCompetition?.name || 'Kumite'} - {selected.category}</strong>
+                </div>
+                <small>{selectedSideTheme.red.code} / {selectedSideTheme.blue.code}</small>
+              </div>
+              <KumiteBracket
+                matches={selectedMatches}
+                athletes={athletes}
+                clubs={clubs}
+                sideTheme={selectedSideTheme}
+                variant="panel"
+              />
+            </div>
+
             <div className="match-control-list">
               {selectedMatches.map((raw) => {
                 const match = resolveMatch(raw, matches)
@@ -366,8 +384,8 @@ export default function TournamentCenter() {
                     {raw.status === 'active' ? (
                       <div className="match-live-controls">
                         <div className="timer-control"><strong>{clock(remaining)}</strong><button type="button" className="btn btn-ghost btn-sm" onClick={() => { raw.timerRunning ? db.pauseMatch(raw.id) : db.resumeMatch(raw.id); refresh() }}>{raw.timerRunning ? 'Pauza' : 'Wznów'}</button></div>
-                        <div className="score-controls score-controls-red"><span>{selectedSideTheme.red.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 1); refresh() }}>WAZARI +1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 2); refresh() }}>IPPON +2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', -1); refresh() }}>COFNIJ -1</button></div>
-                        <div className={`score-controls ${selectedSideTheme.mode === 'red-white' ? 'score-controls-white' : 'score-controls-blue'}`}><span>{selectedSideTheme.blue.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 1); refresh() }}>WAZARI +1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 2); refresh() }}>IPPON +2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', -1); refresh() }}>COFNIJ -1</button></div>
+                        <div className="score-controls score-controls-red"><span>{selectedSideTheme.red.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 1); refresh() }}>WAZARI +1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 2); refresh() }}>IPPON +2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', -1); refresh() }}>COFNIJ -1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', -2); refresh() }}>COFNIJ -2</button></div>
+                        <div className={`score-controls ${selectedSideTheme.mode === 'red-white' ? 'score-controls-white' : 'score-controls-blue'}`}><span>{selectedSideTheme.blue.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 1); refresh() }}>WAZARI +1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 2); refresh() }}>IPPON +2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', -1); refresh() }}>COFNIJ -1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', -2); refresh() }}>COFNIJ -2</button></div>
                         <div className="winner-controls"><span>Zakończ walkę - zwycięzca:</span><button type="button" className="btn btn-outline" onClick={() => finishMatch(raw, match.redResolvedId)}>{selectedSideTheme.red.code} - {athleteName(match.redResolvedId)}</button><button type="button" className="btn btn-outline" onClick={() => finishMatch(raw, match.blueResolvedId)}>{selectedSideTheme.blue.code} - {athleteName(match.blueResolvedId)}</button></div>
                       </div>
                     ) : raw.status === 'done' ? (

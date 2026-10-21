@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
+import KumiteBracket from '../components/KumiteBracket'
 
 const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
 
@@ -289,6 +290,7 @@ export default function TatamiDisplay() {
         </header>
         <section className="scoreboard-body">
           <div className={`fighter fighter-red ${sideTheme.red.className}`}>
+            <div className="fighter-side">{sideTheme.red.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.redAthlete?.photo ? (
                 <img src={m.redAthlete.photo} alt={`${m.redAthlete.firstName} ${m.redAthlete.lastName}`} />
@@ -308,6 +310,7 @@ export default function TatamiDisplay() {
             <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>WAZARI = 1 PUNKT • IPPON = 2 PUNKTY</small>
           </div>
           <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
+            <div className="fighter-side">{sideTheme.blue.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.blueAthlete?.photo ? (
                 <img src={m.blueAthlete.photo} alt={`${m.blueAthlete.firstName} ${m.blueAthlete.lastName}`} />
@@ -334,25 +337,14 @@ export default function TatamiDisplay() {
         <div className="bracket-title"><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
         <div className="next-fight-box"><small>NASTĘPNA WALKA</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '-'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '-'}</strong></div>
       </header>
-      <section className="bracket-board">
-        {rounds.map((round) => (
-          <div className="bracket-round" key={`${round.index}-${round.name}`}>
-            <h2>{round.name}</h2>
-            <div className="bracket-round-matches">
-              {round.matches.map((match) => {
-                const red = athleteInfo(match.redResolvedId)
-                const blue = athleteInfo(match.blueResolvedId)
-                return (
-                  <article className={`bracket-match ${match.status === 'done' ? 'bracket-match-done' : ''}`} key={match.id}>
-                    <small>Walka {match.matchNo}</small>
-                    <div className={`bracket-colored-side bracket-red-side ${match.winnerId === match.redResolvedId ? 'bracket-winner' : ''}`}><i className="bracket-color-mark" aria-hidden="true" /><strong>{red?.name || 'Oczekiwanie na zwycięzcę'}</strong>{red?.club && <em>{red.club}</em>}</div>
-                    <div className={`bracket-colored-side ${sideTheme.mode === 'red-white' ? 'bracket-white-side' : 'bracket-blue-side'} ${match.winnerId === match.blueResolvedId ? 'bracket-winner' : ''}`}><i className="bracket-color-mark" aria-hidden="true" /><strong>{blue?.name || 'Oczekiwanie na zwycięzcę'}</strong>{blue?.club && <em>{blue.club}</em>}</div>
-                  </article>
-                )
-              })}
-            </div>
-          </div>
-        ))}
+      <section className="bracket-board academy-bracket-tv-wrap">
+        <KumiteBracket
+          matches={payload.matches}
+          athletes={athletes}
+          clubs={clubs}
+          sideTheme={sideTheme}
+          variant="tv"
+        />
       </section>
     </main>
   )

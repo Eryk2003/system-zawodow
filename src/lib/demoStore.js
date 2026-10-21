@@ -1062,7 +1062,7 @@ export const db = {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
-    if (![1, 2, -1].includes(delta)) return match
+    if (![1, 2, -1, -2].includes(delta)) return match
     const key = side === 'red' ? 'redScore' : 'blueScore'
     const nextScore = Math.round((Math.max(0, Number(match[key] || 0) + delta) + Number.EPSILON) * 10) / 10
     const next = { ...match, [key]: nextScore }
