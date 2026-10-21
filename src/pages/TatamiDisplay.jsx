@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
 
-const scoreText = (value) => value == null ? '—' : String(Number(value)).replace('.', ',')
+const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
 
 const fmt = (seconds) => {
   const s = Math.max(0, Number(seconds || 0))
@@ -132,7 +132,7 @@ export default function TatamiDisplay() {
           {payload.kata.results.map((result) => (
             <article key={result.athleteId} className={`kata-tv-list-row ${result.athleteId === nextId && result.status !== 'done' ? 'next' : ''} ${result.status}`}>
               <b>{result.order}</b>
-              <div><strong>{result.athlete ? `${result.athlete.firstName} ${result.athlete.lastName}` : '—'}</strong><span>{result.athlete?.clubName || ''}</span>{result.kataName && <small className="kata-tv-kata-name-inline">Kata: {result.kataName}</small>}</div>
+              <div><strong>{result.athlete ? `${result.athlete.firstName} ${result.athlete.lastName}` : '-'}</strong><span>{result.athlete?.clubName || ''}</span>{result.kataName && <small className="kata-tv-kata-name-inline">Kata: {result.kataName}</small>}</div>
               <em>{result.status === 'done' ? scoreText(result.finalScore) : result.athleteId === nextId ? 'NASTĘPNY' : 'OCZEKUJE'}</em>
             </article>
           ))}
@@ -155,7 +155,7 @@ export default function TatamiDisplay() {
         <section className="kata-athlete-stage">
           <div className="kata-athlete-tv-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div>
           <span>NASTĘPNY ZAWODNIK</span>
-          <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</h1>
+          <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1>
           <p>{athlete?.clubName || ''}</p>
           {result?.kataName && <div className="kata-tv-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
           <small>Po wykonaniu kata sędzia główny używa gwizdka, a następnie wprowadzane są oceny.</small>
@@ -178,7 +178,7 @@ export default function TatamiDisplay() {
         <section className="kata-scoreboard-stage">
           <div className="kata-scoreboard-athlete">
             <div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div>
-            <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</h1>
+            <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1>
             <p>{athlete?.clubName || ''}</p>
             {result?.kataName && <div className="kata-scoreboard-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
           </div>
@@ -204,7 +204,7 @@ export default function TatamiDisplay() {
           <div><b>{matName}</b><span>Wynik zapisany</span></div>
         </header>
         <section className="kata-final-stage">
-          <div className="kata-final-athlete"><div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div><div><h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</h1><p>{athlete?.clubName || ''}</p>{result?.kataName && <div className="kata-final-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}</div></div>
+          <div className="kata-final-athlete"><div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div><div><h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1><p>{athlete?.clubName || ''}</p>{result?.kataName && <div className="kata-final-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}</div></div>
           <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>{Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index} className={dropped.has(index) ? 'dropped' : ''}><span>SĘDZIA {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong>{dropped.has(index) && <small>ODRZUCONA</small>}</article>)}</div>
           <div className="kata-final-total"><span>KOŃCOWA OCENA</span><strong>{scoreText(result?.finalScore)}</strong>{payload.kata.judgeCount === 5 && <small>Najwyższa i najniższa nota nie są liczone.</small>}</div>
         </section>
@@ -222,8 +222,8 @@ export default function TatamiDisplay() {
       if (!result) {
         return (
           <div className={`podium-athlete podium-athlete-${place} podium-athlete-empty`}>
-            <div className="podium-photo podium-photo-empty">—</div>
-            <strong>—</strong>
+            <div className="podium-photo podium-photo-empty">-</div>
+            <strong>-</strong>
           </div>
         )
       }
@@ -298,7 +298,7 @@ export default function TatamiDisplay() {
                 </div>
               )}
             </div>
-            <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '—'}</h1>
+            <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.redScore)}</strong>
           </div>
@@ -317,7 +317,7 @@ export default function TatamiDisplay() {
                 </div>
               )}
             </div>
-            <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '—'}</h1>
+            <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
           </div>
@@ -332,7 +332,7 @@ export default function TatamiDisplay() {
       <header className="bracket-header">
         <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
         <div className="bracket-title"><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
-        <div className="next-fight-box"><small>NASTĘPNA WALKA</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '—'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '—'}</strong></div>
+        <div className="next-fight-box"><small>NASTĘPNA WALKA</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '-'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '-'}</strong></div>
       </header>
       <section className="bracket-board">
         {rounds.map((round) => (

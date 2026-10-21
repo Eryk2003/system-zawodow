@@ -1,4 +1,4 @@
--- IKA Poland — System Zawodów: wspólny stan między komputerem, laptopem i telefonem.
+-- IKA Poland - System Zawodów: wspólny stan między komputerem, laptopem i telefonem.
 -- Uruchom TEN PLIK w Supabase -> SQL Editor -> New query -> Run.
 
 create table if not exists public.app_shared_state (

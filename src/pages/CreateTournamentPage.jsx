@@ -255,7 +255,7 @@ export default function CreateTournamentPage() {
           </div>
           <form className="category-builder" onSubmit={addCategory}>
             <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{competitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
-            <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10–11 lat, 6–5 kyu" /></label>
+            <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10-11 lat, 6-5 kyu" /></label>
             <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
             <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
             <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
@@ -280,7 +280,7 @@ export default function CreateTournamentPage() {
                     <div>
                       <span className="eyebrow">{competition?.name || 'Konkurencja'}</span>
                       <h2>{category.name}</h2>
-                      <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników` : 'Brak zawodników — harmonogram pojawi się po zapisaniu składu.'}</p>
+                      <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników` : 'Brak zawodników - harmonogram pojawi się po zapisaniu składu.'}</p>
                     </div>
                     <div className="category-card-actions">
                       <button type="button" className="btn btn-outline" onClick={() => setOpenCategoryId(isOpen ? null : category.id)}>{isOpen ? 'Zwiń zawodników' : 'Wybierz zawodników'}</button>
@@ -301,7 +301,7 @@ export default function CreateTournamentPage() {
                               <label className={`athlete-checkbox-card ${checked ? 'selected' : ''}`} key={athlete.id}>
                                 <input type="checkbox" checked={checked} onChange={() => toggleAthlete(category, athlete.id)} />
                                 <AthleteAvatar athlete={athlete} />
-                                <span><strong>{athlete.firstName} {athlete.lastName}</strong><small>{organizerClub?.shortName || organizerClub?.name || 'Twój klub'} • {ageOnDate(athlete.birthDate, createdTournament.date) ?? '—'} lat</small></span>
+                                <span><strong>{athlete.firstName} {athlete.lastName}</strong><small>{organizerClub?.shortName || organizerClub?.name || 'Twój klub'} • {ageOnDate(athlete.birthDate, createdTournament.date) ?? '-'} lat</small></span>
                               </label>
                             )
                           })}

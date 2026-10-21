@@ -1,4 +1,4 @@
--- IKA Poland — System Zawodów, ETAP 2
+-- IKA Poland - System Zawodów, ETAP 2
 -- Uruchom w Supabase SQL Editor przed podłączeniem produkcyjnej bazy.
 
 create extension if not exists pgcrypto;
@@ -82,7 +82,7 @@ insert into public.competition_types (id,name,group_name,active,sort_order,max_a
 ('fantom','Juruken / Fantom','Dzieci',true,40,null),
 ('sanbon','Kumite Sanbon Shobu','Kumite',true,50,null),
 ('ippon','Kumite Ippon Shobu','Kumite',true,60,null),
-('nihon-u12','Kumite Shobu Nihon — do 12 lat','Kumite',true,65,12),
+('nihon-u12','Kumite Shobu Nihon - do 12 lat','Kumite',true,65,12),
 ('kumite-team','Kumite drużynowe','Kumite',true,70,null),
 ('kodachi','Kodachi','Pozostałe',true,80,null),
 ('obstacle','Tor przeszkód','Dzieci',true,90,null),

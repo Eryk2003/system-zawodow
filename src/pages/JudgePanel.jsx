@@ -73,7 +73,7 @@ export default function JudgePanel() {
 
   const start = () => {
     if (!next) return
-    run(() => db.startMatch(next.id), 'Walka rozpoczęta — tablica TV przełączyła się na punktację.')
+    run(() => db.startMatch(next.id), 'Walka rozpoczęta - tablica TV przełączyła się na punktację.')
   }
 
   const finish = (winnerId) => {
@@ -81,7 +81,7 @@ export default function JudgePanel() {
     const isFinal = active.roundName === 'Finał'
     run(
       () => db.finishMatch(active.id, winnerId),
-      isFinal ? 'Finał zakończony — tablica TV pokazuje podium kategorii.' : 'Walka zakończona — tablica TV wróciła do drabinki.',
+      isFinal ? 'Finał zakończony - tablica TV pokazuje podium kategorii.' : 'Walka zakończona - tablica TV wróciła do drabinki.',
     )
   }
 
@@ -113,7 +113,7 @@ export default function JudgePanel() {
           <h2>{red.name}</h2>
           <p>{red.club}</p>
           <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
-          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'red', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'red', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'red', -1))}>COFNIJ −1</button></div>}
+          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'red', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'red', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'red', -1))}>COFNIJ -1</button></div>}
         </div>
 
         <div className="judge-center">
@@ -133,7 +133,7 @@ export default function JudgePanel() {
           <h2>{blue.name}</h2>
           <p>{blue.club}</p>
           <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
-          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'blue', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', -1))}>COFNIJ −1</button></div>}
+          {active && <div className="judge-score-buttons"><button onClick={() => run(() => db.changeScore(active.id, 'blue', 1))}>WAZARI +1</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', 2))}>IPPON +2</button><button onClick={() => run(() => db.changeScore(active.id, 'blue', -1))}>COFNIJ -1</button></div>}
         </div>
       </section>
 

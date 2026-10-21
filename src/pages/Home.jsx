@@ -68,7 +68,7 @@ export default function Home() {
           <div><strong>4</strong><h3>Klasyfikacja LIVE</h3><p>Kluby są klasyfikowane medalowo: najpierw złote, potem srebrne i brązowe. Punkty klubowe: złoto 6, srebro 4, brąz 2.</p></div>
         </section>
       </main>
-      <footer className="footer">IKA Poland — System Zawodów • ETAP 31</footer>
+      <footer className="footer">IKA Poland - System Zawodów • ETAP 31</footer>
     </div>
   )
 }

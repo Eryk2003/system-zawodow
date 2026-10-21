@@ -5,7 +5,7 @@ export const DEFAULT_COMPETITIONS = [
   { id: 'fantom', name: 'Juruken / Fantom', group: 'Dzieci', active: true },
   { id: 'sanbon', name: 'Kumite Sanbon Shobu', group: 'Kumite', active: true },
   { id: 'ippon', name: 'Kumite Ippon Shobu', group: 'Kumite', active: true },
-  { id: 'nihon-u12', name: 'Kumite Shobu Nihon — do 12 lat', group: 'Kumite', maxAge: 12, active: true },
+  { id: 'nihon-u12', name: 'Kumite Shobu Nihon - do 12 lat', group: 'Kumite', maxAge: 12, active: true },
   { id: 'kumite-team', name: 'Kumite drużynowe', group: 'Kumite', active: true },
   { id: 'kodachi', name: 'Kodachi', group: 'Pozostałe', active: true },
   { id: 'obstacle', name: 'Tor przeszkód', group: 'Dzieci', active: true },
@@ -14,7 +14,7 @@ export const DEFAULT_COMPETITIONS = [
 
 export const DEFAULT_TOURNAMENT = {
   id: 'ika-open',
-  name: 'IKA Poland — zawody',
+  name: 'IKA Poland - zawody',
   date: new Date().toISOString().slice(0, 10),
   venue: 'Hala zawodów',
   status: 'preparation',

@@ -53,7 +53,7 @@ export default function RankingsPage() {
       <PublicHeader />
       <main className="ranking-page section-wrap">
         <div className="ranking-hero">
-          <div><span className="eyebrow">Klasyfikacja LIVE</span><h1>Kluby i zawodnicy</h1><p>{tournament.created ? tournament.name : 'Aktualne zawody IKA Poland'} — wyniki aktualizują się automatycznie po zakończeniu kategorii.</p></div>
+          <div><span className="eyebrow">Klasyfikacja LIVE</span><h1>Kluby i zawodnicy</h1><p>{tournament.created ? tournament.name : 'Aktualne zawody IKA Poland'} - wyniki aktualizują się automatycznie po zakończeniu kategorii.</p></div>
           {tab === 'clubs' ? (
             <div className="ranking-points-legend"><strong>Klasyfikacja klubowa</strong><span>🥇 = 6 pkt</span><span>🥈 = 4 pkt</span><span>🥉 = 2 pkt</span><span style={{gridColumn:'1 / -1'}}>O kolejności decydują najpierw złote, potem srebrne i brązowe medale.</span></div>
           ) : (

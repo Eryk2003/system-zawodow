@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db } from '../lib/demoStore'
 
-const scoreText = (value) => value == null ? '—' : String(Number(value)).replace('.', ',')
+const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
 
 function whistle() {
   try {
@@ -144,7 +144,7 @@ export default function KataJudgePanel() {
   const showList = () => run(() => db.showKataList(session.id), 'Na tablicy TV wyświetlana jest lista startowa.')
   const blowWhistle = () => {
     whistle()
-    run(() => db.kataWhistle(session.id), 'Gwizdek — sędziowie pokazują oceny. Wpisz je poniżej.')
+    run(() => db.kataWhistle(session.id), 'Gwizdek - sędziowie pokazują oceny. Wpisz je poniżej.')
   }
   const saveFinal = () => run(() => db.finalizeKataScore(session.id), 'Końcowa ocena zapisana. TV pokaże wynik, potem listę i następnego zawodnika.')
 
@@ -194,7 +194,7 @@ export default function KataJudgePanel() {
               </label>
               <div className="kata-judge-main-actions">
                 {!started && <button className="btn btn-primary kata-big-action" onClick={showAthlete}>POKAŻ ZAWODNIKA NA TV</button>}
-                {started && !scoresOpen && <button className="kata-whistle-button" onClick={blowWhistle}><span>◉</span> GWIZDEK — POKAŻ OCENY</button>}
+                {started && !scoresOpen && <button className="kata-whistle-button" onClick={blowWhistle}><span>◉</span> GWIZDEK - POKAŻ OCENY</button>}
                 {scoresOpen && <strong className="kata-score-entry-ready">WPROWADŹ OCENY SĘDZIÓW</strong>}
               </div>
             </div>
@@ -211,7 +211,7 @@ export default function KataJudgePanel() {
             <div className="kata-score-entry-head"><div><span className="eyebrow">Oceny</span><h2>{session.judgeCount} sędziów</h2></div><span>Każda wpisana ocena pojawia się od razu na tablicy TV.</span></div>
             <div className="kata-judge-score-grid">
               {Array.from({ length: session.judgeCount }, (_, index) => (
-                <label key={index}>Sędzia {index + 1}<input ref={(element) => { scoreInputRefs.current[index] = element }} className="numeric-input" inputMode="decimal" disabled={!scoresOpen} value={current?.scores?.[index] ?? ''} onChange={(event) => handleJudgeScoreChange(index, event.target.value)} onKeyDown={(event) => handleJudgeScoreKeyDown(index, event)} maxLength={3} placeholder="—" /></label>
+                <label key={index}>Sędzia {index + 1}<input ref={(element) => { scoreInputRefs.current[index] = element }} className="numeric-input" inputMode="decimal" disabled={!scoresOpen} value={current?.scores?.[index] ?? ''} onChange={(event) => handleJudgeScoreChange(index, event.target.value)} onKeyDown={(event) => handleJudgeScoreKeyDown(index, event)} maxLength={3} placeholder="-" /></label>
               ))}
             </div>
             <div className="kata-score-save-row">

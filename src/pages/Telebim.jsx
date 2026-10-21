@@ -44,10 +44,10 @@ export default function Telebim() {
           <h1>{athlete.firstName}<br />{athlete.lastName}</h1>
           <p className="telebim-club">{club?.name || 'Klub IKA Poland'}</p>
           <div className="telebim-grid">
-            <div><span>Konkurencja</span><strong>{competition?.name || '—'}</strong></div>
-            <div><span>Kategoria</span><strong>{entry.category || '—'}</strong></div>
-            <div><span>Stanowisko</span><strong>{entry.mat || '—'}</strong></div>
-            <div><span>Planowana godzina</span><strong>{entry.estimatedStart || '—'}</strong></div>
+            <div><span>Konkurencja</span><strong>{competition?.name || '-'}</strong></div>
+            <div><span>Kategoria</span><strong>{entry.category || '-'}</strong></div>
+            <div><span>Stanowisko</span><strong>{entry.mat || '-'}</strong></div>
+            <div><span>Planowana godzina</span><strong>{entry.estimatedStart || '-'}</strong></div>
           </div>
         </div>
       </div>

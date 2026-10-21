@@ -74,10 +74,10 @@ export default function ParentLookup() {
                       </div>
                       <div className="fights-counter">
                         <small>Do startu</small>
-                        {entry.liveStatus === 'done' ? <strong>—</strong> : entry.liveStatus === 'active' ? <strong>TERAZ</strong> : Number.isInteger(entry.fightsRemaining) ? <strong>{entry.fightsRemaining}</strong> : <strong>—</strong>}
+                        {entry.liveStatus === 'done' ? <strong>-</strong> : entry.liveStatus === 'active' ? <strong>TERAZ</strong> : Number.isInteger(entry.fightsRemaining) ? <strong>{entry.fightsRemaining}</strong> : <strong>-</strong>}
                         <span>{entry.liveStatus === 'active' ? 'walka trwa' : entry.liveStatus === 'done' ? 'zakończono' : entry.fightsRemaining === 1 ? 'walka' : 'walk'}</span>
                       </div>
-                      <div className="parent-time"><small>Przewidywany start</small><strong>{entry.dynamicEstimate || entry.estimatedStart || '—'}</strong></div>
+                      <div className="parent-time"><small>Przewidywany start</small><strong>{entry.dynamicEstimate || entry.estimatedStart || '-'}</strong></div>
                       <StatusBadge status={entry.liveStatus} label={entry.liveLabel} />
                     </div>
                   ))}

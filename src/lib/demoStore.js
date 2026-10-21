@@ -1016,7 +1016,7 @@ export const db = {
     const raw = matches.find((m) => m.id === matchId)
     if (!raw) return null
     const match = resolveMatch(raw, matches)
-    if (!match.redResolvedId || !match.blueResolvedId) throw new Error('Ta walka nie jest jeszcze gotowa — czeka na wynik wcześniejszej walki.')
+    if (!match.redResolvedId || !match.blueResolvedId) throw new Error('Ta walka nie jest jeszcze gotowa - czeka na wynik wcześniejszej walki.')
     const tournament = db.getTournament()
     const next = {
       ...raw,

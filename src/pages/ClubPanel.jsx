@@ -135,7 +135,7 @@ export default function ClubPanel() {
     if (tournamentCategories.length) {
       return tournamentCategories.map((category) => {
         const competition = comps.find((item) => item.id === category.competitionId)
-        return `${competition?.name || 'Konkurencja'} — ${category.name}`
+        return `${competition?.name || 'Konkurencja'} - ${category.name}`
       })
     }
     const selected = new Set(visibleTournament.competitionIds || [])
@@ -184,8 +184,8 @@ export default function ClubPanel() {
     db.setCategoryAthletesForClub(category.id, club.id, [...next])
     setRegistrationMessage(
       wasRegistered
-        ? `Usunięto zgłoszenie: ${athlete.firstName} ${athlete.lastName} — ${category.name}.`
-        : `Zgłoszono: ${athlete.firstName} ${athlete.lastName} — ${category.name}.`,
+        ? `Usunięto zgłoszenie: ${athlete.firstName} ${athlete.lastName} - ${category.name}.`
+        : `Zgłoszono: ${athlete.firstName} ${athlete.lastName} - ${category.name}.`,
     )
     setDataTick((value) => value + 1)
   }
@@ -214,8 +214,8 @@ export default function ClubPanel() {
           </div>
 
           <div className="club-tournament-meta">
-            <div><small>Liczba tatami</small><strong>{visibleTournament.matCount || '—'}</strong></div>
-            <div><small>Czas walki</small><strong>{visibleTournament.boutSeconds ? `${visibleTournament.boutSeconds} sek.` : '—'}</strong></div>
+            <div><small>Liczba tatami</small><strong>{visibleTournament.matCount || '-'}</strong></div>
+            <div><small>Czas walki</small><strong>{visibleTournament.boutSeconds ? `${visibleTournament.boutSeconds} sek.` : '-'}</strong></div>
             <div><small>Twoje zgłoszenia</small><strong>{clubEntries.length}</strong></div>
           </div>
 
@@ -241,7 +241,7 @@ export default function ClubPanel() {
           <EmptyState title="Brak zawodników" text="Dodaj pierwszego zawodnika wraz z podstawowymi danymi i zdjęciem do telebimu." />
         ) : (
           <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Data urodzenia</th><th>Stopień</th><th>Rodzic / opiekun</th><th></th></tr></thead><tbody>
-            {athletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '—'}</small></div></div></td><td>{athlete.birthDate || '—'}</td><td>{athlete.grade || '—'}</td><td><strong>{athlete.parentName || '—'}</strong><small className="block-small">{athlete.parentEmail || ''}</small></td><td className="actions-cell"><button className="link-btn" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
+            {athletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '-'}</small></div></div></td><td>{athlete.birthDate || '-'}</td><td>{athlete.grade || '-'}</td><td><strong>{athlete.parentName || '-'}</strong><small className="block-small">{athlete.parentEmail || ''}</small></td><td className="actions-cell"><button className="link-btn" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
           </tbody></table></div>
         )}
       </section>
@@ -346,7 +346,7 @@ export default function ClubPanel() {
               const comp = comps.find((c) => c.id === entry.competitionId)
               const category = tournamentCategories.find((item) => item.id === entry.categoryId) || { id: entry.categoryId, competitionId: entry.competitionId, name: entry.category }
               const participantCount = categoryEntries(category).length
-              return <tr key={entry.id}><td>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '—'}</td><td>{comp?.name || '—'}</td><td>{entry.category || '—'}</td><td><strong>{participantCount}</strong></td><td>{entry.mat || '—'}</td><td><strong>{entry.estimatedStart || '—'}</strong></td><td><StatusBadge status={entry.status} /></td></tr>
+              return <tr key={entry.id}><td>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</td><td>{comp?.name || '-'}</td><td>{entry.category || '-'}</td><td><strong>{participantCount}</strong></td><td>{entry.mat || '-'}</td><td><strong>{entry.estimatedStart || '-'}</strong></td><td><StatusBadge status={entry.status} /></td></tr>
             })}
           </tbody></table></div>
         )}
