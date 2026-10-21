@@ -203,3 +203,23 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   line-height: 1.35;
   text-align: center;
 }
+
+
+/* ETAP 42 - kary Shobu: ATTENAI 1, ATTENAI 2, CHUI, HANSOKU */
+.judge-penalty-box{margin-top:15px;width:min(560px,96%);padding:11px;border:1px solid rgba(255,255,255,.22);border-radius:11px;background:rgba(0,0,0,.18)}
+.side-white .judge-penalty-box{border-color:#c8c8cc;background:#f5f5f6}
+.judge-penalty-box>span{display:block;margin-bottom:8px;font-size:11px;font-weight:1000;letter-spacing:.08em}
+.judge-penalty-buttons{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.judge-penalty-buttons button{border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.22);color:inherit;border-radius:8px;padding:8px 10px;font-weight:950;font-size:11px}
+.side-white .judge-penalty-buttons button{background:#fff;color:#111;border-color:#c4c4c8}
+.judge-penalty-buttons button.active{box-shadow:0 0 0 2px #f1c453 inset;background:rgba(241,196,83,.2)}
+.judge-penalty-buttons button.hansoku,.score-penalties button.hansoku{background:#a80000;color:#fff;border-color:#e33}
+.judge-penalty-buttons button:disabled,.score-penalties button:disabled{opacity:.45;cursor:not-allowed}
+.score-penalties{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:9px;border-radius:9px;border:1px solid #333}
+.score-penalties>span{width:100%;font-size:10px;font-weight:950;letter-spacing:.05em}
+.score-penalties button{border:1px solid #444;background:#17171a;color:#fff;border-radius:7px;padding:7px 9px;font-size:10px;font-weight:900}
+.score-penalties-white{background:#f1f1f2;color:#111}.score-penalties-white button{background:#fff;color:#111;border-color:#ccc}
+.score-penalties-red{border-color:rgba(225,38,28,.45)}.score-penalties-blue{border-color:rgba(33,99,201,.45)}
+.tv-penalty{margin-top:10px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.2);font-size:14px;font-weight:950;letter-spacing:.06em;opacity:.62}
+.fighter-white .tv-penalty{border-color:#bbb;color:#222}
+.tv-penalty.active{opacity:1;background:rgba(255,196,0,.18);border-color:#e8bb36}

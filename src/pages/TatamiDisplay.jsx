@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
-import { getKumiteSideTheme } from '../lib/kumiteRules'
+import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
 
 const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
@@ -303,11 +303,12 @@ export default function TatamiDisplay() {
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.redScore)}</strong>
+            <div className={`tv-penalty ${Number(m.redPenaltyLevel || 0) ? 'active' : ''}`}>KARA: {getKumitePenaltyLabel(m.redPenaltyLevel)}</div>
           </div>
           <div className="fight-center">
             <span>{m.roundName} • WALKA {m.matchNo}</span>
             <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>WAZARI = 1 PUNKT • IPPON = 2 PUNKTY</small>
+            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>WAZARI = 1 • IPPON = 2 • HANSOKU = PRZEGRANA</small>
           </div>
           <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
             <div className="fighter-side">{sideTheme.blue.code}</div>
@@ -323,6 +324,7 @@ export default function TatamiDisplay() {
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
+            <div className={`tv-penalty ${Number(m.bluePenaltyLevel || 0) ? 'active' : ''}`}>KARA: {getKumitePenaltyLabel(m.bluePenaltyLevel)}</div>
           </div>
         </section>
       </main>

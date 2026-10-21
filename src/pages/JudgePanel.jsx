@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
-import { getKumiteSideTheme } from '../lib/kumiteRules'
+import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 
 const fmt = (seconds) => {
   const value = Math.max(0, Number(seconds || 0))
@@ -96,6 +96,17 @@ export default function JudgePanel() {
     })
   }
 
+  const changePenalty = (side, level) => {
+    if (!active) return
+    run(() => {
+      const result = db.changePenalty(active.id, side, level)
+      if (result?.status === 'done' && result?.finishReason === 'HANSOKU') {
+        const winner = athlete(result.winnerId)
+        setMessage(`HANSOKU - walka zakończona. ${winner.name} wygrywa, a wynik i kary tej walki zostały zablokowane.`)
+      }
+    })
+  }
+
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
@@ -135,13 +146,23 @@ export default function JudgePanel() {
               <button onClick={() => changeScore('red', -1)}>-1</button>
               <button onClick={() => changeScore('red', -2)}>-2</button>
             </div>
+            <div className="judge-penalty-box">
+              <span>KARY - {getKumitePenaltyLabel(activeRaw?.redPenaltyLevel)}</span>
+              <div className="judge-penalty-buttons">
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 1 ? 'active' : ''} onClick={() => changePenalty('red', 1)}>ATTENAI 1</button>
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 2 ? 'active' : ''} onClick={() => changePenalty('red', 2)}>ATTENAI 2</button>
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 3 ? 'active' : ''} onClick={() => changePenalty('red', 3)}>CHUI</button>
+                <button className="hansoku" onClick={() => changePenalty('red', 4)}>HANSOKU</button>
+                <button className="penalty-undo" disabled={!Number(activeRaw?.redPenaltyLevel || 0)} onClick={() => changePenalty('red', Math.max(0, Number(activeRaw?.redPenaltyLevel || 0) - 1))}>COFNIJ KARĘ</button>
+              </div>
+            </div>
           </>}
         </div>
 
         <div className="judge-center">
           <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
           <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
-          <small>WAZARI = 1 • IPPON = 2 • korekta: -1 / -2</small>
+          <small>WAZARI = 1 • IPPON = 2 • KARY: ATTENAI 1 → ATTENAI 2 → CHUI → HANSOKU</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
             <div className="judge-main-controls">
@@ -166,6 +187,16 @@ export default function JudgePanel() {
               <span>Korekta wyniku</span>
               <button onClick={() => changeScore('blue', -1)}>-1</button>
               <button onClick={() => changeScore('blue', -2)}>-2</button>
+            </div>
+            <div className="judge-penalty-box">
+              <span>KARY - {getKumitePenaltyLabel(activeRaw?.bluePenaltyLevel)}</span>
+              <div className="judge-penalty-buttons">
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 1 ? 'active' : ''} onClick={() => changePenalty('blue', 1)}>ATTENAI 1</button>
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 2 ? 'active' : ''} onClick={() => changePenalty('blue', 2)}>ATTENAI 2</button>
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 3 ? 'active' : ''} onClick={() => changePenalty('blue', 3)}>CHUI</button>
+                <button className="hansoku" onClick={() => changePenalty('blue', 4)}>HANSOKU</button>
+                <button className="penalty-undo" disabled={!Number(activeRaw?.bluePenaltyLevel || 0)} onClick={() => changePenalty('blue', Math.max(0, Number(activeRaw?.bluePenaltyLevel || 0) - 1))}>COFNIJ KARĘ</button>
+              </div>
             </div>
           </>}
         </div>

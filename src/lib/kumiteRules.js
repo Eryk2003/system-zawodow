@@ -81,3 +81,17 @@ export function getKumiteSideTheme(competition) {
     winRule,
   }
 }
+
+
+export const KUMITE_PENALTIES = [
+  { level: 0, label: 'BRAK' },
+  { level: 1, label: 'ATTENAI 1' },
+  { level: 2, label: 'ATTENAI 2' },
+  { level: 3, label: 'CHUI' },
+  { level: 4, label: 'HANSOKU' },
+]
+
+export function getKumitePenaltyLabel(level) {
+  const normalized = Math.max(0, Math.min(4, Number(level || 0)))
+  return KUMITE_PENALTIES.find((item) => item.level === normalized)?.label || 'BRAK'
+}

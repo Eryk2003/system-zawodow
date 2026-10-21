@@ -975,7 +975,7 @@ export const db = {
           roundName: roundName(prelimCount * 2, true), matchNo: i + 1, queueOrder: queueOrder++,
           redAthleteId: athleteIds[cursor++], blueAthleteId: athleteIds[cursor++],
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, status: 'scheduled',
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, status: 'scheduled',
         }
         created.push(match)
         slots.push({ sourceMatchId: match.id })
@@ -998,7 +998,7 @@ export const db = {
           roundName: name, matchNo: i / 2 + 1, queueOrder: queueOrder++,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, status: 'scheduled',
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, status: 'scheduled',
         }
         created.push(match)
         nextSlots.push({ sourceMatchId: match.id })
@@ -1056,6 +1056,38 @@ export const db = {
     if (!match) return null
     const next = { ...match, timerRemaining: getComputedRemaining(match), timerRunning: true, timerStartedAt: Date.now() }
     saveMatchInternal(next)
+    emit()
+    return next
+  },
+
+  changePenalty: (matchId, side, level) => {
+    const matches = read(KEYS.matches, [])
+    const match = matches.find((m) => m.id === matchId)
+    if (!match) return null
+
+    // Tak samo jak wynik, kary są zamknięte po zakończeniu walki.
+    if (match.status === 'done' || match.winnerId) {
+      throw new Error('Walka została już zakończona. Nie można zmieniać kar.')
+    }
+    if (match.status !== 'active') {
+      throw new Error('Kary można zmieniać tylko podczas aktywnej walki.')
+    }
+
+    const nextLevel = Math.max(0, Math.min(4, Number(level || 0)))
+    const key = side === 'red' ? 'redPenaltyLevel' : 'bluePenaltyLevel'
+    const next = { ...match, [key]: nextLevel }
+    saveMatchInternal(next)
+
+    // HANSOKU automatycznie kończy walkę. Zawodnik ukarany przegrywa,
+    // a przeciwnik zostaje zwycięzcą i przechodzi dalej w drabince.
+    if (nextLevel === 4) {
+      const resolved = resolveMatch(next, read(KEYS.matches, []))
+      const winnerId = side === 'red' ? resolved.blueResolvedId : resolved.redResolvedId
+      if (winnerId) {
+        return db.finishMatch(matchId, winnerId, { automatic: true, reason: 'HANSOKU' })
+      }
+    }
+
     emit()
     return next
   },

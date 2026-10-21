@@ -1,3 +1,7 @@
+# ETAP 42 - kary Shobu
+
+Dodano cztery poziomy kar w kumite Shobu: ATTENAI 1, ATTENAI 2, CHUI i HANSOKU. HANSOKU automatycznie kończy walkę: zawodnik ukarany przegrywa, przeciwnik zostaje zwycięzcą i awansuje dalej. Po zakończeniu walki nie można zmieniać punktów ani kar. Kary są widoczne w Panelu Sędziego, Centrum Zawodów i na tablicy TV.
+
 # IKA Poland - System Zawodów ETAP 40
 
 ## Najważniejsza zmiana
