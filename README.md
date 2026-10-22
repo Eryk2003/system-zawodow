@@ -324,3 +324,9 @@ Dodano kontrolę integralności plików wdrożeniowych przed buildem (`scripts/v
 - Panel sędziego i Centrum Zawodów: +1, +2, -1, -2.
 - TV nie pokazuje legendy WAZARI/IPPON.
 - Progi wygranej pozostają bez zmian i są opisane wyłącznie liczbą punktów.
+
+## ETAP 63 - strona główna dla klubów
+- Publiczny landing page jest teraz skierowany do klubów: rejestracja, logowanie i zgłoszenia zawodników.
+- Usunięto publiczny katalog konkurencji ze strony głównej.
+- Po wejściu na stronę główną widok zawsze wraca na samą górę do przycisków „Zarejestruj klub” i „Zaloguj”.
+- Katalog konkurencji nadal pozostaje w narzędziach organizatora i konfiguracji zawodów.
