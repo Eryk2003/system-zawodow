@@ -1305,6 +1305,45 @@ export const db = {
   },
 
   parentLookup: (fullName) => buildParentLookup(fullName),
+  parentLookupById: (athleteId) => buildParentLookupByAthleteId(athleteId),
+  ensureAthleteStartNumbers: () => {
+    const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
+    const deadline = tournament.registrationDeadline ? new Date(tournament.registrationDeadline).getTime() : NaN
+    if (!Number.isFinite(deadline) || deadline > Date.now()) {
+      throw new Error('Identyfikatory są dostępne dopiero po zamknięciu zgłoszeń.')
+    }
+
+    const entries = read(KEYS.entries, [])
+    const athletes = read(KEYS.athletes, [])
+    const registeredIds = [...new Set(entries.map((entry) => entry.athleteId).filter(Boolean))]
+      .sort((a, b) => {
+        const aa = athletes.find((item) => item.id === a)
+        const bb = athletes.find((item) => item.id === b)
+        const an = `${aa?.lastName || ''} ${aa?.firstName || ''}`.trim()
+        const bn = `${bb?.lastName || ''} ${bb?.firstName || ''}`.trim()
+        return an.localeCompare(bn, 'pl')
+      })
+
+    const current = { ...(tournament.athleteStartNumbers || {}) }
+    const used = new Set(Object.values(current).map((value) => Number(value)).filter(Number.isFinite))
+    let nextNumber = 1
+    let changed = false
+
+    registeredIds.forEach((athleteId) => {
+      if (current[athleteId]) return
+      while (used.has(nextNumber)) nextNumber += 1
+      current[athleteId] = nextNumber
+      used.add(nextNumber)
+      nextNumber += 1
+      changed = true
+    })
+
+    if (changed || !tournament.athleteStartNumbers) {
+      write(KEYS.tournament, { ...tournament, athleteStartNumbers: current })
+      emit()
+    }
+    return current
+  },
   publicTatamiLookup: (mat) => buildPublicTatamiLookup(mat),
 }
 
@@ -1404,6 +1443,15 @@ export function buildParentLookup(fullName) {
   }))
 }
 
+
+
+export function buildParentLookupByAthleteId(athleteId) {
+  ensureSeed()
+  const athlete = db.getAthletes().find((item) => item.id === athleteId)
+  if (!athlete) return []
+  return buildParentLookup(`${athlete.firstName} ${athlete.lastName}`)
+    .filter((row) => row.athlete.id === athleteId)
+}
 
 export function buildPublicTatamiLookup(mat) {
   ensureSeed()

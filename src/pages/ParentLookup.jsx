@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { PublicHeader, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import { db } from '../lib/demoStore'
@@ -12,6 +13,8 @@ const etaText = (entry) => {
 }
 
 export default function ParentLookup() {
+  const [searchParams] = useSearchParams()
+  const directAthleteId = searchParams.get('athlete') || ''
   const [name, setName] = useState('')
   const [activeName, setActiveName] = useState('')
   const [results, setResults] = useState([])
@@ -32,7 +35,10 @@ export default function ParentLookup() {
 
   useEffect(() => {
     const refresh = () => {
-      if (activeName) setResults(db.parentLookup(activeName))
+      if (directAthleteId) {
+        setResults(db.parentLookupById(directAthleteId))
+        setSearched(true)
+      } else if (activeName) setResults(db.parentLookup(activeName))
       if (selectedMat) setMatRows(db.publicTatamiLookup(selectedMat))
       else setMatRows([])
       setLastUpdate(new Date())
@@ -49,7 +55,7 @@ export default function ParentLookup() {
       window.removeEventListener('ika:live', refresh)
       clearInterval(interval)
     }
-  }, [activeName, selectedMat])
+  }, [activeName, selectedMat, directAthleteId])
 
   const submit = (e) => {
     e.preventDefault()
@@ -67,15 +73,15 @@ export default function ParentLookup() {
         <section className="lookup-hero">
           <span className="eyebrow">Informacja na żywo</span>
           <h1>Sprawdź start zawodnika</h1>
-          <p>Wpisz imię, nazwisko albo ich fragment. System pokaże tatami, przewidywaną godzinę oraz ile minut zostało do szacowanego startu.</p>
-          <form className="lookup-form" onSubmit={submit}>
+          <p>{directAthleteId ? 'Kod QR otworzył bezpośredni podgląd zawodnika. Poniżej zobaczysz wszystkie jego konkurencje, tatami i aktualne szacunki startu.' : 'Wpisz imię, nazwisko albo ich fragment. System pokaże tatami, przewidywaną godzinę oraz ile minut zostało do szacowanego startu.'}</p>
+          {!directAthleteId && <form className="lookup-form" onSubmit={submit}>
             <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Imię lub nazwisko zawodnika" />
             <button className="btn btn-primary">Sprawdź na żywo</button>
-          </form>
+          </form>}
           <small className="privacy-note">Widok aktualizuje się automatycznie wraz z przebiegiem zawodów. Podany czas jest szacunkowy i może zmienić się w trakcie turnieju.</small>
         </section>
 
-        {matOptions.length > 1 && (
+        {!directAthleteId && matOptions.length > 1 && (
           <section className="tatami-public-picker">
             <div>
               <span className="eyebrow">Kilka tatami</span>
@@ -91,7 +97,7 @@ export default function ParentLookup() {
           </section>
         )}
 
-        {selectedMat && matOptions.length > 1 && (
+        {!directAthleteId && selectedMat && matOptions.length > 1 && (
           <section className="tatami-public-list">
             <div className="tatami-public-title">
               <div><span className="eyebrow">LIVE</span><h2>{selectedMat}</h2></div>

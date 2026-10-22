@@ -610,3 +610,46 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .tournament-poster-actions{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;min-width:0}.tournament-poster-actions .field-label{font-size:13px;font-weight:950;color:#333}.tournament-poster-actions p{max-width:680px;margin:0;color:#666a72;line-height:1.55}.tournament-poster-actions>small{color:#7a7a82;line-height:1.45}.tournament-poster-file{position:relative;overflow:hidden}.tournament-poster-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}.tournament-poster-error{width:100%;margin:0}
 .club-event-poster{display:grid;place-items:center;padding:26px;background:#111;border-bottom:1px solid #2c2c30}.club-event-poster img{display:block;width:min(100%,720px);max-height:900px;object-fit:contain;border-radius:10px;background:#0b0b0c}.club-event-main-after-poster{border-top:0}.club-event-main-after-poster h3{margin-top:8px;font-size:32px}
 @media(max-width:760px){.tournament-poster-picker{grid-template-columns:1fr}.tournament-poster-preview{min-height:240px}.club-event-poster{padding:14px}.club-event-poster img{max-height:72vh}.club-event-main-after-poster h3{font-size:27px}}
+
+/* =========================================================
+   ETAP 61 - kolorowe identyfikatory zawodników po zamknięciu zgłoszeń.
+   ========================================================= */
+.athlete-identifiers-access{border-color:#ead3d0;background:linear-gradient(180deg,#fff,#fff9f8)}
+.identifier-access-ready{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px;border:1px solid #cce6d2;border-radius:13px;background:#f2faf4}
+.identifier-access-ready>div{display:grid;gap:4px}.identifier-access-ready strong{font-size:15px}.identifier-access-ready span{color:#68706a;font-size:12px}
+.identifier-page-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px;padding:22px 24px;border:1px solid #dddde1;border-radius:16px;background:#fff}
+.identifier-page-toolbar h2{margin:4px 0 7px;font-size:28px}.identifier-page-toolbar p{max-width:780px;margin:0;color:#696970;line-height:1.5}
+.identifier-toolbar-actions{display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.athlete-identifiers-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+.athlete-id-card{position:relative;overflow:hidden;display:grid;grid-template-rows:auto auto auto 1fr auto auto;min-width:0;background:#fff;border:1px solid #d7d7dc;border-radius:24px;color:#171719;box-shadow:0 18px 48px rgba(25,25,30,.1)}
+.athlete-id-card:before{content:"";position:absolute;inset:0 0 auto auto;width:48%;height:210px;background:linear-gradient(135deg,transparent 10%,rgba(225,38,28,.08) 10% 45%,transparent 45% 55%,rgba(194,151,45,.1) 55%);pointer-events:none}
+.athlete-id-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 14px;border-bottom:1px solid #ececef}
+.athlete-id-top>img{width:62px;height:62px;border-radius:50%;object-fit:cover;border:2px solid #e1261c;background:#fff}
+.athlete-id-brand{display:grid;gap:1px}.athlete-id-brand strong{font-size:31px;line-height:.95;letter-spacing:-.04em;color:#e1261c}.athlete-id-brand strong span{color:#151517}.athlete-id-brand small{font-size:9px;font-weight:1000;letter-spacing:.2em;color:#4f4f55}
+.athlete-id-event{position:relative;z-index:1;display:grid;gap:3px;padding:10px 22px;background:#171719;color:#fff}.athlete-id-event span{font-weight:950;font-size:12px}.athlete-id-event small{color:#bfc0c5;font-size:9px}
+.athlete-id-main{display:grid;grid-template-columns:44% 56%;min-height:240px;border-bottom:3px solid #caa84f}
+.athlete-id-photo{overflow:hidden;background:#e5e5e9}.athlete-id-photo img,.athlete-id-photo-fallback{width:100%;height:100%;min-height:240px}.athlete-id-photo img{display:block;object-fit:cover}.athlete-id-photo-fallback{display:grid;place-items:center;background:linear-gradient(145deg,#27272c,#47474f);color:#fff;font-size:74px;font-weight:1000}
+.athlete-id-number{display:grid;align-content:center;justify-items:center;gap:4px;padding:20px;background:linear-gradient(145deg,#d71920,#9d0e13 78%);color:#fff}.athlete-id-number span{font-size:11px;font-weight:1000;letter-spacing:.12em}.athlete-id-number strong{font-size:clamp(72px,9vw,126px);line-height:.86;letter-spacing:-.07em;text-shadow:0 3px 0 rgba(0,0,0,.12)}
+.athlete-id-info{display:grid;padding:8px 22px 4px}.athlete-id-field{display:grid;gap:2px;padding:10px 0;border-bottom:1px solid #e0e0e4}.athlete-id-field:last-child{border-bottom:0}.athlete-id-field small{font-size:8px;font-weight:1000;letter-spacing:.1em;color:#888891}.athlete-id-field strong{font-size:16px;line-height:1.12;overflow-wrap:anywhere}.athlete-id-name strong{font-size:24px}.athlete-id-categories strong{font-size:12px;line-height:1.25}
+.athlete-id-qr-row{display:grid;grid-template-columns:minmax(0,1fr) 128px;align-items:center;gap:14px;margin:8px 18px 18px;padding:13px;border:2px solid #e1261c;border-radius:16px;background:linear-gradient(135deg,#fff,#fff7f6)}
+.athlete-id-qr-copy{display:grid;gap:4px}.athlete-id-qr-copy span{color:#e1261c;font-size:9px;font-weight:1000;letter-spacing:.08em}.athlete-id-qr-copy strong{font-size:19px}.athlete-id-qr-copy small{color:#68686f;font-size:9px;line-height:1.35}.athlete-id-qr{display:grid;place-items:center;padding:6px;border-radius:9px;background:#fff}.athlete-id-qr img{display:block;width:116px;height:116px;image-rendering:auto}
+.athlete-id-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:#121214;color:#fff;border-top:3px solid #caa84f}.athlete-id-footer span{font-size:8px;letter-spacing:.16em;color:#c3c3c8}.athlete-id-footer strong{color:#e1261c;letter-spacing:.14em}
+.athlete-id-print-one{margin:13px 18px 18px}
+@media(max-width:980px){.athlete-identifiers-grid{grid-template-columns:1fr}.identifier-page-toolbar,.identifier-access-ready{align-items:flex-start;flex-direction:column}.identifier-toolbar-actions{justify-content:flex-start}}
+
+@media print{
+  @page athleteIdPage{size:A4 portrait;margin:8mm}
+  body{background:#fff!important}
+  .print-screen-only,.dashboard-topbar,.page-heading{display:none!important}
+  .dashboard-main{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+  .athlete-identifiers-grid{page:athleteIdPage;display:grid!important;grid-template-columns:1fr 1fr!important;gap:7mm!important;align-items:start!important}
+  .athlete-id-card{break-inside:avoid!important;box-shadow:none!important;border:1px solid #777!important;border-radius:4mm!important;min-height:128mm!important;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .athlete-id-top{padding:4mm 4.5mm 3mm!important}.athlete-id-top>img{width:13mm!important;height:13mm!important}.athlete-id-brand strong{font-size:18pt!important}.athlete-id-brand small{font-size:5.5pt!important}
+  .athlete-id-event{padding:2.3mm 4.5mm!important}.athlete-id-event span{font-size:7pt!important}.athlete-id-event small{font-size:5.3pt!important}
+  .athlete-id-main{min-height:49mm!important}.athlete-id-photo img,.athlete-id-photo-fallback{min-height:49mm!important;height:49mm!important}.athlete-id-photo-fallback{font-size:34pt!important}.athlete-id-number{padding:3mm!important}.athlete-id-number span{font-size:6pt!important}.athlete-id-number strong{font-size:56pt!important}
+  .athlete-id-info{padding:1.5mm 4.5mm .5mm!important}.athlete-id-field{padding:2mm 0!important}.athlete-id-field small{font-size:4.8pt!important}.athlete-id-field strong{font-size:8.5pt!important}.athlete-id-name strong{font-size:13pt!important}.athlete-id-categories strong{font-size:6.4pt!important}
+  .athlete-id-qr-row{grid-template-columns:minmax(0,1fr) 25mm!important;gap:2.5mm!important;margin:1.5mm 4mm 3mm!important;padding:2.5mm!important;border-width:.5mm!important;border-radius:3mm!important}.athlete-id-qr-copy span{font-size:4.8pt!important}.athlete-id-qr-copy strong{font-size:9.5pt!important}.athlete-id-qr-copy small{font-size:5pt!important}.athlete-id-qr{padding:1mm!important}.athlete-id-qr img{width:23mm!important;height:23mm!important}
+  .athlete-id-footer{padding:2.3mm 4mm!important;border-top-width:.7mm!important}.athlete-id-footer span{font-size:4.4pt!important}.athlete-id-footer strong{font-size:7pt!important}
+  body.print-single-identifier .athlete-id-card{display:none!important}
+  body.print-single-identifier .athlete-id-card.identifier-print-selected{display:grid!important;grid-column:1/-1!important;width:92mm!important;margin:0 auto!important}
+}

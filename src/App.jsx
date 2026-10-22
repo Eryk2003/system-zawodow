@@ -13,6 +13,7 @@ import TatamiDisplay from './pages/TatamiDisplay'
 import JudgePanel from './pages/JudgePanel'
 import KataJudgePanel from './pages/KataJudgePanel'
 import RankingsPage from './pages/RankingsPage'
+import AthleteIdentifiers from './pages/AthleteIdentifiers'
 import { useAuth } from './lib/AuthContext'
 
 function ProtectedRoute({ children, role }) {
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/organizator/klub" element={<ProtectedRoute role="organizer"><ClubPanel /></ProtectedRoute>} />
       <Route path="/organizator/nowe-zawody" element={<ProtectedRoute role="organizer"><CreateTournamentPage /></ProtectedRoute>} />
       <Route path="/organizator/zawody" element={<ProtectedRoute role="organizer"><TournamentCenter /></ProtectedRoute>} />
+      <Route path="/organizator/identyfikatory" element={<ProtectedRoute role="organizer"><AthleteIdentifiers /></ProtectedRoute>} />
       <Route path="/organizator/sedzia/:mat" element={<ProtectedRoute role="organizer"><JudgePanel /></ProtectedRoute>} />
       <Route path="/organizator/kata-sedzia/:mat" element={<ProtectedRoute role="organizer"><KataJudgePanel /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />

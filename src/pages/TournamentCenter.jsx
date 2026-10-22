@@ -325,6 +325,25 @@ export default function TournamentCenter() {
         </div>
       </section>
 
+      <section className="panel-section athlete-identifiers-access">
+        <div className="panel-section-head">
+          <div>
+            <span className="eyebrow">Akredytacje</span>
+            <h2>Identyfikatory zawodników</h2>
+            <p>Identyfikatory zawierają zdjęcie, stały numer startowy, imię i nazwisko, klub, kraj, kategorię oraz kod QR prowadzący bezpośrednio do informacji o godzinach startów zawodnika.</p>
+          </div>
+          <span className={`registration-deadline-status ${registrationStatus.closed ? 'closed' : 'open'}`}>{registrationStatus.closed ? 'DOSTĘPNE' : 'ZABLOKOWANE'}</span>
+        </div>
+        {registrationStatus.closed ? (
+          <div className="identifier-access-ready">
+            <div><strong>Zgłoszenia są zamknięte.</strong><span>Numery startowe zostaną utrwalone przy pierwszym otwarciu identyfikatorów.</span></div>
+            <a className="btn btn-primary" href="/organizator/identyfikatory">Otwórz identyfikatory</a>
+          </div>
+        ) : (
+          <div className="alert alert-info">Identyfikatory zostaną odblokowane automatycznie po upływie terminu zgłoszeń. Do tego czasu nie można ich generować ani drukować.</div>
+        )}
+      </section>
+
       <section className="panel-section">
         <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Nie wpisujesz godziny przy zawodniku. System rozkłada kategorie na dostępne tatami i liczy każdą walkę według czasu ustawionego dla kategorii. Przy 1:30 kolejne walki dostają czasy np. 09:00:00, 09:01:30, 09:03:00. Harmonogram możesz później poprawić ręcznie.</p></div></div>
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}

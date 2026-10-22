@@ -1,3 +1,12 @@
+# ETAP 61 – identyfikatory zawodników po zamknięciu zgłoszeń
+
+- Identyfikatory są dostępne wyłącznie dla organizatora i dopiero po zamknięciu zgłoszeń.
+- Każdy zgłoszony zawodnik otrzymuje stały numer startowy, który nie przesuwa się po ponownym otwarciu widoku.
+- Identyfikator zawiera: zdjęcie, numer startowy, imię i nazwisko, klub, kraj oraz wszystkie kategorie zawodnika.
+- Każdy identyfikator ma kod QR prowadzący bezpośrednio do publicznego podglądu LIVE konkretnego zawodnika.
+- Po zeskanowaniu QR system pokazuje jego konkurencje, tatami, przewidywane godziny i liczbę walk do startu.
+- Organizator może drukować wszystkie identyfikatory albo pojedynczy wybrany identyfikator.
+
 # ETAP 59 - drukowanie drabinek i list kata
 
 - Każda wybrana kategoria kumite ma przycisk **Drukuj drabinkę**.
