@@ -330,3 +330,10 @@ Dodano kontrolę integralności plików wdrożeniowych przed buildem (`scripts/v
 - Usunięto publiczny katalog konkurencji ze strony głównej.
 - Po wejściu na stronę główną widok zawsze wraca na samą górę do przycisków „Zarejestruj klub” i „Zaloguj”.
 - Katalog konkurencji nadal pozostaje w narzędziach organizatora i konfiguracji zawodów.
+
+
+## ETAP 64 — poprawa AUTO TV po odmowie uprawnienia
+- Telebim nie jest zamykany, gdy Chrome/Edge odmówi dostępu do zarządzania ekranami.
+- System pokazuje instrukcję odblokowania „Zarządzanie oknami / Window management”.
+- Przycisk „Ponów wykrywanie” pozwala uruchomić AUTO HDMI po zmianie zgody bez restartu zawodów.
+- Tryb ręczny TV pozostaje dostępny jako bezpieczne wyjście awaryjne.

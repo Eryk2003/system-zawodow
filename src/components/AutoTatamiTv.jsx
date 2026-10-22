@@ -49,6 +49,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
   const [enabled, setEnabled] = useState(false)
   const [status, setStatus] = useState({ kind: 'off', title: 'AUTO TV wyłączony', text: 'Wybierz tatami i włącz tryb przed rozpoczęciem walk.' })
   const [screenCount, setScreenCount] = useState(() => (window.screen?.isExtended ? 2 : 1))
+  const [permissionHelp, setPermissionHelp] = useState(false)
   const screenDetailsRef = useRef(null)
   const listenerRef = useRef(null)
   const tvWindowRef = useRef(null)
@@ -157,6 +158,62 @@ export default function AutoTatamiTv({ matCount = 1 }) {
     screenDetailsRef.current = null
   }
 
+  const attachScreenDetails = (details, popup) => {
+    detachScreenListener()
+    screenDetailsRef.current = details
+    const external = findExternalScreen(details)
+    if (external) placeWindow(popup, external)
+
+    const listener = () => syncScreens(details)
+    listenerRef.current = listener
+    details.addEventListener('screenschange', listener)
+    setPermissionHelp(false)
+    setEnabled(true)
+    syncScreens(details)
+  }
+
+  const requestScreenAccess = async (popup) => {
+    const details = await window.getScreenDetails()
+    attachScreenDetails(details, popup)
+  }
+
+  const showPermissionFallback = (popup) => {
+    // Brak zgody nie może zamykać telebimu podczas zawodów.
+    // Zostawiamy okno TV otwarte i pozwalamy odblokować uprawnienie bez restartu systemu.
+    tvWindowRef.current = popup
+    setEnabled(true)
+    setPermissionHelp(true)
+    setScreenCount(window.screen?.isExtended ? 2 : 1)
+    setStatus({
+      kind: 'warning',
+      title: 'TV otwarte — potrzebna zgoda do AUTO HDMI',
+      text: window.screen?.isExtended
+        ? 'Drugi ekran jest podłączony, ale przeglądarka nie pozwala jeszcze automatycznie przenieść na niego okna. Odblokuj „Zarządzanie oknami” i kliknij „Ponów wykrywanie”.'
+        : 'Telebim został otwarty. Odblokuj „Zarządzanie oknami”, podłącz HDMI w trybie rozszerzonym i kliknij „Ponów wykrywanie”.',
+    })
+  }
+
+  const retryScreenAccess = async () => {
+    const popup = openStandbyWindow()
+    if (!popup) {
+      setStatus({ kind: 'error', title: 'Okno TV zablokowane', text: 'Zezwól na wyskakujące okna dla Systemu Zawodów i spróbuj ponownie.' })
+      return
+    }
+    if (!('getScreenDetails' in window)) {
+      setStatus({ kind: 'warning', title: 'Tryb ręczny TV', text: 'Ta przeglądarka nie obsługuje automatycznego zarządzania ekranami. Okno TV pozostaje otwarte i można przeciągnąć je na telewizor.' })
+      return
+    }
+    try {
+      await requestScreenAccess(popup)
+    } catch (error) {
+      if (error?.name === 'NotAllowedError') {
+        showPermissionFallback(popup)
+        return
+      }
+      setStatus({ kind: 'error', title: 'Nie udało się wykryć ekranów', text: error?.message || 'Spróbuj ponownie po podłączeniu telewizora.' })
+    }
+  }
+
   const enableAutoTv = async () => {
     // Okno TV otwieramy NATYCHMIAST po kliknięciu użytkownika, zanim pojawi się
     // pytanie o zgodę na zarządzanie ekranami. Dzięki temu Chrome nie blokuje
@@ -179,28 +236,17 @@ export default function AutoTatamiTv({ matCount = 1 }) {
     }
 
     try {
-      detachScreenListener()
-      const details = await window.getScreenDetails()
-      screenDetailsRef.current = details
-      const external = findExternalScreen(details)
-      if (external) placeWindow(popup, external)
-
-      const listener = () => syncScreens(details)
-      listenerRef.current = listener
-      details.addEventListener('screenschange', listener)
-      setEnabled(true)
-      syncScreens(details)
+      await requestScreenAccess(popup)
     } catch (error) {
-      setEnabled(false)
-      try { if (popup && !popup.closed) popup.close() } catch (_) {}
-      tvWindowRef.current = null
-      const denied = error?.name === 'NotAllowedError'
+      if (error?.name === 'NotAllowedError') {
+        showPermissionFallback(popup)
+        return
+      }
+      setEnabled(true)
       setStatus({
-        kind: 'error',
-        title: denied ? 'Brak zgody na zarządzanie ekranami' : 'Nie udało się uruchomić AUTO TV',
-        text: denied
-          ? 'Chrome poprosi o zgodę na zarządzanie oknami na ekranach. Zezwól na tę funkcję i spróbuj ponownie.'
-          : (error?.message || 'Spróbuj ponownie po podłączeniu telewizora.'),
+        kind: 'warning',
+        title: 'TV otwarte — AUTO HDMI chwilowo niedostępne',
+        text: error?.message || 'Okno TV pozostaje otwarte. Możesz użyć go ręcznie i ponowić wykrywanie ekranów.',
       })
     }
   }
@@ -219,6 +265,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
   const disableAutoTv = () => {
     detachScreenListener()
     setEnabled(false)
+    setPermissionHelp(false)
     const popup = tvWindowRef.current
     if (popup && !popup.closed) {
       try { popup.close() } catch (_) {}
@@ -261,6 +308,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
             <button className="btn btn-primary" type="button" onClick={enableAutoTv}>Włącz AUTO TV</button>
           ) : (
             <>
+              {permissionHelp && <button className="btn btn-primary" type="button" onClick={retryScreenAccess}>Ponów wykrywanie</button>}
               <button className="btn btn-outline" type="button" onClick={reopenTv}>Otwórz TV ponownie</button>
               <button className="btn btn-ghost" type="button" onClick={disableAutoTv}>Wyłącz AUTO TV</button>
             </>
@@ -269,8 +317,21 @@ export default function AutoTatamiTv({ matCount = 1 }) {
         </div>
       </div>
 
+      {permissionHelp && (
+        <div className="auto-tv-permission-help">
+          <strong>Jak odblokować AUTO TV w Chrome / Edge</strong>
+          <ol>
+            <li>Kliknij ikonę ustawień witryny po lewej stronie adresu strony.</li>
+            <li>Otwórz <b>Ustawienia witryny</b>.</li>
+            <li>Przy opcji <b>Zarządzanie oknami / Window management</b> wybierz <b>Zezwalaj</b>.</li>
+            <li>Wróć do systemu i kliknij <b>Ponów wykrywanie</b>. Jeśli przeglądarka tego wymaga, odśwież stronę.</li>
+          </ol>
+          <small>Telebim pozostaje otwarty podczas tej operacji — nie trzeba przerywać zawodów.</small>
+        </div>
+      )}
+
       <div className="auto-tv-note">
-        <strong>Windows:</strong> po podłączeniu HDMI wybierz <b>Win+P → Rozszerz</b>. Przy pierwszym uruchomieniu Chrome poprosi o zgodę na zarządzanie ekranami. AUTO TV działa na stronie HTTPS (Vercel).
+        <strong>Windows:</strong> po podłączeniu HDMI wybierz <b>Win+P → Rozszerz</b>. Przy pierwszym uruchomieniu Chrome lub Edge musi mieć zgodę na <b>Zarządzanie oknami</b>. AUTO TV działa na stronie HTTPS (Vercel).
       </div>
     </section>
   )

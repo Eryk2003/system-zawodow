@@ -798,3 +798,9 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .club-home-news{background:#fff}.club-public-features{padding-top:26px;padding-bottom:76px}
 @media(max-width:1000px){.club-start-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.club-start-grid{grid-template-columns:1fr}.club-start-actions .btn{width:100%}.club-landing-help{font-size:12px}}
+
+
+/* ETAP 64 - bezpieczne odzyskiwanie zgody AUTO TV */
+.auto-tv-permission-help{margin-top:14px;padding:15px 17px;border:1px solid #efc98b;border-radius:12px;background:#fff8ea;color:#5f480f;line-height:1.5}
+.auto-tv-permission-help strong{display:block;margin-bottom:8px;color:#3f2f08;font-size:13px}
+.auto-tv-permission-help ol{margin:0 0 7px 20px;padding:0}.auto-tv-permission-help li{margin:4px 0}.auto-tv-permission-help small{color:#785f22;font-weight:750}
