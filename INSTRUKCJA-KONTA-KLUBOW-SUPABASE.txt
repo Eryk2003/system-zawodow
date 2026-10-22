@@ -1,0 +1,23 @@
+ETAP 40 - KONTA KLUBOW + WIDOCZNOSC ZAWODOW
+
+1. Vercel musi mieć:
+   VITE_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY (publishable key)
+
+2. W Supabase uruchom:
+   supabase/cloud-sync.sql
+
+3. W Supabase przejdź do Authentication -> Providers -> Email.
+   - Email + password ma być włączone.
+   - Jeśli chcesz, aby klub po rejestracji od razu wszedł do panelu, wyłącz Confirm email.
+   - Jeśli Confirm email pozostanie włączone, klub dostanie wiadomość i zaloguje się po potwierdzeniu.
+
+4. W Vercel zrób Redeploy po zmianie zmiennych.
+
+TEST:
+A. Na komputerze organizatora utwórz zawody.
+B. Na telefonie / drugim komputerze otwórz system-zawodow.vercel.app.
+C. Zarejestruj nowe konto klubu.
+D. Po zalogowaniu utwórz profil klubu.
+E. W panelu klubu powinny być widoczne zawody utworzone przez organizatora.
+F. Zgłoszenie zawodnika z drugiego urządzenia powinno pojawić się organizatorowi przez Realtime.

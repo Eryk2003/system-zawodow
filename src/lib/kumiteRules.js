@@ -12,15 +12,13 @@ function normalizeCompetition(competition) {
 export function getKumiteWinRule(competition) {
   const { isIppon, isNihon, isSanbon } = normalizeCompetition(competition)
 
-  // Skala punktów w Systemie Zawodów IKA Poland:
-  // WAZARI = 1, IPPON = 2.
-  // Progi odpowiadają zasadzie Shobu Ippon / Nihon / Sanbon.
+  // Progi punktowe dla poszczególnych odmian Shobu.
   if (isIppon) {
     return {
       discipline: 'ippon',
       targetScore: 2,
       title: 'SHOBU IPPON',
-      description: 'Wygrana po 1 IPPON (2 pkt) lub 2 WAZARI (1 + 1).',
+      description: 'Wygrana po osiągnięciu 2 pkt.',
     }
   }
 
@@ -29,7 +27,7 @@ export function getKumiteWinRule(competition) {
       discipline: 'nihon',
       targetScore: 4,
       title: 'SHOBU NIHON',
-      description: 'Wygrana po osiągnięciu 4 pkt - równowartość 2 IPPON.',
+      description: 'Wygrana po osiągnięciu 4 pkt.',
     }
   }
 
@@ -38,7 +36,7 @@ export function getKumiteWinRule(competition) {
       discipline: 'sanbon',
       targetScore: 6,
       title: 'SHOBU SANBON',
-      description: 'Wygrana po osiągnięciu 6 pkt - równowartość 3 IPPON.',
+      description: 'Wygrana po osiągnięciu 6 pkt.',
     }
   }
 
@@ -57,8 +55,8 @@ export function getKumiteSideTheme(competition) {
       blue: { key: 'blue', code: 'SHIRO', label: 'SHIRO', className: 'side-white' },
       scoreRules: {
         awards: [
-          { points: 1, label: 'WAZARI' },
-          { points: 2, label: 'IPPON' },
+          { points: 1, label: '+1' },
+          { points: 2, label: '+2' },
         ],
         corrections: [1, 2],
       },
@@ -73,8 +71,8 @@ export function getKumiteSideTheme(competition) {
     blue: { key: 'blue', code: 'AO', label: 'AO', className: 'side-blue' },
     scoreRules: {
       awards: [
-        { points: 1, label: 'WAZARI' },
-        { points: 2, label: 'IPPON' },
+        { points: 1, label: '+1' },
+        { points: 2, label: '+2' },
       ],
       corrections: [1, 2],
     },

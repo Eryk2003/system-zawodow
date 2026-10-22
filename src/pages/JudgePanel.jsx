@@ -138,8 +138,8 @@ export default function JudgePanel() {
           <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
           {active && <>
             <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => changeScore('red', 1)}><strong>+1</strong><small>WAZARI</small></button>
-              <button onClick={() => changeScore('red', 2)}><strong>+2</strong><small>IPPON</small></button>
+              <button onClick={() => changeScore('red', 1)}><strong>+1</strong></button>
+              <button onClick={() => changeScore('red', 2)}><strong>+2</strong></button>
             </div>
             <div className="judge-correction-row">
               <span>Korekta wyniku</span>
@@ -162,7 +162,7 @@ export default function JudgePanel() {
         <div className="judge-center">
           <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
           <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
-          <small>WAZARI = 1 • IPPON = 2 • KARY: ATTENAI 1 → ATTENAI 2 → CHUI → HANSOKU</small>
+          <small>KARY: ATTENAI 1 → ATTENAI 2 → CHUI → HANSOKU</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
             <div className="judge-main-controls judge-timer-controls">
@@ -188,8 +188,8 @@ export default function JudgePanel() {
           <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
           {active && <>
             <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => changeScore('blue', 1)}><strong>+1</strong><small>WAZARI</small></button>
-              <button onClick={() => changeScore('blue', 2)}><strong>+2</strong><small>IPPON</small></button>
+              <button onClick={() => changeScore('blue', 1)}><strong>+1</strong></button>
+              <button onClick={() => changeScore('blue', 2)}><strong>+2</strong></button>
             </div>
             <div className="judge-correction-row">
               <span>Korekta wyniku</span>

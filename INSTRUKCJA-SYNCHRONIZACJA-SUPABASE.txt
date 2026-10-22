@@ -1,0 +1,31 @@
+IKA POLAND - SYSTEM ZAWODÓW - SYNCHRONIZACJA MIĘDZY URZĄDZENIAMI
+
+1. W Supabase otwórz projekt przeznaczony dla Systemu Zawodów.
+2. Wejdź w SQL Editor -> New query.
+3. Wklej całą zawartość pliku: supabase/cloud-sync.sql
+4. Kliknij Run.
+5. W Supabase otwórz Project Settings -> API i skopiuj:
+   - Project URL
+   - anon / public key
+6. W Vercel otwórz projekt system-zawodow -> Settings -> Environment Variables.
+7. Dodaj:
+   VITE_SUPABASE_URL = Project URL
+   VITE_SUPABASE_ANON_KEY = anon/public key
+8. Zapisz i wykonaj Redeploy ostatniego deploymentu.
+9. Od tej chwili dane zawodów i klubów zapisują się w chmurze i synchronizują na innych urządzeniach.
+
+SYNCHRONIZOWANE DANE:
+- klub organizatora i inne kluby,
+- zawodnicy,
+- zawody,
+- konkurencje i kategorie,
+- zgłoszenia,
+- harmonogram,
+- drabinki kumite,
+- listy i oceny kata,
+- stany tatami i tablic TV,
+- aktualności,
+- klasyfikacje i dane LIVE.
+
+UWAGA:
+Konta i hasła w tej wersji nadal pozostają lokalne. Konto demonstracyjne organizatora działa na każdym urządzeniu, więc możesz wejść do panelu organizatora na drugim urządzeniu i zobaczyć wspólne dane. Następnym etapem może być pełne przeniesienie logowania/rejestracji do Supabase Auth.

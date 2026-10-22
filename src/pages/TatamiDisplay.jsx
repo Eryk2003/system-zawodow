@@ -396,7 +396,7 @@ export default function TatamiDisplay() {
           <div className="fight-center">
             <span>{m.roundName} • WALKA {m.matchNo}</span>
             <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>WAZARI = 1 • IPPON = 2 • HANSOKU = PRZEGRANA</small>
+            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>HANSOKU = PRZEGRANA</small>
           </div>
           <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
             <div className="fighter-side">{sideTheme.blue.code}</div>
