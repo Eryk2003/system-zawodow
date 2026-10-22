@@ -73,7 +73,7 @@ export default function JudgePanel() {
 
   const start = () => {
     if (!next) return
-    run(() => db.startMatch(next.id), 'Walka rozpoczęta - tablica TV przełączyła się na punktację.')
+    run(() => db.startMatch(next.id), 'Walka przygotowana - zawodnicy są na tablicy. Kliknij START CZASU, aby uruchomić odliczanie.')
   }
 
   const finish = (winnerId) => {
@@ -165,8 +165,16 @@ export default function JudgePanel() {
           <small>WAZARI = 1 • IPPON = 2 • KARY: ATTENAI 1 → ATTENAI 2 → CHUI → HANSOKU</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
-            <div className="judge-main-controls">
-              <button className="btn btn-outline" onClick={() => run(() => activeRaw.timerRunning ? db.pauseMatch(active.id) : db.resumeMatch(active.id))}>{activeRaw.timerRunning ? 'PAUZA' : 'WZNÓW'}</button>
+            <div className="judge-main-controls judge-timer-controls">
+              <button
+                className={`btn ${activeRaw.timerRunning ? 'btn-outline' : 'btn-primary'} judge-time-start`}
+                onClick={() => run(() => activeRaw.timerRunning ? db.pauseMatch(active.id) : db.resumeMatch(active.id))}
+              >
+                {activeRaw.timerRunning ? 'PAUZA CZASU' : 'START CZASU'}
+              </button>
+              <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, 10))}>COFNIJ 10 s</button>
+              <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, -10))}>ODEJMIJ 10 s</button>
+              <button className="btn btn-outline" type="button" onClick={() => run(() => db.resetMatchTimer(active.id))}>RESET CZASU</button>
             </div>
           ) : next ? (
             <button className="btn btn-primary judge-start" onClick={start}>ROZPOCZNIJ WALKĘ</button>

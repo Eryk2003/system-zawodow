@@ -462,3 +462,18 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 @keyframes final-result-row-in{to{opacity:1;transform:none}}
 @media(max-width:900px){.final-winner-card{grid-template-columns:1fr;min-height:0}.final-winner-photo{min-height:280px;max-height:38vh}.final-winner-copy{padding:28px}.final-results-header{grid-template-columns:1fr 1fr}.final-results-header>div:nth-child(2){grid-column:1/-1;grid-row:2;text-align:left}.final-results-header>div:last-child{text-align:right}.final-results-grid{grid-template-columns:1fr}.final-results-stage{padding:20px}.final-result-row{grid-template-columns:48px 50px minmax(0,1fr) auto}}
 @media(prefers-reduced-motion:reduce){.final-winner-card,.final-result-row{animation:none;opacity:1;transform:none}}
+
+
+/* =========================================================
+   ETAP 55 - ręczne uruchamianie zegara walki i korekta czasu.
+   Rozpoczęcie walki NIE uruchamia automatycznie odliczania.
+   ========================================================= */
+.judge-timer-controls{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.judge-timer-controls .judge-time-start{min-width:150px;font-weight:950}
+.timer-control-extended{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.timer-control-extended>strong{margin-right:4px}
+@media(max-width:760px){
+  .judge-timer-controls{display:grid;grid-template-columns:1fr 1fr;width:100%}
+  .judge-timer-controls .judge-time-start{grid-column:1/-1;width:100%}
+  .timer-control-extended{align-items:stretch}
+}

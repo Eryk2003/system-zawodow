@@ -1,15 +1,68 @@
-<!doctype html>
-<html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0b0b0d" />
-    <link rel="icon" type="image/png" href="/ika-poland-logo.jpg" />
-    <link rel="apple-touch-icon" href="/ika-poland-logo.jpg" />
-    <title>System Zawodów - IKA Poland</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
+$ErrorActionPreference = 'Stop'
+$SourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectSource = Join-Path $SourceRoot 'PROJEKT-GOTOWY'
+
+function Test-RepoPath($Path) {
+  return (Test-Path (Join-Path $Path '.git')) -or (Test-Path (Join-Path $Path 'src'))
+}
+
+$candidates = @(
+  (Join-Path $env:USERPROFILE 'Desktop\system-zawodow'),
+  (Join-Path $env:USERPROFILE 'OneDrive\Desktop\system-zawodow'),
+  (Join-Path $env:USERPROFILE 'Pulpit\system-zawodow'),
+  (Join-Path $env:USERPROFILE 'OneDrive\Pulpit\system-zawodow')
+)
+$Target = $null
+foreach ($candidate in $candidates) {
+  if (Test-RepoPath $candidate) { $Target = $candidate; break }
+}
+if (-not $Target) {
+  Write-Host ''
+  Write-Host 'Nie znaleziono automatycznie folderu repo system-zawodow.' -ForegroundColor Yellow
+  $Target = Read-Host 'Wklej pełną ścieżkę do lokalnego folderu system-zawodow'
+}
+if (-not (Test-Path $Target)) { throw "Folder nie istnieje: $Target" }
+
+Write-Host ''
+Write-Host "Kopiuję ETAP 55 do: $Target" -ForegroundColor Cyan
+$null = robocopy $ProjectSource $Target /E /R:2 /W:1 /XD node_modules dist .git /XF .env .env.local
+if ($LASTEXITCODE -ge 8) { throw "Robocopy zakończył się błędem: $LASTEXITCODE" }
+
+Write-Host 'Sprawdzam pliki...' -ForegroundColor Cyan
+$pkgPath = Join-Path $Target 'package.json'
+$vercelPath = Join-Path $Target 'vercel.json'
+$vitePath = Join-Path $Target 'vite.config.js'
+$indexPath = Join-Path $Target 'index.html'
+
+try { $pkg = Get-Content $pkgPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { throw 'package.json nie jest poprawnym JSON-em.' }
+try { $vercel = Get-Content $vercelPath -Raw -Encoding UTF8 | ConvertFrom-Json } catch { throw 'vercel.json nie jest poprawnym JSON-em.' }
+$vite = Get-Content $vitePath -Raw -Encoding UTF8
+$index = Get-Content $indexPath -Raw -Encoding UTF8
+
+if ($pkg.name -ne 'ika-poland-system-zawodow') { throw 'package.json ma złą zawartość.' }
+if ($vercel.framework -ne 'vite' -or $vercel.outputDirectory -ne 'dist') { throw 'vercel.json ma złą zawartość.' }
+if ($vite -notmatch 'defineConfig' -or $vite -notmatch '@vitejs/plugin-react') { throw 'vite.config.js ma złą zawartość.' }
+if ($vite -match '"framework"\s*:\s*"vite"') { throw 'vite.config.js został zamieniony z vercel.json.' }
+if ($index -notmatch '<!doctype html>' -or $index -notmatch 'id="root"') { throw 'index.html ma złą zawartość.' }
+if ((Get-Content $pkgPath -Raw) -match '<!doctype html>') { throw 'package.json został nadpisany index.html.' }
+
+Write-Host 'Pliki są na swoich miejscach.' -ForegroundColor Green
+
+$npm = Get-Command npm.cmd -ErrorAction SilentlyContinue
+if ($npm) {
+  Push-Location $Target
+  try {
+    if (Test-Path (Join-Path $Target 'node_modules')) {
+      Write-Host 'Uruchamiam test build...' -ForegroundColor Cyan
+      & npm.cmd run build
+      if ($LASTEXITCODE -ne 0) { throw 'Lokalny build nie przeszedł. Nie rób Push origin.' }
+      Write-Host 'BUILD OK.' -ForegroundColor Green
+    } else {
+      Write-Host 'node_modules nie istnieje - pomijam lokalny build. Vercel zainstaluje zależności sam.' -ForegroundColor Yellow
+    }
+  } finally { Pop-Location }
+}
+
+Write-Host ''
+Write-Host 'GOTOWE. Teraz otwórz GitHub Desktop -> Commit -> Push origin.' -ForegroundColor Green
+Read-Host 'Naciśnij Enter, aby zamknąć'

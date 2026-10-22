@@ -1122,8 +1122,10 @@ export const db = {
       redScore: raw.redScore || 0,
       blueScore: raw.blueScore || 0,
       timerRemaining: Number.isFinite(raw.timerRemaining) ? raw.timerRemaining : boutSeconds,
-      timerStartedAt: Date.now(),
-      timerRunning: true,
+      // ETAP 55: rozpoczęcie walki przygotowuje tablicę, ale NIE uruchamia zegara.
+      // Czas rusza dopiero po osobnym kliknięciu START CZASU w panelu sędziego.
+      timerStartedAt: null,
+      timerRunning: false,
     }
     matches.forEach((m, idx) => {
       if (m.mat === raw.mat && m.status === 'active' && m.id !== raw.id) matches[idx] = { ...m, status: 'scheduled', timerRunning: false, timerStartedAt: null }
@@ -1150,7 +1152,40 @@ export const db = {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
-    const next = { ...match, timerRemaining: getComputedRemaining(match), timerRunning: true, timerStartedAt: Date.now() }
+    if (match.status !== 'active') throw new Error('Czas można uruchomić tylko podczas aktywnej walki.')
+    const remaining = getComputedRemaining(match)
+    if (remaining <= 0) throw new Error('Czas wynosi 00:00. Cofnij czas albo zresetuj zegar.')
+    const next = { ...match, timerRemaining: remaining, timerRunning: true, timerStartedAt: Date.now() }
+    saveMatchInternal(next)
+    emit()
+    return next
+  },
+
+  adjustMatchTime: (matchId, deltaSeconds) => {
+    const matches = read(KEYS.matches, [])
+    const match = matches.find((m) => m.id === matchId)
+    if (!match) return null
+    if (match.status !== 'active') throw new Error('Czas można korygować tylko podczas aktywnej walki.')
+    const boutSeconds = Math.max(1, Number(match.boutSeconds || DEFAULT_TOURNAMENT.boutSeconds) || 1)
+    const current = getComputedRemaining(match)
+    const nextRemaining = Math.max(0, Math.min(boutSeconds, current + Number(deltaSeconds || 0)))
+    const next = {
+      ...match,
+      timerRemaining: nextRemaining,
+      timerStartedAt: match.timerRunning ? Date.now() : null,
+    }
+    saveMatchInternal(next)
+    emit()
+    return next
+  },
+
+  resetMatchTimer: (matchId) => {
+    const matches = read(KEYS.matches, [])
+    const match = matches.find((m) => m.id === matchId)
+    if (!match) return null
+    if (match.status !== 'active') throw new Error('Zegar można zresetować tylko podczas aktywnej walki.')
+    const boutSeconds = Math.max(1, Number(match.boutSeconds || DEFAULT_TOURNAMENT.boutSeconds) || 1)
+    const next = { ...match, timerRemaining: boutSeconds, timerRunning: false, timerStartedAt: null }
     saveMatchInternal(next)
     emit()
     return next
