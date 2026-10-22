@@ -480,3 +480,6 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 
 /* ETAP 56 - punktacja bez nazw WAZARI/IPPON w interfejsie. */
 .judge-score-buttons-awards button{min-height:58px}
+
+/* ETAP 57 - sterowanie kumite wyłącznie w Panelu sędziego */
+.competition-control-note{margin-top:14px;font-weight:750;line-height:1.45}

@@ -294,7 +294,7 @@ Dodano kontrolę integralności plików wdrożeniowych przed buildem (`scripts/v
 - Dostępne są: Pauza czasu, Cofnij 10 s, Odejmij 10 s i Reset czasu.
 
 
-## ETAP 56
+## ETAP 57
 - Punktacja kumite w interfejsie bez nazw WAZARI/IPPON.
 - Panel sędziego i Centrum Zawodów: +1, +2, -1, -2.
 - TV nie pokazuje legendy WAZARI/IPPON.

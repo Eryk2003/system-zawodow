@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import KumiteBracket from '../components/KumiteBracket'
-import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
-import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
+import { db } from '../lib/demoStore'
+import { getKumiteSideTheme } from '../lib/kumiteRules'
 
 const emptyEntry = { athleteId: '', categoryId: '', status: 'scheduled' }
 const emptyNews = { title: '', body: '', date: new Date().toISOString().slice(0, 10), important: false }
@@ -12,7 +12,6 @@ const parseBracketKey = (key) => {
   const [competitionId = '', category = '', mat = ''] = (key || '').split('|||')
   return { competitionId, category, mat }
 }
-const clock = (seconds) => `${String(Math.floor(Math.max(0, seconds) / 60)).padStart(2, '0')}:${String(Math.max(0, seconds) % 60).padStart(2, '0')}`
 const scoreText = (value) => String(Number(value || 0)).replace('.', ',')
 const durationText = (seconds) => {
   const total = Math.max(0, Math.round(Number(seconds) || 0))
@@ -111,11 +110,6 @@ export default function TournamentCenter() {
     const interval = setInterval(() => setDeadlineNow(Date.now()), 30000)
     return () => clearInterval(interval)
   }, [])
-  const athleteName = (id) => {
-    const a = athletes.find((x) => x.id === id)
-    return a ? `${a.firstName} ${a.lastName}` : 'Oczekiwanie'
-  }
-
   const decorated = useMemo(() => entries.map((entry) => ({
     ...entry,
     athlete: athletes.find((a) => a.id === entry.athleteId),
@@ -256,27 +250,6 @@ export default function TournamentCenter() {
       const session = db.generateKataStartList({ competitionId: category.competitionId, category: category.name, categoryId: category.id, mat: slot.mat, judgeCount: Number(kataForm.judgeCount), shuffle: true })
       setSelectedKataSessionId(session.id)
       setMessage('Lista startowa kata została wylosowana. Możesz otworzyć panel sędziego i tablicę TV.')
-      refresh()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const startMatch = (match) => {
-    setError('')
-    try {
-      db.startMatch(match.id)
-      setSelectedBracket(bracketKey(match.competitionId, match.category, match.mat))
-      refresh()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const finishMatch = (match, winnerId) => {
-    setError('')
-    try {
-      db.finishMatch(match.id, winnerId)
       refresh()
     } catch (err) {
       setError(err.message)
@@ -445,45 +418,11 @@ export default function TournamentCenter() {
               />
             </div>
 
-            <div className="match-control-list">
-              {selectedMatches.map((raw) => {
-                const match = resolveMatch(raw, matches)
-                const ready = match.redResolvedId && match.blueResolvedId
-                const remaining = getComputedRemaining(raw)
-                return (
-                  <article className={`match-control ${raw.status === 'active' ? 'match-control-active' : ''}`} key={raw.id}>
-                    <div className="match-control-head"><span>{raw.roundName} • walka {raw.matchNo}</span><StatusBadge status={raw.status} /></div>
-                    <div className="match-versus">
-                      <div className={`match-side-red ${raw.winnerId === match.redResolvedId ? 'winner-side' : ''}`}><small>{selectedSideTheme.red.code}</small><strong>{athleteName(match.redResolvedId)}</strong><b>{scoreText(raw.redScore)}</b></div>
-                      <span>VS</span>
-                      <div className={`${selectedSideTheme.mode === 'red-white' ? 'match-side-white' : 'match-side-blue'} ${raw.winnerId === match.blueResolvedId ? 'winner-side' : ''}`}><small>{selectedSideTheme.blue.code}</small><strong>{athleteName(match.blueResolvedId)}</strong><b>{scoreText(raw.blueScore)}</b></div>
-                    </div>
-                    {raw.status === 'active' ? (
-                      <div className="match-live-controls">
-                        <div className="timer-control timer-control-extended">
-                          <strong>{clock(remaining)}</strong>
-                          <button type="button" className={`btn btn-sm ${raw.timerRunning ? 'btn-ghost' : 'btn-primary'}`} onClick={() => { raw.timerRunning ? db.pauseMatch(raw.id) : db.resumeMatch(raw.id); refresh() }}>{raw.timerRunning ? 'Pauza czasu' : 'Start czasu'}</button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { db.adjustMatchTime(raw.id, 10); refresh() }}>Cofnij 10 s</button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { db.adjustMatchTime(raw.id, -10); refresh() }}>Odejmij 10 s</button>
-                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => { db.resetMatchTimer(raw.id); refresh() }}>Reset czasu</button>
-                        </div>
-                        <div className="score-controls score-controls-red"><span>{selectedSideTheme.red.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 1); refresh() }}>+1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', 2); refresh() }}>+2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', -1); refresh() }}>COFNIJ -1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'red', -2); refresh() }}>COFNIJ -2</button></div>
-                        <div className="score-penalties score-penalties-red"><span>KARA {selectedSideTheme.red.code}: {getKumitePenaltyLabel(raw.redPenaltyLevel)}</span><button type="button" onClick={() => { db.changePenalty(raw.id, 'red', 1); refresh() }}>ATTENAI 1</button><button type="button" onClick={() => { db.changePenalty(raw.id, 'red', 2); refresh() }}>ATTENAI 2</button><button type="button" onClick={() => { db.changePenalty(raw.id, 'red', 3); refresh() }}>CHUI</button><button type="button" className="hansoku" onClick={() => { db.changePenalty(raw.id, 'red', 4); refresh() }}>HANSOKU</button><button type="button" disabled={!Number(raw.redPenaltyLevel || 0)} onClick={() => { db.changePenalty(raw.id, 'red', Math.max(0, Number(raw.redPenaltyLevel || 0) - 1)); refresh() }}>COFNIJ KARĘ</button></div>
-                        <div className={`score-controls ${selectedSideTheme.mode === 'red-white' ? 'score-controls-white' : 'score-controls-blue'}`}><span>{selectedSideTheme.blue.code}</span><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 1); refresh() }}>+1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', 2); refresh() }}>+2</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', -1); refresh() }}>COFNIJ -1</button><button type="button" onClick={() => { db.changeScore(raw.id, 'blue', -2); refresh() }}>COFNIJ -2</button></div>
-                        <div className={`score-penalties ${selectedSideTheme.mode === 'red-white' ? 'score-penalties-white' : 'score-penalties-blue'}`}><span>KARA {selectedSideTheme.blue.code}: {getKumitePenaltyLabel(raw.bluePenaltyLevel)}</span><button type="button" onClick={() => { db.changePenalty(raw.id, 'blue', 1); refresh() }}>ATTENAI 1</button><button type="button" onClick={() => { db.changePenalty(raw.id, 'blue', 2); refresh() }}>ATTENAI 2</button><button type="button" onClick={() => { db.changePenalty(raw.id, 'blue', 3); refresh() }}>CHUI</button><button type="button" className="hansoku" onClick={() => { db.changePenalty(raw.id, 'blue', 4); refresh() }}>HANSOKU</button><button type="button" disabled={!Number(raw.bluePenaltyLevel || 0)} onClick={() => { db.changePenalty(raw.id, 'blue', Math.max(0, Number(raw.bluePenaltyLevel || 0) - 1)); refresh() }}>COFNIJ KARĘ</button></div>
-                        <div className="winner-controls"><span>Zakończ walkę - zwycięzca:</span><button type="button" className="btn btn-outline" onClick={() => finishMatch(raw, match.redResolvedId)}>{selectedSideTheme.red.code} - {athleteName(match.redResolvedId)}</button><button type="button" className="btn btn-outline" onClick={() => finishMatch(raw, match.blueResolvedId)}>{selectedSideTheme.blue.code} - {athleteName(match.blueResolvedId)}</button></div>
-                      </div>
-                    ) : raw.status === 'done' ? (
-                      <div className="match-result">Zwycięzca: <strong>{athleteName(raw.winnerId)}</strong> - system przeniósł go do kolejnej rundy.{raw.finishReason === 'HANSOKU' ? ' Powód: HANSOKU przeciwnika.' : ''}</div>
-                    ) : (
-                      <div className="match-waiting"><span>{ready ? 'Walka gotowa do rozpoczęcia.' : 'Oczekiwanie na zwycięzcę wcześniejszej walki.'}</span><button type="button" disabled={!ready} className="btn btn-primary btn-sm" onClick={() => startMatch(raw)}>Rozpocznij walkę</button></div>
-                    )}
-                  </article>
-                )
-              })}
+            <div className="alert alert-info competition-control-note">
+              Sterowanie walką jest dostępne wyłącznie w Panelu sędziego. W Centrum Zawodów możesz tylko przeglądać drabinkę i otworzyć panel właściwego tatami.
             </div>
           </>
-        ) : <EmptyState title="Brak drabinki" text="Po utworzeniu drabinki tutaj pojawią się walki, sterowanie punktami i automatyczne przejścia zwycięzców." />}
+        ) : <EmptyState title="Brak drabinki" text="Po utworzeniu drabinki zobaczysz ją tutaj. Sterowanie walką odbywa się wyłącznie w Panelu sędziego." />}
       </section>
 
       <section className="panel-section">
