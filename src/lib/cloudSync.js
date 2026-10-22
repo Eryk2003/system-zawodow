@@ -435,6 +435,21 @@ function subscribeRoleState() {
   }
 }
 
+export async function deleteClubFromCloud(ownerId) {
+  if (!supabase) throw new Error('Supabase nie jest skonfigurowany.')
+  if (currentIdentity.role !== 'organizer') throw new Error('Tylko organizator może usuwać kluby.')
+  if (!ownerId) throw new Error('Brak identyfikatora właściciela klubu.')
+
+  const { error } = await supabase
+    .from('club_private_state')
+    .delete()
+    .eq('owner_id', ownerId)
+
+  if (error) throw error
+  await hydrateSensitiveState()
+  return true
+}
+
 export async function refreshCloudSyncForSession() {
   if (!cloudSyncConfigured || !supabase) return { enabled: false }
   currentIdentity = await resolveIdentity()

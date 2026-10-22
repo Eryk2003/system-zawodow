@@ -741,6 +741,35 @@ export const db = {
     emit()
     return next
   },
+  deleteClub: (clubId) => {
+    const clubs = read(KEYS.clubs, [])
+    const club = clubs.find((item) => item.id === clubId)
+    if (!club) return null
+    const athleteIds = new Set(read(KEYS.athletes, []).filter((a) => a.clubId === clubId).map((a) => a.id))
+    const allEntries = read(KEYS.entries, [])
+    const removedEntries = allEntries.filter((entry) => athleteIds.has(entry.athleteId))
+    const affectedCategoryIds = new Set(removedEntries.map((entry) => entry.categoryId).filter(Boolean))
+    const affectedCategoryKeys = new Set(removedEntries.map((entry) => `${entry.competitionId || ''}|||${entry.category || ''}`))
+
+    write(KEYS.clubs, clubs.filter((item) => item.id !== clubId))
+    write(KEYS.athletes, read(KEYS.athletes, []).filter((a) => a.clubId !== clubId))
+    write(KEYS.entries, allEntries.filter((entry) => !athleteIds.has(entry.athleteId)))
+
+    // Jeżeli usunięty zawodnik był już w wylosowanej kategorii, unieważniamy całą
+    // drabinkę/listę tej kategorii. Dzięki temu nie zostają odwołania do pustych walk.
+    write(KEYS.matches, read(KEYS.matches, []).filter((match) => {
+      if (match.categoryId && affectedCategoryIds.has(match.categoryId)) return false
+      return !affectedCategoryKeys.has(`${match.competitionId || ''}|||${match.category || ''}`)
+    }))
+    write(KEYS.kataSessions, read(KEYS.kataSessions, []).filter((session) => {
+      if (session.categoryId && affectedCategoryIds.has(session.categoryId)) return false
+      return !affectedCategoryKeys.has(`${session.competitionId || ''}|||${session.category || ''}`)
+    }))
+
+    regenerateScheduleInternal()
+    emit()
+    return club
+  },
   getAthletes: () => read(KEYS.athletes, []),
   getAthletesForClub: (clubId) => read(KEYS.athletes, []).filter((a) => a.clubId === clubId),
   saveAthlete: (athlete) => {

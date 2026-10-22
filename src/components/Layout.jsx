@@ -2,44 +2,30 @@ import React from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/AuthContext'
 import CloudStatus from './CloudStatus.jsx'
-import { useLanguage } from '../lib/i18n.js'
 
 export function Brand() {
-  const { language } = useLanguage()
   return (
     <Link className="brand" to="/">
       <img className="brand-logo" src="/ika-poland-logo.jpg" alt="IKA Poland" />
       <span>
         <strong>IKA Poland</strong>
-        <small>{language === 'en' ? 'Competition System' : 'System Zawodów'}</small>
+        <small>System Zawodów</small>
       </span>
     </Link>
   )
 }
 
-export function LanguageToggle() {
-  const { language, setLanguage } = useLanguage()
-  return (
-    <div className="language-toggle" aria-label="Language / Język">
-      <button type="button" className={language === 'pl' ? 'active' : ''} onClick={() => setLanguage('pl')}>PL</button>
-      <button type="button" className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')}>EN</button>
-    </div>
-  )
-}
-
 export function PublicHeader() {
   const { user } = useAuth()
-  const { t } = useLanguage()
   return (
     <header className="topbar">
       <Brand />
       <nav className="public-nav">
-        <NavLink to="/aktualnosci">{t('news')}</NavLink>
-        <NavLink to="/rodzic">{t('athleteZone')}</NavLink>
-        <NavLink to="/klasyfikacja">{t('liveRanking')}</NavLink>
-        <NavLink to="/telebim">{t('scoreboard')}</NavLink>
-        {user ? <NavLink to={user.role === 'organizer' ? '/organizator' : '/panel'}>{user.role === 'organizer' ? t('organizer') : t('clubEntries')}</NavLink> : <NavLink to="/logowanie">{t('loginClub')}</NavLink>}
-        <LanguageToggle />
+        <NavLink to="/aktualnosci">Aktualności</NavLink>
+        <NavLink to="/rodzic">Strefa zawodnika</NavLink>
+        <NavLink to="/klasyfikacja">Klasyfikacja LIVE</NavLink>
+        <NavLink to="/telebim">Telebim</NavLink>
+        {user ? <NavLink to={user.role === 'organizer' ? '/organizator' : '/panel'}>{user.role === 'organizer' ? 'Organizator' : 'Zgłoszenia klubu'}</NavLink> : <NavLink to="/logowanie">Zaloguj klub</NavLink>}
       </nav>
     </header>
   )
@@ -47,7 +33,6 @@ export function PublicHeader() {
 
 export function ClubWebsiteLayout({ children, clubName = '', organizer = false }) {
   const { user, logout } = useAuth()
-  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const onLogout = () => {
@@ -60,20 +45,19 @@ export function ClubWebsiteLayout({ children, clubName = '', organizer = false }
       <header className="topbar club-site-topbar">
         <Brand />
         <nav className="club-site-nav" aria-label="Strefa zgłoszeń klubu">
-          <Link to="/">{t('home')}</Link>
-          <a href="#club-active-tournaments">{t('competitions')}</a>
-          <a href="#club-athletes">{t('athletes')}</a>
-          <a href="#club-entries">{t('myEntries')}</a>
-          {organizer && <Link to="/organizator">{t('organizer')}</Link>}
+          <Link to="/">Strona główna</Link>
+          <a href="#club-active-tournaments">Zawody</a>
+          <a href="#club-athletes">Zawodnicy</a>
+          <a href="#club-entries">Moje zgłoszenia</a>
+          {organizer && <Link to="/organizator">Organizator</Link>}
         </nav>
         <div className="club-site-account">
           <span>{clubName || user?.email || 'Klub'}</span>
-          <LanguageToggle />
-          <button className="btn btn-ghost btn-sm" type="button" onClick={onLogout}>{t('logout')}</button>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={onLogout}>Wyloguj</button>
         </div>
       </header>
       <main className="club-site-main">{children}</main>
-      <footer className="club-site-footer">IKA Poland — {t('clubRegistrationZone')}</footer>
+      <footer className="club-site-footer">IKA Poland - strona zgłoszeń klubów i zawodników na zawody</footer>
     </div>
   )
 }
@@ -125,7 +109,11 @@ export function EmptyState({ title, text, action }) {
 }
 
 export function StatusBadge({ status, label }) {
-  const { language } = useLanguage()
-  const labels = language === 'en' ? { scheduled: 'Scheduled', called: 'Get ready', active: 'Live now', done: 'Finished' } : { scheduled: 'Zaplanowana', called: 'Przygotuj się', active: 'Trwa teraz', done: 'Zakończona' }
+  const labels = {
+    scheduled: 'Zaplanowana',
+    called: 'Przygotuj się',
+    active: 'Trwa teraz',
+    done: 'Zakończona',
+  }
   return <span className={`status status-${status || 'scheduled'}`}>{label || labels[status] || status}</span>
 }

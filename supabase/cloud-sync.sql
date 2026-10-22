@@ -117,9 +117,7 @@ begin
       'name', new.club->'name',
       'shortName', new.club->'shortName',
       'city', new.club->'city',
-      'country', new.club->'country',
-      'countryCode', new.club->'countryCode',
-      'federation', new.club->'federation'
+      'country', new.club->'country'
     ))
   end;
 
@@ -130,7 +128,6 @@ begin
     'lastName', athlete->'lastName',
     'gender', athlete->'gender',
     'grade', athlete->'grade',
-    'nationality', athlete->'nationality',
     'photo', athlete->'photo'
   ))), '[]'::jsonb)
   into safe_athletes

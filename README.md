@@ -1,7 +1,3 @@
-# ETAP 67 — międzynarodowe kluby
-
-Dodano PL/EN w publicznej stronie i strefie klubu, kraj z flagą, federację/organizację narodową oraz narodowość zawodnika. Po wdrożeniu uruchom `supabase/ETAP-67-MIEDZYNARODOWE-KLUBY.sql`.
-
 # ETAP 66 — bezpieczne konta klubów i synchronizacja Supabase
 
 Ten etap przygotowuje system do zawodów międzynarodowych pod kątem prywatności i wielu klubów.
@@ -372,3 +368,10 @@ Dodano kontrolę integralności plików wdrożeniowych przed buildem (`scripts/v
 - System pokazuje instrukcję odblokowania „Zarządzanie oknami / Window management”.
 - Przycisk „Ponów wykrywanie” pozwala uruchomić AUTO HDMI po zmianie zgody bez restartu zawodów.
 - Tryb ręczny TV pozostaje dostępny jako bezpieczne wyjście awaryjne.
+
+## ETAP 67 - kluby międzynarodowe i usuwanie klubu
+- Organizator ma listę wszystkich klubów widocznych w systemie.
+- Przy klubie widoczne są kraj, flaga, federacja/organizacja i liczba zawodników.
+- Organizator może usunąć obcy klub. Operacja usuwa klub, jego zawodników i zgłoszenia oraz przelicza harmonogram.
+- Klub organizatora jest chroniony przed przypadkowym usunięciem z panelu zarządzania klubami.
+- Formularz nowego klubu zawiera kraj i federację/organizację.

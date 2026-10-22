@@ -849,13 +849,12 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .print-kumite-sheet .academy-bracket-128 .academy-bracket-player strong{font-size:7pt!important}
 }
 
+
 /* =========================================================
-   ETAP 67 - zawody międzynarodowe: PL/EN, kraje, flagi i federacje.
+   ETAP 67 - zarządzanie klubami międzynarodowymi.
    ========================================================= */
-.language-toggle{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.06);flex:0 0 auto}
-.language-toggle button{min-width:34px;height:28px;padding:0 8px;border:0;border-radius:999px;background:transparent;color:#c9c9ce;font-size:10px;font-weight:950;letter-spacing:.05em;cursor:pointer}
-.language-toggle button.active{background:#fff;color:#171719}.language-toggle button:focus-visible{outline:2px solid #e1261c;outline-offset:2px}
-.auth-top-actions{display:flex;align-items:center;gap:14px}.auth-top-actions>a{font-size:13px;color:#c5c5c8}
-.club-site-account .language-toggle{border-color:#3c3c42;background:#202024}.club-site-account .language-toggle button.active{background:#fff;color:#111}
-.form-grid select{min-height:43px}
-@media(max-width:760px){.public-nav .language-toggle{order:-1}.auth-top-actions>a{display:none}.club-site-account .language-toggle{display:flex}.club-site-account{gap:7px}}
+.organizer-clubs-panel{background:#fff;border:1px solid #dedee1;border-radius:18px;padding:24px 26px}
+.organizer-clubs-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+.organizer-clubs-head h2{margin:4px 0 6px;font-size:27px}.organizer-clubs-head p{margin:0;color:#707078;line-height:1.5;max-width:720px}.organizer-clubs-head>strong{padding:8px 12px;border-radius:999px;background:#171719;color:#fff;font-size:12px;white-space:nowrap}
+.organizer-club-list{display:grid;gap:9px}.organizer-club-row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:14px;padding:13px 14px;border:1px solid #e3e3e6;border-radius:12px;background:#fafafa}.organizer-club-country{display:grid;place-items:center;width:46px;height:46px;border-radius:10px;background:#fff;border:1px solid #e3e3e6;font-size:26px}.organizer-club-info{min-width:0}.organizer-club-info strong,.organizer-club-info span,.organizer-club-info small{display:block}.organizer-club-info strong{font-size:15px}.organizer-club-info span{margin-top:3px;color:#606068;font-size:12px}.organizer-club-info small{margin-top:4px;color:#898990;font-size:11px}.organizer-own-club-badge{display:inline-flex;align-items:center;padding:8px 10px;border-radius:999px;background:#eef7f0;color:#246536;font-size:9px;font-weight:950;letter-spacing:.06em;white-space:nowrap}.btn-danger{background:#b42318!important;border-color:#b42318!important;color:#fff!important}.btn-danger:hover{background:#941b12!important;border-color:#941b12!important}.btn-danger:disabled{opacity:.55;cursor:not-allowed}
+@media(max-width:720px){.organizer-clubs-head{flex-direction:column}.organizer-club-row{grid-template-columns:46px minmax(0,1fr)}.organizer-club-row>.btn,.organizer-own-club-badge{grid-column:1/-1;width:100%;justify-content:center}.organizer-clubs-panel{padding:18px}}
