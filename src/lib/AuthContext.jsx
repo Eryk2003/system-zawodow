@@ -1,22 +1,35 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { getSession, loginAccount, logoutAccount, registerAccount } from './demoStore'
-import { cloudSyncConfigured, supabase } from './cloudSync'
+import { cloudSyncConfigured, refreshCloudSyncForSession, supabase } from './cloudSync'
 
 const AuthContext = createContext(null)
-const ORGANIZER_EMAIL = 'admin@ikapoland.demo'
 
-const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
+async function resolveSupabaseUser(authUser) {
+  if (!authUser || !supabase) return null
 
-function mapSupabaseUser(authUser) {
-  if (!authUser) return null
+  let role = 'club'
+  let fullName = authUser.user_metadata?.full_name || authUser.user_metadata?.fullName || authUser.email || 'Klub'
+
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('full_name,role')
+      .eq('id', authUser.id)
+      .maybeSingle()
+
+    if (!error && profile) {
+      role = profile.role === 'organizer' ? 'organizer' : 'club'
+      fullName = profile.full_name || fullName
+    }
+  } catch {
+    // Jeżeli profil chwilowo nie jest dostępny, konto pozostaje klubowe.
+  }
+
   return {
     id: authUser.id,
     email: authUser.email || '',
-    fullName:
-      authUser.user_metadata?.full_name ||
-      authUser.user_metadata?.fullName ||
-      authUser.email || 'Klub',
-    role: 'club',
+    fullName,
+    role,
     authProvider: 'supabase',
   }
 }
@@ -30,39 +43,33 @@ export function AuthProvider({ children }) {
     let subscription = null
 
     const initialize = async () => {
-      const local = getSession()
-
-      // Konto organizatora pozostaje lokalne i ma pierwszeństwo.
-      if (local?.role === 'organizer') {
-        if (mounted) {
-          setUser(local)
-          setLoading(false)
-        }
-        return
-      }
-
+      // W produkcji (Supabase skonfigurowany) źródłem prawdy jest Supabase Auth.
+      // Lokalne konto demo pozostaje tylko do pracy offline/deweloperskiej.
       if (cloudSyncConfigured && supabase) {
         try {
           const { data } = await supabase.auth.getSession()
-          const cloudUser = mapSupabaseUser(data?.session?.user)
-          if (cloudUser && mounted) setUser(cloudUser)
-          else if (local && mounted) setUser(local)
+          const cloudUser = await resolveSupabaseUser(data?.session?.user)
+          if (mounted) setUser(cloudUser)
         } catch {
-          if (local && mounted) setUser(local)
+          if (mounted) setUser(null)
         }
 
         const result = supabase.auth.onAuthStateChange((_event, session) => {
           if (!mounted) return
-          const cloudUser = mapSupabaseUser(session?.user)
-          if (cloudUser) setUser(cloudUser)
-          else {
-            const nextLocal = getSession()
-            setUser(nextLocal?.role === 'organizer' ? nextLocal : null)
-          }
+          resolveSupabaseUser(session?.user)
+            .then((cloudUser) => {
+              if (!mounted) return
+              setUser(cloudUser)
+              refreshCloudSyncForSession().catch(() => {})
+            })
+            .catch(() => {
+              if (mounted) setUser(null)
+            })
         })
         subscription = result?.data?.subscription || null
-      } else if (local && mounted) {
-        setUser(local)
+      } else {
+        const local = getSession()
+        if (mounted) setUser(local)
       }
 
       if (mounted) setLoading(false)
@@ -101,48 +108,33 @@ export function AuthProvider({ children }) {
             throw pending
           }
 
-          const next = mapSupabaseUser(data.session.user)
+          logoutAccount()
+          const next = await resolveSupabaseUser(data.session.user)
           setUser(next)
+          await refreshCloudSyncForSession()
           return next
         }
 
-        // Tryb lokalny pozostaje dostępny, gdy Supabase nie jest skonfigurowany.
         const next = registerAccount(payload)
         setUser(next)
         return next
       },
       login: async (payload) => {
-        const email = normalizeEmail(payload.email)
-
-        // Organizator IKA Poland pozostaje na lokalnym koncie administracyjnym.
-        if (email === ORGANIZER_EMAIL) {
-          const next = loginAccount(payload)
-          setUser(next)
-          return next
-        }
-
         if (cloudSyncConfigured && supabase) {
           const { data, error } = await supabase.auth.signInWithPassword({
             email: payload.email.trim(),
             password: payload.password,
           })
 
-          if (!error && data?.user) {
-            logoutAccount()
-            const next = mapSupabaseUser(data.user)
-            setUser(next)
-            return next
-          }
-
-          // Zostawiamy zgodność z klubami utworzonymi wcześniej lokalnie
-          // na tym samym urządzeniu.
-          try {
-            const local = loginAccount(payload)
-            setUser(local)
-            return local
-          } catch {
+          if (error || !data?.user) {
             throw new Error(error?.message || 'Nieprawidłowy e-mail lub hasło.')
           }
+
+          logoutAccount()
+          const next = await resolveSupabaseUser(data.user)
+          setUser(next)
+          await refreshCloudSyncForSession()
+          return next
         }
 
         const next = loginAccount(payload)
@@ -150,15 +142,16 @@ export function AuthProvider({ children }) {
         return next
       },
       logout: async () => {
-        if (user?.authProvider === 'supabase' && supabase) {
+        if (cloudSyncConfigured && supabase) {
           try {
             await supabase.auth.signOut()
           } catch {
-            // Wylogowanie lokalne wykonujemy niezależnie od błędu sieci.
+            // Czyścimy sesję UI niezależnie od chwilowego błędu sieci.
           }
         }
         logoutAccount()
         setUser(null)
+        await refreshCloudSyncForSession().catch(() => {})
       },
     }),
     [user, loading],

@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Brand } from '../components/Layout'
 import { useAuth } from '../lib/AuthContext'
+import { cloudSyncConfigured } from '../lib/cloudSync'
 
 export default function AuthPage({ mode = 'login' }) {
   const isRegister = mode === 'register'
@@ -34,8 +35,8 @@ export default function AuthPage({ mode = 'login' }) {
       <div className="auth-top"><Brand /><Link to="/">Wróć na stronę główną</Link></div>
       <div className="auth-card">
         <span className="eyebrow">{isRegister ? 'Nowy klub' : 'Logowanie'}</span>
-        <h1>{isRegister ? 'Zarejestruj klub' : 'Logowanie klubu'}</h1>
-        <p>{isRegister ? 'Utwórz konto klubu. Po zalogowaniu dodasz zawodników i zgłosisz ich na zawody opublikowane przez IKA Poland.' : 'Wprowadź e-mail i hasło.'}</p>
+        <h1>{isRegister ? 'Zarejestruj klub' : 'Logowanie'}</h1>
+        <p>{isRegister ? 'Utwórz konto klubu. Po zalogowaniu dodasz zawodników i zgłosisz ich na zawody opublikowane przez IKA Poland.' : 'Kluby i organizator logują się tym samym formularzem. Uprawnienia są rozpoznawane automatycznie przez konto Supabase.'}</p>
         <form onSubmit={submit} className="form-stack">
           {isRegister && (
             <label>Imię i nazwisko właściciela konta<input required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="np. Jan Kowalski" /></label>
@@ -49,7 +50,7 @@ export default function AuthPage({ mode = 'login' }) {
         <div className="auth-switch">
           {isRegister ? <>Masz już konto? <Link to="/logowanie">Zaloguj się</Link></> : <>Nie masz konta? <Link to="/rejestracja">Zarejestruj klub</Link></>}
         </div>
-        {!isRegister && <div className="demo-box"><strong>Konto organizatora</strong><code>admin@ikapoland.demo</code><code>IKA12345</code></div>}
+        {!isRegister && !cloudSyncConfigured && <div className="demo-box"><strong>Tryb lokalny - konto testowe organizatora</strong><code>admin@ikapoland.demo</code><code>IKA12345</code></div>}
       </div>
     </div>
   )

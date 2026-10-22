@@ -1,3 +1,25 @@
+# ETAP 66 — bezpieczne konta klubów i synchronizacja Supabase
+
+Ten etap przygotowuje system do zawodów międzynarodowych pod kątem prywatności i wielu klubów.
+
+## Najważniejsze zmiany
+- Organizator i kluby logują się przez Supabase Auth na stronie produkcyjnej.
+- Rola `organizer` jest odczytywana z `public.profiles`.
+- Pełne dane klubu, zawodników i zgłoszeń trafiają do `club_private_state` chronionego RLS.
+- Klub widzi i zapisuje pełne dane tylko własnego klubu.
+- Organizator może odczytać wszystkie kluby.
+- Publiczna strona LIVE korzysta z `public_participant_state`, który nie zawiera dat urodzenia, e-maili ani danych rodziców.
+- `app_shared_state` przechowuje od tego etapu tylko publiczny/organizacyjny stan zawodów i może być zapisywany wyłącznie przez organizatora.
+- Dotychczasowe dane z `app_shared_state` są automatycznie migrowane dla klubów posiadających prawidłowe konta Supabase.
+
+## WAŻNE — jednorazowa migracja Supabase
+Przed końcowym testem Vercela uruchom w Supabase SQL Editor cały plik:
+`supabase/ETAP-66-BEZPIECZNA-SYNCHRONIZACJA.sql`
+
+Następnie konto organizatora musi mieć rolę `organizer` w `public.profiles`. Instrukcja jest również na końcu pliku SQL.
+
+---
+
 # ETAP 65 — duże drabinki 2–128 zawodników
 
 - Obsługa drabinek kumite od 2 do 128 zawodników.
