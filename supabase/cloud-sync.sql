@@ -4,6 +4,46 @@
 -- Uruchom CAŁY plik w Supabase -> SQL Editor -> New query -> Run.
 -- ============================================================
 
+-- 0. Wymagane konto/profil i funkcja pomocnicza organizatora.
+-- Ten blok jest idempotentny i można go uruchamiać ponownie.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text not null default '',
+  role text not null default 'club' check (role in ('club','organizer')),
+  created_at timestamptz not null default now()
+);
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (id, full_name, role)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name',''), 'club')
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute procedure public.handle_new_user();
+
+create or replace function public.is_organizer()
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists(
+    select 1
+    from public.profiles
+    where id = auth.uid() and role = 'organizer'
+  );
+$$;
+
 -- 1. Prywatny stan jednego klubu. Jeden użytkownik Supabase = jeden rekord.
 create table if not exists public.club_private_state (
   owner_id uuid primary key references auth.users(id) on delete cascade,
@@ -77,7 +117,9 @@ begin
       'name', new.club->'name',
       'shortName', new.club->'shortName',
       'city', new.club->'city',
-      'country', new.club->'country'
+      'country', new.club->'country',
+      'countryCode', new.club->'countryCode',
+      'federation', new.club->'federation'
     ))
   end;
 
@@ -88,6 +130,7 @@ begin
     'lastName', athlete->'lastName',
     'gender', athlete->'gender',
     'grade', athlete->'grade',
+    'nationality', athlete->'nationality',
     'photo', athlete->'photo'
   ))), '[]'::jsonb)
   into safe_athletes

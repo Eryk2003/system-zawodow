@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState } from '../components/Layout'
 import { db } from '../lib/demoStore'
+import { countryName } from '../lib/countries.js'
 
 const padNumber = (value) => String(Number(value || 0)).padStart(3, '0')
 
@@ -48,7 +49,7 @@ function AthleteIdentifierCard({ row, onPrintOne }) {
           </div>
           <div className="athlete-id-dynamic-field">
             <small>Kraj:</small>
-            <strong>{row.club?.country || 'Polska'}</strong>
+            <strong>{countryName(row.athlete.nationality || row.club?.countryCode || row.club?.country || 'PL', 'pl')}</strong>
           </div>
           <div className="athlete-id-dynamic-field athlete-id-dynamic-categories">
             <small>{row.categories.length > 1 ? 'Kategorie:' : 'Kategoria:'}</small>

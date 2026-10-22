@@ -1,3 +1,7 @@
+# ETAP 67 — międzynarodowe kluby
+
+Dodano PL/EN w publicznej stronie i strefie klubu, kraj z flagą, federację/organizację narodową oraz narodowość zawodnika. Po wdrożeniu uruchom `supabase/ETAP-67-MIEDZYNARODOWE-KLUBY.sql`.
+
 # ETAP 66 — bezpieczne konta klubów i synchronizacja Supabase
 
 Ten etap przygotowuje system do zawodów międzynarodowych pod kątem prywatności i wielu klubów.

@@ -1,0 +1,16 @@
+ETAP 67 — MIEDZYNARODOWE KLUBY
+
+Po poprawnym wdrożeniu na Vercelu:
+1. Otwórz Supabase -> SQL Editor.
+2. Otwórz plik: supabase/ETAP-67-MIEDZYNARODOWE-KLUBY.sql
+3. Skopiuj całą zawartość do SQL Editor.
+4. Kliknij Run.
+5. Poprawny wynik kończy się: ETAP 67 OK.
+
+Co dodaje etap:
+- przełącznik PL / EN na stronie publicznej, logowaniu i strefie klubu,
+- wybór kraju z flagą przy tworzeniu profilu klubu,
+- pole federacja / organizacja narodowa,
+- narodowość zawodnika,
+- synchronizację kraju, federacji i narodowości bez ujawniania danych rodziców ani dat urodzenia w publicznym stanie,
+- kraj zawodnika na identyfikatorze jest pobierany z narodowości zawodnika, a nie na sztywno z Polski.
