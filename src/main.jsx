@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { AuthProvider } from './lib/AuthContext.jsx'
+import { LanguageProvider } from './lib/LanguageContext.jsx'
 import './styles.css'
 import { initializeCloudSync } from './lib/cloudSync.js'
 
@@ -10,9 +11,11 @@ function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
       <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </LanguageProvider>
       </BrowserRouter>
     </React.StrictMode>,
   )
