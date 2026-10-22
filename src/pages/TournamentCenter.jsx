@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import KumiteBracket from '../components/KumiteBracket'
+import AutoTatamiTv from '../components/AutoTatamiTv'
 import { db } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
 
@@ -270,6 +271,8 @@ export default function TournamentCenter() {
         <div><span className="eyebrow">Turniej</span><h2>{tournament.name}</h2><p>{tournament.date}{tournament.startTime ? ` • ${tournament.startTime}` : ''} • {tournament.venue}</p></div>
         <div className="live-control"><span className={liveId ? 'live-dot active' : 'live-dot'} />{liveId ? 'Telebim pokazuje zawodnika' : 'Telebim oczekuje'}</div>
       </div>
+
+      <AutoTatamiTv matCount={tournament.matCount || 1} />
 
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-error">{error}</div>}

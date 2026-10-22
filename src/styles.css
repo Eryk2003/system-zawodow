@@ -483,3 +483,18 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 
 /* ETAP 57 - sterowanie kumite wyłącznie w Panelu sędziego */
 .competition-control-note{margin-top:14px;font-weight:750;line-height:1.45}
+
+/* =========================================================
+   ETAP 58 - AUTO TV HDMI dla laptopa przypisanego do tatami.
+   Wymaga przeglądarki obsługującej Window Management API.
+   ========================================================= */
+.auto-tv-panel{border-color:#d8d8dd;background:linear-gradient(180deg,#fff,#fafafa)}
+.auto-tv-head{align-items:flex-start}.auto-tv-head p{max-width:880px}
+.auto-tv-badge{display:inline-flex;align-items:center;justify-content:center;min-width:170px;padding:9px 13px;border-radius:999px;font-size:10px;font-weight:1000;letter-spacing:.07em;white-space:nowrap;background:#ececef;color:#5d5d64}
+.auto-tv-badge.auto-tv-ok{background:#e9f7ed;color:#1f6e35}.auto-tv-badge.auto-tv-waiting{background:#fff4d7;color:#876100}.auto-tv-badge.auto-tv-warning{background:#fff0da;color:#8a5a00}.auto-tv-badge.auto-tv-error{background:#ffe8e5;color:#a52118}
+.auto-tv-grid{display:grid;grid-template-columns:minmax(260px,340px) minmax(340px,1fr);gap:16px;align-items:stretch}
+.auto-tv-grid>label{display:grid;align-content:start;gap:7px;padding:16px;border:1px solid #e0e0e4;border-radius:13px;background:#fff}
+.auto-tv-grid>label>span{font-size:11px;font-weight:950;color:#4c4c52;text-transform:uppercase;letter-spacing:.06em}.auto-tv-grid select{width:100%;min-height:46px;border:1px solid #d4d4d9;border-radius:9px;background:#fff;padding:10px 12px;font-weight:850}.auto-tv-grid label small{color:#7a7a82;line-height:1.4}
+.auto-tv-status{display:grid;align-content:center;gap:5px;padding:16px 18px;border:1px solid #e0e0e4;border-radius:13px;background:#f7f7f9}.auto-tv-status small{font-size:9px;font-weight:1000;letter-spacing:.08em;color:#7a7a82;text-transform:uppercase}.auto-tv-status strong{font-size:19px}.auto-tv-status span{color:#65656d;line-height:1.45}.auto-tv-status em{font-style:normal;margin-top:4px;font-size:11px;font-weight:900;color:#888891}.auto-tv-status-ok{border-color:#bfe2c8;background:#f0faf3}.auto-tv-status-waiting{border-color:#ead6a0;background:#fffaf0}.auto-tv-status-warning{border-color:#e9c991;background:#fff8ec}.auto-tv-status-error{border-color:#efc2bd;background:#fff3f1}
+.auto-tv-actions{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap}.auto-tv-note{margin-top:14px;padding:12px 14px;border-radius:10px;background:#171719;color:#d9d9de;font-size:12px;line-height:1.5}.auto-tv-note b,.auto-tv-note strong{color:#fff}
+@media(max-width:900px){.auto-tv-grid{grid-template-columns:1fr}.auto-tv-actions{grid-column:auto}.auto-tv-head{flex-direction:column}.auto-tv-badge{min-width:0}}
