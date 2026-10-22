@@ -74,6 +74,7 @@ export default function TatamiDisplay() {
   const { mat } = useParams()
   const matName = decodeURIComponent(mat || 'Tatami 1')
   const [payload, setPayload] = useState(() => getTatamiPayload(matName))
+  const [completedView, setCompletedView] = useState('winner')
 
   useEffect(() => {
     const refresh = () => setPayload(getTatamiPayload(matName))
@@ -88,8 +89,21 @@ export default function TatamiDisplay() {
   }, [matName])
 
 
+  const displayMode = payload.displayMode || payload.state?.mode
+  const podiumKey = payload.podium?.key || (payload.podium ? `${payload.podium.competitionName || ''}|||${payload.podium.categoryName || ''}` : '')
+
   useEffect(() => {
-    const displayMode = payload.displayMode || payload.state?.mode
+    if (displayMode !== 'podium' || !payload.podium) {
+      setCompletedView('winner')
+      return undefined
+    }
+
+    setCompletedView('winner')
+    const timer = window.setTimeout(() => setCompletedView('results'), 6000)
+    return () => window.clearTimeout(timer)
+  }, [displayMode, podiumKey])
+
+  useEffect(() => {
     const nextId = payload.nextMatch?.id
     if (displayMode !== 'bracket' || !nextId) return undefined
 
@@ -131,8 +145,6 @@ export default function TatamiDisplay() {
       </main>
     )
   }
-
-  const displayMode = payload.displayMode || payload.state?.mode
 
   if (displayMode === 'kata-list' && payload.kata) {
     const nextId = payload.kata.nextResult?.athleteId || payload.kata.session.currentAthleteId
@@ -229,76 +241,126 @@ export default function TatamiDisplay() {
   }
 
   if (displayMode === 'podium' && payload.podium) {
-    const byPlace = (place) => payload.podium.placements.filter((item) => item.place === place)
-    const first = byPlace(1)[0] || null
-    const second = byPlace(2)[0] || null
-    const thirds = byPlace(3)
-    const firstRevealDelay = 800
-    const revealGap = 1600
-    const bronzeDelays = thirds.map((_, index) => firstRevealDelay + index * revealGap)
-    const silverDelay = firstRevealDelay + thirds.length * revealGap
-    const goldDelay = silverDelay + revealGap
+    const placements = payload.podium.placements || []
+    const first = placements.find((item) => item.place === 1) || null
+    const winnerInfo = first ? athleteInfo(first.athleteId) : null
+    const winnerInitials = first?.athleteName
+      ? first.athleteName.split(' ').map((part) => part[0]).slice(0, 2).join('')
+      : '-'
 
-    const athleteTile = (result, place, revealDelay = 0) => {
-      if (!result) {
-        return (
-          <div className={`podium-athlete podium-athlete-${place} podium-athlete-empty`}>
-            <div className="podium-photo podium-photo-empty">-</div>
-            <strong>-</strong>
-          </div>
-        )
+    const placementByAthlete = new Map(placements.map((item) => [item.athleteId, item]))
+    const entries = db.getEntries().filter((entry) => {
+      if (payload.podium.categoryId && entry.categoryId) return entry.categoryId === payload.podium.categoryId
+      return entry.competitionId === payload.podium.competitionId && entry.category === payload.podium.categoryName
+    })
+    const participantIds = [...new Set([
+      ...placements.map((item) => item.athleteId),
+      ...entries.map((entry) => entry.athleteId),
+    ].filter(Boolean))]
+    const finalList = participantIds.map((athleteId) => {
+      const placement = placementByAthlete.get(athleteId) || null
+      const info = athleteInfo(athleteId)
+      const athlete = athletes.find((item) => item.id === athleteId)
+      const fallbackName = athlete ? `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() : 'Nieznany zawodnik'
+      return {
+        athleteId,
+        place: placement?.place || null,
+        name: placement?.athleteName || info?.name || fallbackName,
+        club: placement?.clubName || info?.club || '',
+        photo: info?.photo || athlete?.photo || '',
       }
-      const info = athleteInfo(result.athleteId)
-      const initials = result.athleteName.split(' ').map((part) => part[0]).slice(0, 2).join('')
+    }).sort((a, b) => {
+      const pa = a.place == null ? 99 : a.place
+      const pb = b.place == null ? 99 : b.place
+      return pa - pb || a.name.localeCompare(b.name, 'pl')
+    })
+
+    if (completedView === 'winner') {
       return (
-        <article
-          className={`podium-athlete podium-athlete-${place} podium-athlete-reveal`}
-          style={{ '--podium-reveal-delay': `${revealDelay}ms` }}
+        <main
+          key={`${podiumKey}-winner`}
+          className="tatami-screen final-winner-screen"
         >
-          <div className="podium-photo">
-            {info?.photo ? <img src={info.photo} alt={result.athleteName} /> : <div>{initials}</div>}
-          </div>
-          <strong>{result.athleteName}</strong>
-          <small>{result.clubName}</small>
-        </article>
+          <FullscreenControl />
+          <header className="final-results-header">
+            <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+            <div><b>ZWYCIĘZCA</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
+            <div><b>{matName}</b><span>Kategoria zakończona</span></div>
+          </header>
+
+          <section className="final-winner-stage">
+            <div className="final-winner-label">1. MIEJSCE</div>
+            <article className="final-winner-card">
+              <div className="final-winner-photo">
+                {winnerInfo?.photo ? (
+                  <img src={winnerInfo.photo} alt={first?.athleteName || 'Zwycięzca'} />
+                ) : (
+                  <div>{winnerInitials}</div>
+                )}
+              </div>
+              <div className="final-winner-copy">
+                <span>ZWYCIĘZCA KONKURENCJI</span>
+                <h1>{first?.athleteName || '-'}</h1>
+                <p>{first?.clubName || winnerInfo?.club || ''}</p>
+                <div className="final-winner-meta">
+                  <strong>{payload.podium.competitionName}</strong>
+                  <small>{payload.podium.categoryName}</small>
+                </div>
+              </div>
+            </article>
+            <small className="final-winner-next">Za chwilę pełna lista wyników</small>
+          </section>
+        </main>
       )
     }
 
     return (
       <main
-        key={payload.podium.key || `${payload.podium.competitionName}-${payload.podium.categoryName}`}
-        className="tatami-screen podium-screen podium-screen-v2 podium-screen-animated"
+        key={`${podiumKey}-results`}
+        className="tatami-screen final-results-screen"
       >
         <FullscreenControl />
-        <header className="podium-header">
+        <header className="final-results-header">
           <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
-          <div><b>PODIUM</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
-          <div><b>{matName}</b><span>Kategoria zakończona</span></div>
+          <div><b>WYNIKI KOŃCOWE</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
+          <div><b>{matName}</b><span>{finalList.length} zawodników</span></div>
         </header>
-        <section className="podium-stage-v2">
-          <div className="podium-title-v2">
+
+        <section className="final-results-stage">
+          <div className="final-results-title">
             <span>KATEGORIA ZAKOŃCZONA</span>
             <h1>{payload.podium.categoryName}</h1>
             <p>{payload.podium.competitionName}</p>
           </div>
 
-          <div className="podium-platform-wrap">
-            <div className="podium-slot podium-slot-second">
-              <div className="podium-athletes-on-step">{athleteTile(second, 'silver', silverDelay)}</div>
-              <div className="podium-step podium-step-silver"><span>2</span><small>2. MIEJSCE</small></div>
-            </div>
-
-            <div className="podium-slot podium-slot-first">
-              <div className="podium-athletes-on-step">{athleteTile(first, 'gold', goldDelay)}</div>
-              <div className="podium-step podium-step-gold"><span>1</span><small>1. MIEJSCE</small></div>
-            </div>
-
-            <div className="podium-slot podium-slot-third">
-              <div className={`podium-athletes-on-step ${thirds.length > 1 ? 'podium-two-bronzes' : ''}`}>
-                {thirds.length ? thirds.map((item, index) => <React.Fragment key={item.athleteId}>{athleteTile(item, 'bronze', bronzeDelays[index])}</React.Fragment>) : athleteTile(null, 'bronze')}
-              </div>
-              <div className="podium-step podium-step-bronze"><span>3</span><small>{thirds.length > 1 ? '3. MIEJSCA' : '3. MIEJSCE'}</small></div>
-            </div>
+          <div className={`final-results-grid ${finalList.length > 10 ? 'is-dense' : ''}`}>
+            {finalList.map((result, index) => {
+              const initials = result.name.split(' ').map((part) => part[0]).slice(0, 2).join('')
+              const placeText = result.place === 1
+                ? '1. MIEJSCE'
+                : result.place === 2
+                  ? '2. MIEJSCE'
+                  : result.place === 3
+                    ? '3. MIEJSCE'
+                    : 'UCZESTNIK'
+              return (
+                <article
+                  className={`final-result-row place-${result.place || 'other'}`}
+                  key={result.athleteId}
+                  style={{ '--result-delay': `${Math.min(index * 90, 900)}ms` }}
+                >
+                  <div className="final-result-place">{result.place || '-'}</div>
+                  <div className="final-result-photo">
+                    {result.photo ? <img src={result.photo} alt={result.name} /> : <div>{initials}</div>}
+                  </div>
+                  <div className="final-result-person">
+                    <strong>{result.name}</strong>
+                    <span>{result.club}</span>
+                  </div>
+                  <em>{placeText}</em>
+                </article>
+              )
+            })}
           </div>
         </section>
       </main>
