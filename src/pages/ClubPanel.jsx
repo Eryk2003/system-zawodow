@@ -313,7 +313,12 @@ export default function ClubPanel() {
 
         {visibleTournament ? (
           <article className="club-event-card" aria-label="Aktywne zawody IKA Poland">
-            <div className="club-event-main">
+            {visibleTournament.poster && (
+              <div className="club-event-poster">
+                <img src={visibleTournament.poster} alt={`Plakat zawodów ${visibleTournament.name}`} />
+              </div>
+            )}
+            <div className={`club-event-main ${visibleTournament.poster ? 'club-event-main-after-poster' : ''}`}>
               <div>
                 <span className={`club-event-open ${registrationsClosed ? 'closed' : ''}`}>{registrationStatus.label}</span>
                 <h3>{visibleTournament.name}</h3>

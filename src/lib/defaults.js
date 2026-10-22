@@ -21,6 +21,7 @@ export const DEFAULT_TOURNAMENT = {
   created: false,
   startTime: '09:00',
   registrationDeadline: '',
+  poster: '',
   matCount: 3,
   competitionIds: [],
   avgBoutMinutes: 2,

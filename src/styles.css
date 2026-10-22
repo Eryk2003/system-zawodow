@@ -598,3 +598,15 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .kata-print-table td:last-child,.kata-print-table th:last-child{width:24mm;text-align:center!important}
   .kata-print-table tr{break-inside:avoid}
 }
+
+
+/* =========================================================
+   ETAP 60 - plakat zawodów widoczny dla klubów.
+   ========================================================= */
+.tournament-poster-picker{display:grid;grid-template-columns:minmax(220px,320px) minmax(0,1fr);gap:20px;align-items:stretch;padding:18px;border:1px solid #dedee3;border-radius:15px;background:#fafafa}
+.tournament-poster-preview{min-height:300px;display:grid;place-items:center;overflow:hidden;border:1px solid #d7d7dc;border-radius:12px;background:#171719}
+.tournament-poster-preview img{width:100%;height:100%;max-height:430px;object-fit:contain;display:block;background:#111}
+.tournament-poster-preview>div{display:grid;place-items:center;gap:7px;padding:28px;text-align:center;color:#fff}.tournament-poster-preview>div strong{font-size:18px;letter-spacing:.08em}.tournament-poster-preview>div span{font-size:11px;color:#aaa}
+.tournament-poster-actions{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;min-width:0}.tournament-poster-actions .field-label{font-size:13px;font-weight:950;color:#333}.tournament-poster-actions p{max-width:680px;margin:0;color:#666a72;line-height:1.55}.tournament-poster-actions>small{color:#7a7a82;line-height:1.45}.tournament-poster-file{position:relative;overflow:hidden}.tournament-poster-file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}.tournament-poster-error{width:100%;margin:0}
+.club-event-poster{display:grid;place-items:center;padding:26px;background:#111;border-bottom:1px solid #2c2c30}.club-event-poster img{display:block;width:min(100%,720px);max-height:900px;object-fit:contain;border-radius:10px;background:#0b0b0c}.club-event-main-after-poster{border-top:0}.club-event-main-after-poster h3{margin-top:8px;font-size:32px}
+@media(max-width:760px){.tournament-poster-picker{grid-template-columns:1fr}.tournament-poster-preview{min-height:240px}.club-event-poster{padding:14px}.club-event-poster img{max-height:72vh}.club-event-main-after-poster h3{font-size:27px}}

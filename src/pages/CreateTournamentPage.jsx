@@ -38,6 +38,7 @@ export default function CreateTournamentPage() {
     date: today(),
     startTime: '09:00',
     registrationDeadline: '',
+    poster: '',
     venue: '',
     avgBoutMinutes: '2',
     boutSeconds: '120',
@@ -50,6 +51,7 @@ export default function CreateTournamentPage() {
   const [openCategoryId, setOpenCategoryId] = useState(null)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [posterError, setPosterError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
 
   const competitions = db.getCompetitions().filter((item) => item.active !== false)
@@ -65,6 +67,52 @@ export default function CreateTournamentPage() {
     if (firstDot !== -1) next = next.slice(0, firstDot + 1) + next.slice(firstDot + 1).replace(/\./g, '')
     if (integer) next = next.replace(/\./g, '')
     return next
+  }
+
+  const onPosterFile = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setPosterError('')
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      setPosterError('Plakat musi być plikiem JPG, PNG albo WEBP.')
+      return
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      setPosterError('Plakat może mieć maksymalnie 8 MB przed kompresją.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onerror = () => setPosterError('Nie udało się odczytać plakatu.')
+    reader.onload = () => {
+      const image = new Image()
+      image.onerror = () => setPosterError('Nie udało się przygotować podglądu plakatu.')
+      image.onload = () => {
+        const maxWidth = 1600
+        const maxHeight = 2200
+        const ratio = Math.min(1, maxWidth / image.width, maxHeight / image.height)
+        const width = Math.max(1, Math.round(image.width * ratio))
+        const height = Math.max(1, Math.round(image.height * ratio))
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        const context = canvas.getContext('2d')
+        context.fillStyle = '#ffffff'
+        context.fillRect(0, 0, width, height)
+        context.drawImage(image, 0, 0, width, height)
+
+        let poster = canvas.toDataURL('image/jpeg', 0.82)
+        if (poster.length > 1_700_000) poster = canvas.toDataURL('image/jpeg', 0.68)
+        if (poster.length > 2_100_000) {
+          setPosterError('Plakat po kompresji jest nadal zbyt duży. Wybierz zdjęcie o mniejszej rozdzielczości.')
+          return
+        }
+        setForm((current) => ({ ...current, poster }))
+      }
+      image.src = reader.result
+    }
+    reader.readAsDataURL(file)
   }
 
   const updateMatCount = (value) => {
@@ -461,6 +509,19 @@ export default function CreateTournamentPage() {
           {error && <div className="alert alert-error">{error}</div>}
           <div className="form-grid tournament-create-grid">
             <label className="span-2">Nazwa zawodów<input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="np. IKA Poland Open 2027" /></label>
+            <div className="span-2 tournament-poster-picker">
+              <div className="tournament-poster-preview">
+                {form.poster ? <img src={form.poster} alt={`Plakat - ${form.name || 'zawody IKA Poland'}`} /> : <div><strong>PLAKAT ZAWODÓW</strong><span>Dodaj JPG, PNG lub WEBP</span></div>}
+              </div>
+              <div className="tournament-poster-actions">
+                <span className="field-label">Plakat zawodów</span>
+                <p>Plakat będzie widoczny wszystkim klubom przy aktywnych zawodach. Bezpośrednio pod plakatem pojawi się nazwa zawodów.</p>
+                <label className="btn btn-outline tournament-poster-file">Wybierz plakat<input type="file" accept="image/jpeg,image/png,image/webp" onChange={onPosterFile} /></label>
+                {form.poster && <button type="button" className="btn btn-ghost" onClick={() => { setForm((current) => ({ ...current, poster: '' })); setPosterError('') }}>Usuń plakat</button>}
+                <small>Obraz jest automatycznie zmniejszany i kompresowany przed zapisaniem.</small>
+                {posterError && <div className="alert alert-error tournament-poster-error">{posterError}</div>}
+              </div>
+            </div>
             <label>Data zawodów<input required type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} /></label>
             <label>Godzina rozpoczęcia<input required type="time" value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} /></label>
             <label className="span-2">Termin zgłoszeń klubów<input type="datetime-local" value={form.registrationDeadline} onChange={(event) => setForm({ ...form, registrationDeadline: event.target.value })} /><small className="field-hint">Po tym terminie kluby nadal zobaczą zawody i swoje zgłoszenia, ale nie będą mogły ich zmieniać.</small></label>
