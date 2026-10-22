@@ -1,12 +1,10 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 19464,
+    strictPort: true,
+  },
+})
