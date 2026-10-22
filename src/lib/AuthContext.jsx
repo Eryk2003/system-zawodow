@@ -13,15 +13,21 @@ async function resolveSupabaseUser(authUser) {
   try {
     const { data: profile, error } = await supabase
       .from('profiles')
-      .select('full_name,role')
+      .select('full_name,role,active')
       .eq('id', authUser.id)
       .maybeSingle()
 
     if (!error && profile) {
+      if (profile.active === false) {
+        const disabled = new Error('ACCOUNT_DISABLED')
+        disabled.code = 'ACCOUNT_DISABLED'
+        throw disabled
+      }
       role = profile.role === 'organizer' ? 'organizer' : 'club'
       fullName = profile.full_name || fullName
     }
-  } catch {
+  } catch (error) {
+    if (error?.code === 'ACCOUNT_DISABLED') throw error
     // Jeżeli profil chwilowo nie jest dostępny, konto pozostaje klubowe.
   }
 
@@ -50,7 +56,8 @@ export function AuthProvider({ children }) {
           const { data } = await supabase.auth.getSession()
           const cloudUser = await resolveSupabaseUser(data?.session?.user)
           if (mounted) setUser(cloudUser)
-        } catch {
+        } catch (error) {
+          if (error?.code === 'ACCOUNT_DISABLED') { try { await supabase.auth.signOut() } catch {} }
           if (mounted) setUser(null)
         }
 
@@ -131,7 +138,18 @@ export function AuthProvider({ children }) {
           }
 
           logoutAccount()
-          const next = await resolveSupabaseUser(data.user)
+          let next
+          try {
+            next = await resolveSupabaseUser(data.user)
+          } catch (resolveError) {
+            if (resolveError?.code === 'ACCOUNT_DISABLED') {
+              try { await supabase.auth.signOut() } catch {}
+              const disabled = new Error('To konto klubu zostało usunięte lub zablokowane przez organizatora.')
+              disabled.code = 'ACCOUNT_DISABLED'
+              throw disabled
+            }
+            throw resolveError
+          }
           setUser(next)
           await refreshCloudSyncForSession()
           return next

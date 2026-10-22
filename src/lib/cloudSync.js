@@ -435,21 +435,6 @@ function subscribeRoleState() {
   }
 }
 
-export async function deleteClubFromCloud(ownerId) {
-  if (!supabase) throw new Error('Supabase nie jest skonfigurowany.')
-  if (currentIdentity.role !== 'organizer') throw new Error('Tylko organizator może usuwać kluby.')
-  if (!ownerId) throw new Error('Brak identyfikatora właściciela klubu.')
-
-  const { error } = await supabase
-    .from('club_private_state')
-    .delete()
-    .eq('owner_id', ownerId)
-
-  if (error) throw error
-  await hydrateSensitiveState()
-  return true
-}
-
 export async function refreshCloudSyncForSession() {
   if (!cloudSyncConfigured || !supabase) return { enabled: false }
   currentIdentity = await resolveIdentity()
@@ -501,4 +486,11 @@ export function disposeCloudSync() {
   publicChannel = null
   authSubscription = null
   initialized = false
+}
+
+export async function removeClubFromSystem(ownerId) {
+  if (!cloudSyncConfigured || !supabase || !ownerId) return { cloud: false }
+  const { error } = await supabase.rpc('remove_club_account', { target_owner_id: ownerId })
+  if (error) throw new Error(error.message || 'Nie udało się usunąć klubu z Supabase.')
+  return { cloud: true }
 }

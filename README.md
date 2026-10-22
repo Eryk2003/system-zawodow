@@ -1,3 +1,12 @@
+# ETAP 67 - PL/EN + usuwanie klubów
+
+- Widoczny przełącznik języka **PL / EN** na stronie publicznej, logowaniu, strefie klubu i panelu organizatora.
+- Angielska wersja głównej ścieżki rejestracji/logowania i najważniejszej nawigacji.
+- Organizator widzi listę klubów i może użyć **Usuń klub**.
+- Usunięcie usuwa profil klubu z danych zawodów, zawodników i zgłoszenia oraz blokuje konto w Supabase, aby klub nie odtworzył danych po ponownym logowaniu.
+- Po usunięciu klubu drabinki/kata dotkniętych kategorii są unieważniane i wymagają ponownego losowania.
+- Wymagane jednorazowe uruchomienie `supabase/ETAP-67-PL-EN-USUWANIE-KLUBOW.sql`.
+
 # ETAP 66 — bezpieczne konta klubów i synchronizacja Supabase
 
 Ten etap przygotowuje system do zawodów międzynarodowych pod kątem prywatności i wielu klubów.
@@ -368,17 +377,3 @@ Dodano kontrolę integralności plików wdrożeniowych przed buildem (`scripts/v
 - System pokazuje instrukcję odblokowania „Zarządzanie oknami / Window management”.
 - Przycisk „Ponów wykrywanie” pozwala uruchomić AUTO HDMI po zmianie zgody bez restartu zawodów.
 - Tryb ręczny TV pozostaje dostępny jako bezpieczne wyjście awaryjne.
-
-## ETAP 67 - kluby międzynarodowe i usuwanie klubu
-- Organizator ma listę wszystkich klubów widocznych w systemie.
-- Przy klubie widoczne są kraj, flaga, federacja/organizacja i liczba zawodników.
-- Organizator może usunąć obcy klub. Operacja usuwa klub, jego zawodników i zgłoszenia oraz przelicza harmonogram.
-- Klub organizatora jest chroniony przed przypadkowym usunięciem z panelu zarządzania klubami.
-- Formularz nowego klubu zawiera kraj i federację/organizację.
-
-## ETAP 67 - PL / EN i kluby międzynarodowe
-- Widoczny przełącznik języka `PL | EN` na stronie publicznej, logowaniu, strefie klubu i panelach.
-- Język jest zapamiętywany w przeglądarce po odświeżeniu strony.
-- Przetłumaczona jest główna ścieżka klubu: rejestracja, profil, zawodnicy, zawody i zgłoszenia.
-- Profil klubu zawiera kraj oraz federację / organizację.
-- Organizator ma listę klubów z kraju/federacji i może usunąć obcy klub wraz z jego zawodnikami i zgłoszeniami.

@@ -3,39 +3,94 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 const LanguageContext = createContext(null)
 const STORAGE_KEY = 'ika_language_v1'
 
-const normalizeLanguage = (value) => value === 'en' ? 'en' : 'pl'
+const messages = {
+  pl: {
+    systemName: 'System Zawodów',
+    news: 'Aktualności',
+    athleteZone: 'Strefa zawodnika',
+    rankingsLive: 'Klasyfikacja LIVE',
+    screen: 'Telebim',
+    organizer: 'Organizator',
+    clubEntries: 'Zgłoszenia klubu',
+    loginClub: 'Zaloguj klub',
+    home: 'Strona główna',
+    events: 'Zawody',
+    athletes: 'Zawodnicy',
+    myEntries: 'Moje zgłoszenia',
+    logout: 'Wyloguj',
+    organizerPanel: 'Panel organizatora',
+    clubPanel: 'Panel klubu',
+    athletePreview: 'Podgląd zawodnika',
+    openScreen: 'Otwórz telebim',
+    scheduled: 'Zaplanowana',
+    called: 'Przygotuj się',
+    active: 'Trwa teraz',
+    done: 'Zakończona',
+  },
+  en: {
+    systemName: 'Competition System',
+    news: 'News',
+    athleteZone: 'Athlete zone',
+    rankingsLive: 'LIVE ranking',
+    screen: 'Display',
+    organizer: 'Organizer',
+    clubEntries: 'Club entries',
+    loginClub: 'Club login',
+    home: 'Home',
+    events: 'Events',
+    athletes: 'Athletes',
+    myEntries: 'My entries',
+    logout: 'Log out',
+    organizerPanel: 'Organizer panel',
+    clubPanel: 'Club panel',
+    athletePreview: 'Athlete preview',
+    openScreen: 'Open display',
+    scheduled: 'Scheduled',
+    called: 'Get ready',
+    active: 'Live now',
+    done: 'Finished',
+  },
+}
 
 export function LanguageProvider({ children }) {
   const [language, setLanguageState] = useState(() => {
-    try {
-      return normalizeLanguage(localStorage.getItem(STORAGE_KEY))
-    } catch {
-      return 'pl'
-    }
+    const saved = localStorage.getItem(STORAGE_KEY)
+    return saved === 'en' ? 'en' : 'pl'
   })
 
   const setLanguage = (next) => {
-    const normalized = normalizeLanguage(next)
-    setLanguageState(normalized)
-    try { localStorage.setItem(STORAGE_KEY, normalized) } catch {}
+    const safe = next === 'en' ? 'en' : 'pl'
+    setLanguageState(safe)
+    localStorage.setItem(STORAGE_KEY, safe)
   }
 
   useEffect(() => {
-    document.documentElement.lang = language
+    document.documentElement.lang = language === 'en' ? 'en' : 'pl'
   }, [language])
 
   const value = useMemo(() => ({
     language,
     setLanguage,
-    isEnglish: language === 'en',
-    tr: (pl, en) => language === 'en' ? en : pl,
+    toggleLanguage: () => setLanguage(language === 'pl' ? 'en' : 'pl'),
+    t: (key) => messages[language]?.[key] || messages.pl[key] || key,
+    pick: (pl, en) => language === 'en' ? en : pl,
   }), [language])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
 }
 
-export const useLanguage = () => {
+export function useLanguage() {
   const value = useContext(LanguageContext)
-  if (!value) throw new Error('useLanguage musi być użyty wewnątrz LanguageProvider.')
+  if (!value) throw new Error('useLanguage must be used inside LanguageProvider')
   return value
+}
+
+export function LanguageSwitch({ compact = false }) {
+  const { language, setLanguage } = useLanguage()
+  return (
+    <div className={`language-switch ${compact ? 'language-switch-compact' : ''}`} aria-label="Language / Język">
+      <button type="button" className={language === 'pl' ? 'active' : ''} onClick={() => setLanguage('pl')} aria-pressed={language === 'pl'}>PL</button>
+      <button type="button" className={language === 'en' ? 'active' : ''} onClick={() => setLanguage('en')} aria-pressed={language === 'en'}>EN</button>
+    </div>
+  )
 }

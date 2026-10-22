@@ -743,32 +743,22 @@ export const db = {
   },
   deleteClub: (clubId) => {
     const clubs = read(KEYS.clubs, [])
-    const club = clubs.find((item) => item.id === clubId)
-    if (!club) return null
-    const athleteIds = new Set(read(KEYS.athletes, []).filter((a) => a.clubId === clubId).map((a) => a.id))
-    const allEntries = read(KEYS.entries, [])
-    const removedEntries = allEntries.filter((entry) => athleteIds.has(entry.athleteId))
-    const affectedCategoryIds = new Set(removedEntries.map((entry) => entry.categoryId).filter(Boolean))
-    const affectedCategoryKeys = new Set(removedEntries.map((entry) => `${entry.competitionId || ''}|||${entry.category || ''}`))
-
-    write(KEYS.clubs, clubs.filter((item) => item.id !== clubId))
-    write(KEYS.athletes, read(KEYS.athletes, []).filter((a) => a.clubId !== clubId))
-    write(KEYS.entries, allEntries.filter((entry) => !athleteIds.has(entry.athleteId)))
-
-    // Jeżeli usunięty zawodnik był już w wylosowanej kategorii, unieważniamy całą
-    // drabinkę/listę tej kategorii. Dzięki temu nie zostają odwołania do pustych walk.
-    write(KEYS.matches, read(KEYS.matches, []).filter((match) => {
-      if (match.categoryId && affectedCategoryIds.has(match.categoryId)) return false
-      return !affectedCategoryKeys.has(`${match.competitionId || ''}|||${match.category || ''}`)
-    }))
-    write(KEYS.kataSessions, read(KEYS.kataSessions, []).filter((session) => {
-      if (session.categoryId && affectedCategoryIds.has(session.categoryId)) return false
-      return !affectedCategoryKeys.has(`${session.competitionId || ''}|||${session.category || ''}`)
-    }))
-
+    const target = clubs.find((club) => club.id === clubId) || null
+    const athleteIds = new Set(read(KEYS.athletes, []).filter((athlete) => athlete.clubId === clubId).map((athlete) => athlete.id))
+    const removedEntries = read(KEYS.entries, []).filter((entry) => athleteIds.has(entry.athleteId))
+    const affected = new Set(removedEntries.map((entry) => `${entry.competitionId}|||${entry.category}`))
+    write(KEYS.clubs, clubs.filter((club) => club.id !== clubId))
+    write(KEYS.athletes, read(KEYS.athletes, []).filter((athlete) => athlete.clubId !== clubId))
+    write(KEYS.entries, read(KEYS.entries, []).filter((entry) => !athleteIds.has(entry.athleteId)))
+    write(KEYS.matches, read(KEYS.matches, []).filter((match) => !affected.has(`${match.competitionId}|||${match.category}`)))
+    write(KEYS.kataSessions, read(KEYS.kataSessions, []).filter((session) => !affected.has(`${session.competitionId}|||${session.category}`)))
+    const tournament = db.getTournament()
+    const numbers = { ...(tournament.athleteStartNumbers || {}) }
+    athleteIds.forEach((id) => delete numbers[id])
+    write(KEYS.tournament, { ...tournament, athleteStartNumbers: numbers })
     regenerateScheduleInternal()
     emit()
-    return club
+    return target
   },
   getAthletes: () => read(KEYS.athletes, []),
   getAthletesForClub: (clubId) => read(KEYS.athletes, []).filter((a) => a.clubId === clubId),

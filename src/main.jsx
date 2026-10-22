@@ -10,13 +10,13 @@ import { initializeCloudSync } from './lib/cloudSync.js'
 function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
-      <BrowserRouter>
-        <LanguageProvider>
+      <LanguageProvider>
+        <BrowserRouter>
           <AuthProvider>
-            <App />
-          </AuthProvider>
-        </LanguageProvider>
-      </BrowserRouter>
+          <App />
+        </AuthProvider>
+        </BrowserRouter>
+      </LanguageProvider>
     </React.StrictMode>,
   )
 }
