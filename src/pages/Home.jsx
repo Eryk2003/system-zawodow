@@ -14,13 +14,12 @@ export default function Home() {
         <section className="hero">
           <div className="hero-copy">
             <span className="eyebrow">International Karate Association Poland</span>
-            <h1>Jeden system do obsługi zawodów IKA Poland</h1>
+            <h1>Oficjalna strona zgłoszeń na zawody IKA Poland</h1>
             <p>
-              Rejestracja klubów i zawodników, informacja na żywo dla rodziców,
-              telebim, drabinki kumite i tablice punktowe przy tatami.
+              Kluby rejestrują konto, dodają swoich zawodników i zgłaszają ich na aktywne zawody. W dniu zawodów strona udostępnia także informacje LIVE, drabinki i wyniki.
             </p>
             <div className="hero-actions">
-              <Link className="btn btn-primary" to="/rejestracja">Zarejestruj się</Link>
+              <Link className="btn btn-primary" to="/rejestracja">Zarejestruj klub</Link>
               <Link className="btn btn-outline" to="/logowanie">Zaloguj</Link>
             </div>
           </div>
@@ -62,13 +61,13 @@ export default function Home() {
         </section>
 
         <section className="section-wrap feature-strip">
-          <div><strong>1</strong><h3>Konto i klub</h3><p>Rejestracja przez e-mail i hasło, następnie własny profil klubu.</p></div>
-          <div><strong>2</strong><h3>Informacja LIVE</h3><p>Rodzic widzi tatami, przewidywany start i liczbę walk pozostałych do wejścia zawodnika.</p></div>
-          <div><strong>3</strong><h3>Drabinka kumite</h3><p>Przed walką monitor pokazuje drabinkę, a podczas walki automatycznie przełącza się na tablicę.</p></div>
-          <div><strong>4</strong><h3>Klasyfikacja LIVE</h3><p>Kluby są klasyfikowane medalowo: najpierw złote, potem srebrne i brązowe. Punkty klubowe: złoto 6, srebro 4, brąz 2.</p></div>
+          <div><strong>1</strong><h3>Rejestracja klubu</h3><p>Klub zakłada konto przez e-mail i hasło, a następnie uzupełnia swój profil.</p></div>
+          <div><strong>2</strong><h3>Zgłoszenia zawodników</h3><p>Klub dodaje własnych zawodników i zgłasza ich tylko do pasujących kategorii.</p></div>
+          <div><strong>3</strong><h3>Informacja LIVE</h3><p>W dniu zawodów można sprawdzić tatami, szacowany start oraz przebieg konkurencji.</p></div>
+          <div><strong>4</strong><h3>Obsługa zawodów</h3><p>Organizator korzysta z osobnych narzędzi do drabinek, sędziów, telebimów i wyników.</p></div>
         </section>
       </main>
-      <footer className="footer">IKA Poland - System Zawodów • ETAP 40</footer>
+      <footer className="footer">IKA Poland - strona zgłoszeń i obsługi zawodów • ETAP 50</footer>
     </div>
   )
 }

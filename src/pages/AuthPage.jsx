@@ -34,8 +34,8 @@ export default function AuthPage({ mode = 'login' }) {
       <div className="auth-top"><Brand /><Link to="/">Wróć na stronę główną</Link></div>
       <div className="auth-card">
         <span className="eyebrow">{isRegister ? 'Nowy klub' : 'Logowanie'}</span>
-        <h1>{isRegister ? 'Utwórz konto w systemie' : 'Zaloguj się do systemu'}</h1>
-        <p>{isRegister ? 'Konto klubu działa na wszystkich urządzeniach. Po rejestracji utworzysz profil klubu i zobaczysz zawody opublikowane przez IKA Poland.' : 'Wprowadź e-mail i hasło.'}</p>
+        <h1>{isRegister ? 'Zarejestruj klub' : 'Logowanie klubu'}</h1>
+        <p>{isRegister ? 'Utwórz konto klubu. Po zalogowaniu dodasz zawodników i zgłosisz ich na zawody opublikowane przez IKA Poland.' : 'Wprowadź e-mail i hasło.'}</p>
         <form onSubmit={submit} className="form-stack">
           {isRegister && (
             <label>Imię i nazwisko właściciela konta<input required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="np. Jan Kowalski" /></label>

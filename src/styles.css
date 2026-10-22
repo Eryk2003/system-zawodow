@@ -375,3 +375,41 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
     animation:none;
   }
 }
+
+/* =========================================================
+   ETAP 50 - strefa klubów jako STRONA ZGŁOSZENIOWA.
+   Część klubowa nie jest dashboardem aplikacji. To prosta strona
+   do logowania klubów, listy zawodników i zgłoszeń na zawody.
+   ========================================================= */
+.club-site-shell{min-height:100vh;background:#f4f4f5;color:#171719}
+.club-site-topbar{position:sticky;top:0;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:28px;z-index:50}
+.club-site-nav{display:flex;align-items:center;justify-content:center;gap:22px;min-width:0;font-size:13px;font-weight:800}
+.club-site-nav a{color:#d6d6da;white-space:nowrap}.club-site-nav a:hover{color:#fff}
+.club-site-account{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-width:0}
+.club-site-account>span{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d2d2d6;font-size:12px;font-weight:800}
+.club-site-main{width:min(1280px,92vw);margin:0 auto;background:#fff;border-left:1px solid #e0e0e3;border-right:1px solid #e0e0e3}
+.club-site-footer{padding:28px 20px;text-align:center;color:#777;font-size:12px;border-top:1px solid #dedee1;background:#fff}
+.club-site-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:36px;padding:54px 48px 42px;border-bottom:1px solid #e4e4e6;background:linear-gradient(180deg,#fff,#fafafa)}
+.club-site-intro h1{margin:4px 0 12px;font-size:clamp(34px,4vw,54px);letter-spacing:-.045em;line-height:1}
+.club-site-intro p{max-width:760px;margin:0;color:#666a72;font-size:16px;line-height:1.6}
+.club-site-details{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}.club-site-details span{padding:7px 10px;border:1px solid #dedee2;border-radius:999px;background:#fff;color:#56565d;font-size:11px;font-weight:800}
+.club-site-intro-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;flex:0 0 auto}
+.club-site-section{padding:42px 48px;border-bottom:1px solid #e4e4e6;scroll-margin-top:105px}
+.club-site-section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}.club-site-section-head h2{margin:4px 0 7px;font-size:30px;letter-spacing:-.03em}.club-site-section-head p{max-width:800px;margin:0;color:#6c6c73;line-height:1.55}
+.club-profile-setup{max-width:none}.club-profile-setup .setup-card{margin:0 auto;max-width:820px;box-shadow:none}
+.club-event-card{overflow:hidden;border:1px solid #d9d9dd;border-radius:16px;background:#fff}
+.club-event-main{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;padding:24px 26px;background:#151517;color:#fff}.club-event-main h3{margin:9px 0 8px;font-size:28px}.club-event-main p{margin:0;color:#bfc0c5}.club-event-open{display:inline-flex;padding:6px 9px;border-radius:999px;background:#e1261c;color:#fff;font-size:10px;font-weight:950;letter-spacing:.08em}
+.club-event-date-status{text-align:right}.club-event-date-status strong,.club-event-date-status small{display:block}.club-event-date-status strong{font-size:18px}.club-event-date-status small{margin-top:5px;color:#a9a9af}
+.club-event-summary{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid #e7e7ea}.club-event-summary>div{padding:18px 22px;border-right:1px solid #e7e7ea}.club-event-summary>div:last-child{border-right:0}.club-event-summary small,.club-event-summary strong{display:block}.club-event-summary small{font-size:10px;color:#777b83;text-transform:uppercase;font-weight:900;letter-spacing:.06em}.club-event-summary strong{margin-top:5px;font-size:25px}
+.club-event-categories{padding:20px 22px}.club-event-categories>small{display:block;margin-bottom:10px;color:#717179;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.06em}.club-event-categories>div{display:flex;gap:7px;flex-wrap:wrap}.club-event-categories span{padding:7px 10px;border-radius:8px;background:#f1f1f3;color:#414147;font-size:11px;font-weight:800}
+.club-event-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;padding:0 22px 22px}
+.club-list-search{display:grid;grid-template-columns:1fr auto;align-items:end;gap:14px;margin-bottom:18px;padding:14px;background:#f7f7f8;border:1px solid #e2e2e5;border-radius:12px}.club-list-search label{display:grid;gap:6px}.club-list-search label>span{font-size:11px;font-weight:900;color:#555b63}.club-list-search input{width:100%;border:1px solid #d6d6da;background:#fff;border-radius:9px;padding:12px 13px;outline:none}.club-list-search strong{min-width:72px;padding:11px 13px;border-radius:9px;background:#171719;color:#fff;text-align:center}
+.club-site-section .table-wrap{background:#fff}
+.club-site-section .empty-state{background:#fafafa}
+
+@media(max-width:980px){
+  .club-site-topbar{grid-template-columns:auto 1fr}.club-site-nav{grid-column:1/-1;grid-row:2;justify-content:flex-start;overflow-x:auto;padding:0 0 2px}.club-site-account{grid-column:2;grid-row:1}.club-site-intro{align-items:flex-start;flex-direction:column}.club-site-intro-actions{justify-content:flex-start}.club-event-main{flex-direction:column}.club-event-date-status{text-align:left}.club-event-summary{grid-template-columns:1fr 1fr}.club-event-summary>div:nth-child(2){border-right:0}.club-event-summary>div:nth-child(3){grid-column:1/-1;border-top:1px solid #e7e7ea}
+}
+@media(max-width:700px){
+  .club-site-main{width:100%;border-left:0;border-right:0}.club-site-topbar{padding:12px 16px;gap:10px}.club-site-account>span{display:none}.club-site-nav{gap:14px;font-size:11px}.club-site-intro,.club-site-section{padding:30px 20px}.club-site-section-head{align-items:flex-start;flex-direction:column}.club-athletes-head>button{width:100%}.club-event-summary{grid-template-columns:1fr}.club-event-summary>div{border-right:0;border-top:1px solid #e7e7ea}.club-event-summary>div:first-child{border-top:0}.club-event-summary>div:nth-child(3){grid-column:auto}.club-event-actions a{width:100%}.club-list-search{grid-template-columns:1fr}.club-list-search strong{min-width:0}.club-site-intro-actions{width:100%}.club-site-intro-actions a{flex:1}
+}

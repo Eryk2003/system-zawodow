@@ -1,3 +1,11 @@
+# IKA Poland - System Zawodów - ETAP 49
+
+## Naprawa 404 Panelu Sędziego na Vercel
+
+Przywrócono prawidłowy `vercel.json` dla aplikacji Vite/React SPA. Dzięki regule rewrite bezpośrednie adresy takie jak `/organizator/sedzia/Tatami%201`, `/organizator/kata-sedzia/...` i `/tatami/...` są obsługiwane przez React Router zamiast zwracać błąd Vercel 404.
+
+**Ważne:** po skopiowaniu tej paczki upewnij się, że `vercel.json` znajduje się w głównym folderze repo obok `package.json`, a potem zrób Commit + Push.
+
 # ETAP 47 - większe kafelki drabinki
 
 Poprawka wyłącznie wyglądu drabinki Kumite. Cofnięto niepotrzebną zmianę logiki z ETAPU 46. Kafelki walk są szersze i wyższe, odstępy pionowe są większe, a oba nazwiska zawodników mieszczą się bez nachodzenia sąsiednich walk. Zmiana działa w Centrum Zawodów i na telebimie.
@@ -249,3 +257,12 @@ Po zakonczeniu kategorii podium na telebimie nie pokazuje wszystkich medalistow 
 4. na koncu zwyciezca z 1. miejsca.
 
 Zmiana dotyczy tylko prezentacji podium. Klasyfikacja, wyniki i naliczanie punktow pozostaja bez zmian.
+
+
+## ETAP 50 - strona zgłoszeń klubów
+- część klubowa została ustawiona jako zwykła strona internetowa do zgłoszeń, a nie osobna aplikacja klubowa,
+- po zalogowaniu klub widzi tylko swoich zawodników, aktywne zawody oraz własne zgłoszenia,
+- klub może dodać/edytować/usunąć własnego zawodnika i zgłosić go do pasującej kategorii,
+- przy kategorii widoczna jest łączna liczba zgłoszeń, ale bez danych zawodników innych klubów,
+- organizator zachowuje osobne narzędzia do prowadzenia zawodów, drabinek, sędziów i telebimów,
+- zachowany poprawny vercel.json z obsługą tras React Router.

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
+import { ClubWebsiteLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import { useAuth } from '../lib/AuthContext'
 import { db } from '../lib/demoStore'
@@ -22,6 +21,22 @@ function ageOnDate(birthDate, eventDate) {
   return age
 }
 
+function formatEventDate(value) {
+  if (!value) return 'Data do ustalenia'
+  const date = new Date(`${value}T12:00:00`)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('pl-PL', { day: '2-digit', month: 'long', year: 'numeric' }).format(date)
+}
+
+function daysToEvent(value) {
+  if (!value) return null
+  const event = new Date(`${value}T12:00:00`)
+  const now = new Date()
+  now.setHours(12, 0, 0, 0)
+  if (Number.isNaN(event.getTime())) return null
+  return Math.ceil((event.getTime() - now.getTime()) / 86400000)
+}
+
 function ClubSetup({ user, onCreated }) {
   const [form, setForm] = useState({ name: '', shortName: '', city: '', country: 'Polska', phone: '', email: user.email })
   const submit = (e) => {
@@ -33,7 +48,7 @@ function ClubSetup({ user, onCreated }) {
     <div className="setup-card">
       <span className="eyebrow">Pierwsze uruchomienie</span>
       <h2>Utwórz profil klubu</h2>
-      <p>Ten krok wykonujesz tylko raz. Później w panelu dodasz zawodników i zgłosisz ich na zawody.</p>
+      <p>Ten krok wykonujesz tylko raz. Profil klubu służy do dodawania zawodników i wysyłania zgłoszeń na zawody IKA Poland.</p>
       <form className="form-grid" onSubmit={submit}>
         <label className="span-2">Pełna nazwa klubu<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="np. Klub Karate ..." /></label>
         <label>Skrócona nazwa<input value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} placeholder="np. KKA" /></label>
@@ -96,6 +111,7 @@ export default function ClubPanel() {
   const [showForm, setShowForm] = useState(false)
   const [visibleTournament, setVisibleTournament] = useState(() => db.getVisibleTournamentForClubs())
   const [athleteSearch, setAthleteSearch] = useState('')
+  const [clubAthleteSearch, setClubAthleteSearch] = useState('')
   const [registrationMessage, setRegistrationMessage] = useState('')
   const [dataTick, setDataTick] = useState(0)
 
@@ -155,6 +171,31 @@ export default function ClubPanel() {
     ].filter(Boolean).join(' ')).includes(query))
   }, [athletes, athleteSearch])
 
+
+  const filteredClubAthletes = useMemo(() => {
+    const query = normalize(clubAthleteSearch)
+    if (!query) return athletes
+    return athletes.filter((athlete) => normalize([
+      athlete.firstName,
+      athlete.lastName,
+      `${athlete.firstName} ${athlete.lastName}`,
+      athlete.birthDate,
+      athlete.grade,
+      athlete.parentName,
+      athlete.parentEmail,
+    ].filter(Boolean).join(' ')).includes(query))
+  }, [athletes, clubAthleteSearch])
+
+  const registeredAthleteCount = useMemo(
+    () => new Set(clubEntries.map((entry) => entry.athleteId)).size,
+    [clubEntries],
+  )
+
+  const eventDays = daysToEvent(visibleTournament?.date)
+  const scrollToSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const categoryEntries = (category) => entries.filter((entry) => (
     entry.categoryId === category.id || (entry.competitionId === category.competitionId && entry.category === category.name)
   ))
@@ -191,87 +232,134 @@ export default function ClubPanel() {
   }
 
   if (!club) {
-    return <DashboardLayout title="Twój klub" organizer={organizerMode}><ClubSetup user={user} onCreated={(saved) => { setClub(saved); setAthletes([]) }} /></DashboardLayout>
+    return (
+      <ClubWebsiteLayout organizer={organizerMode}>
+        <section className="club-site-intro">
+          <span className="eyebrow">IKA Poland</span>
+          <h1>Strefa zgłoszeń klubów</h1>
+          <p>Zarejestrowany klub dodaje tutaj swoich zawodników, a następnie zgłasza ich na aktywne zawody IKA Poland.</p>
+        </section>
+        <section className="club-site-section club-profile-setup">
+          <ClubSetup user={user} onCreated={(saved) => { setClub(saved); setAthletes([]) }} />
+        </section>
+      </ClubWebsiteLayout>
+    )
   }
 
   return (
-    <DashboardLayout title={club.name} organizer={organizerMode}>
-      {organizerMode && <div className="organizer-club-note"><div><strong>Twój klub organizatora</strong><span>Organizator może równocześnie prowadzić swój klub i zgłaszać własnych zawodników na zawody.</span></div><Link className="btn btn-outline btn-sm" to="/organizator">Wróć do organizatora</Link></div>}
+    <ClubWebsiteLayout clubName={club.shortName || club.name} organizer={organizerMode}>
+      <section className="club-site-intro">
+        <div>
+          <span className="eyebrow">Strefa zgłoszeń klubów</span>
+          <h1>{club.name}</h1>
+          <p>Dodaj zawodników swojego klubu, sprawdź zawody otwarte do zgłoszeń i wyślij zgłoszenia do odpowiednich kategorii.</p>
+          <div className="club-site-details">
+            {club.city && <span>{club.city}</span>}
+            {club.email && <span>{club.email}</span>}
+            <span>{athletes.length} zawodników w klubie</span>
+          </div>
+        </div>
+        <div className="club-site-intro-actions">
+          <a className="btn btn-primary" href="#club-active-tournaments">Zobacz zawody</a>
+          <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a>
+        </div>
+      </section>
 
-      {visibleTournament && (
-        <section className="club-tournament-card" aria-label="Dostępne zawody IKA Poland">
-          <div className="club-tournament-card-head">
-            <div>
-              <span className="eyebrow">Zawody otwarte do zgłoszeń</span>
-              <h2>{visibleTournament.name}</h2>
-              <p>
-                {visibleTournament.date || 'Data do ustalenia'}
-                {visibleTournament.startTime ? ` • start ${visibleTournament.startTime}` : ''}
-                {visibleTournament.venue ? ` • ${visibleTournament.venue}` : ''}
-              </p>
+      <section className="club-site-section" id="club-active-tournaments">
+        <div className="club-site-section-head">
+          <div>
+            <span className="eyebrow">Zawody IKA Poland</span>
+            <h2>Aktywne zawody do zgłoszenia</h2>
+            <p>Klub widzi opublikowane zawody i może zgłaszać wyłącznie swoich zawodników. Dane zawodników innych klubów nie są wyświetlane.</p>
+          </div>
+        </div>
+
+        {visibleTournament ? (
+          <article className="club-event-card" aria-label="Aktywne zawody IKA Poland">
+            <div className="club-event-main">
+              <div>
+                <span className="club-event-open">ZGŁOSZENIA OTWARTE</span>
+                <h3>{visibleTournament.name}</h3>
+                <p>{formatEventDate(visibleTournament.date)}{visibleTournament.startTime ? ` - start ${visibleTournament.startTime}` : ''}{visibleTournament.venue ? ` - ${visibleTournament.venue}` : ''}</p>
+              </div>
+              <div className="club-event-date-status">
+                {eventDays != null && <strong>{eventDays > 1 ? `Za ${eventDays} dni` : eventDays === 1 ? 'Jutro' : eventDays === 0 ? 'Dzisiaj' : 'Termin minął'}</strong>}
+                <small>{tournamentCategories.length} kategorii</small>
+              </div>
             </div>
-            <span className="club-tournament-live">LIVE - widoczne dla wszystkich klubów</span>
-          </div>
 
-          <div className="club-tournament-meta">
-            <div><small>Liczba tatami</small><strong>{visibleTournament.matCount || '-'}</strong></div>
-            <div><small>Czas walki</small><strong>{visibleTournament.boutSeconds ? `${visibleTournament.boutSeconds} sek.` : '-'}</strong></div>
-            <div><small>Twoje zgłoszenia</small><strong>{clubEntries.length}</strong></div>
-          </div>
-
-          <div className="club-tournament-competitions">
-            <small>Kategorie zawodów</small>
-            <div className="club-tournament-chips">
-              {visibleCompetitionNames.length ? visibleCompetitionNames.map((name) => <span key={name}>{name}</span>) : <span>Kategorie zostaną dodane przez organizatora</span>}
+            <div className="club-event-summary">
+              <div><small>Twoi zgłoszeni zawodnicy</small><strong>{registeredAthleteCount}</strong></div>
+              <div><small>Twoje zgłoszenia</small><strong>{clubEntries.length}</strong></div>
+              <div><small>Tatami</small><strong>{visibleTournament.matCount || '-'}</strong></div>
             </div>
+
+            <div className="club-event-categories">
+              <small>Dostępne konkurencje i kategorie</small>
+              <div>
+                {visibleCompetitionNames.length ? visibleCompetitionNames.map((name) => <span key={name}>{name}</span>) : <span>Kategorie zostaną dodane przez organizatora</span>}
+              </div>
+            </div>
+
+            <div className="club-event-actions">
+              <a className="btn btn-primary" href="#club-registration">Zgłoś zawodników</a>
+              <a className="btn btn-outline" href="#club-entries">Moje zgłoszenia</a>
+            </div>
+          </article>
+        ) : (
+          <EmptyState title="Brak aktywnych zawodów" text="Gdy organizator opublikuje zawody IKA Poland, pojawią się tutaj automatycznie." />
+        )}
+      </section>
+
+      <section className="club-site-section" id="club-athletes">
+        <div className="club-site-section-head club-athletes-head">
+          <div>
+            <span className="eyebrow">Zawodnicy klubu</span>
+            <h2>Moi zawodnicy</h2>
+            <p>Lista zawiera wyłącznie zawodników przypisanych do Twojego klubu.</p>
           </div>
-        </section>
-      )}
+          <button className="btn btn-primary" type="button" onClick={() => { setEditing(null); setShowForm(true) }}>+ Dodaj zawodnika</button>
+        </div>
 
-      <div className="stats-grid">
-        <div className="stat-card"><span>Zawodnicy</span><strong>{athletes.length}</strong><small>dodani do klubu</small></div>
-        <div className="stat-card"><span>Zgłoszenia</span><strong>{clubEntries.length}</strong><small>na aktualne zawody</small></div>
-        <div className="stat-card"><span>Miasto</span><strong className="stat-text">{club.city}</strong><small>{club.shortName || 'IKA Poland'}</small></div>
-      </div>
+        {!!athletes.length && (
+          <div className="club-list-search">
+            <label><span>Szukaj zawodnika</span><input type="search" value={clubAthleteSearch} onChange={(event) => setClubAthleteSearch(event.target.value)} placeholder="Imię, nazwisko, data urodzenia, stopień..." /></label>
+            <strong>{filteredClubAthletes.length} / {athletes.length}</strong>
+          </div>
+        )}
 
-      <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Baza klubu</span><h2>Zawodnicy</h2></div><button className="btn btn-primary" onClick={() => { setEditing(null); setShowForm(true) }}>+ Dodaj zawodnika</button></div>
         {showForm && <div className="form-card"><AthleteForm clubId={club.id} initial={editing || emptyAthlete} onCancel={() => { setShowForm(false); setEditing(null) }} onSaved={() => { refreshAthletes(); setShowForm(false); setEditing(null) }} /></div>}
+
         {!athletes.length ? (
-          <EmptyState title="Brak zawodników" text="Dodaj pierwszego zawodnika wraz z podstawowymi danymi i zdjęciem do telebimu." />
+          <EmptyState title="Brak zawodników" text="Dodaj pierwszego zawodnika. Będzie można zgłosić go do kategorii dostępnych na aktywnych zawodach." />
         ) : (
           <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Data urodzenia</th><th>Stopień</th><th>Rodzic / opiekun</th><th></th></tr></thead><tbody>
-            {athletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '-'}</small></div></div></td><td>{athlete.birthDate || '-'}</td><td>{athlete.grade || '-'}</td><td><strong>{athlete.parentName || '-'}</strong><small className="block-small">{athlete.parentEmail || ''}</small></td><td className="actions-cell"><button className="link-btn" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
+            {filteredClubAthletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '-'}</small></div></div></td><td>{athlete.birthDate || '-'}</td><td>{athlete.grade || '-'}</td><td><strong>{athlete.parentName || '-'}</strong><small className="block-small">{athlete.parentEmail || ''}</small></td><td className="actions-cell"><button className="link-btn" type="button" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" type="button" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
           </tbody></table></div>
         )}
       </section>
 
-      <section className="panel-section club-registration-section">
-        <div className="panel-section-head">
+      <section className="club-site-section club-registration-section" id="club-registration">
+        <div className="club-site-section-head">
           <div>
-            <span className="eyebrow">Zgłoszenia na zawody</span>
-            <h2>Wyszukaj zawodnika i zgłoś go do konkurencji</h2>
-            <p>System pokazuje tylko pasujące kategorie według płci i wieku zawodnika. Przy każdej kategorii widzisz aktualną liczbę wszystkich zgłoszonych.</p>
+            <span className="eyebrow">Zgłoszenie zawodników</span>
+            <h2>Zgłoś zawodnika na zawody</h2>
+            <p>Wybierz swojego zawodnika. Strona pokaże tylko kategorie pasujące do jego wieku i płci. Przy kategorii widoczna jest wyłącznie łączna liczba zgłoszeń, bez danych innych klubów.</p>
           </div>
         </div>
 
         {!visibleTournament ? (
-          <EmptyState title="Brak otwartych zawodów" text="Kiedy organizator utworzy zawody, pojawią się tutaj automatycznie także na innych urządzeniach." />
+          <EmptyState title="Brak otwartych zawodów" text="Po opublikowaniu zawodów przez organizatora pojawi się tutaj formularz zgłoszeniowy." />
         ) : !tournamentCategories.length ? (
-          <EmptyState title="Organizator nie dodał jeszcze kategorii" text="Po dodaniu kategorii będziesz mógł od razu zgłaszać swoich zawodników." />
+          <EmptyState title="Organizator nie dodał jeszcze kategorii" text="Gdy kategorie zostaną przygotowane, klub będzie mógł wysłać zgłoszenia." />
         ) : !athletes.length ? (
-          <EmptyState title="Najpierw dodaj zawodników" text="Dodaj zawodnika do bazy klubu, a następnie wyszukaj go tutaj i wybierz konkurencję." />
+          <EmptyState title="Najpierw dodaj zawodników" text="Dodaj zawodnika do listy swojego klubu, a następnie wróć do tej sekcji." />
         ) : (
           <>
             <div className="club-athlete-search-wrap">
               <label>
-                <span>Wyszukaj po danych zawodnika</span>
-                <input
-                  type="search"
-                  value={athleteSearch}
-                  onChange={(event) => setAthleteSearch(event.target.value)}
-                  placeholder="Imię, nazwisko, data urodzenia lub stopień..."
-                />
+                <span>Znajdź zawodnika swojego klubu</span>
+                <input type="search" value={athleteSearch} onChange={(event) => setAthleteSearch(event.target.value)} placeholder="Imię, nazwisko, data urodzenia lub stopień..." />
               </label>
               <div className="club-search-count"><strong>{searchedAthletes.length}</strong><span>znalezionych</span></div>
             </div>
@@ -279,7 +367,7 @@ export default function ClubPanel() {
             {registrationMessage && <div className="alert alert-success">{registrationMessage}</div>}
 
             {!searchedAthletes.length ? (
-              <div className="empty-state compact"><h3>Nie znaleziono zawodnika</h3><p>Sprawdź wpisane dane albo dodaj zawodnika do bazy klubu.</p></div>
+              <div className="empty-state compact"><h3>Nie znaleziono zawodnika</h3><p>Sprawdź wpisane dane albo dodaj zawodnika do listy klubu.</p></div>
             ) : (
               <div className="club-registration-athletes">
                 {searchedAthletes.map((athlete) => {
@@ -290,10 +378,7 @@ export default function ClubPanel() {
                       <div className="club-registration-athlete-head">
                         <div className="athlete-cell">
                           <AthleteAvatar athlete={athlete} large />
-                          <div>
-                            <h3>{athlete.firstName} {athlete.lastName}</h3>
-                            <p>{athlete.birthDate || 'brak daty urodzenia'}{age != null ? ` • ${age} lat` : ''}{athlete.grade ? ` • ${athlete.grade}` : ''}</p>
-                          </div>
+                          <div><h3>{athlete.firstName} {athlete.lastName}</h3><p>{athlete.birthDate || 'brak daty urodzenia'}{age != null ? ` - ${age} lat` : ''}{athlete.grade ? ` - ${athlete.grade}` : ''}</p></div>
                         </div>
                         <span className="registration-total-badge">{clubEntries.filter((entry) => entry.athleteId === athlete.id).length} zgłoszeń</span>
                       </div>
@@ -308,21 +393,9 @@ export default function ClubPanel() {
                             const participantCount = categoryEntries(category).length
                             return (
                               <div className={`club-category-registration-row ${registered ? 'registered' : ''}`} key={category.id}>
-                                <div>
-                                  <small>{competition?.name || 'Konkurencja'}</small>
-                                  <strong>{category.name}</strong>
-                                </div>
-                                <div className="category-participant-count">
-                                  <strong>{participantCount}</strong>
-                                  <span>{participantCount === 1 ? 'zawodnik' : 'zawodników'} w kategorii</span>
-                                </div>
-                                <button
-                                  type="button"
-                                  className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`}
-                                  onClick={() => toggleTournamentRegistration(athlete, category)}
-                                >
-                                  {registered ? 'Usuń zgłoszenie' : '+ Zgłoś'}
-                                </button>
+                                <div><small>{competition?.name || 'Konkurencja'}</small><strong>{category.name}</strong></div>
+                                <div className="category-participant-count"><strong>{participantCount}</strong><span>{participantCount === 1 ? 'zawodnik' : 'zawodników'} w kategorii</span></div>
+                                <button type="button" className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`} onClick={() => toggleTournamentRegistration(athlete, category)}>{registered ? 'Usuń zgłoszenie' : 'Zgłoś'}</button>
                               </div>
                             )
                           })}
@@ -337,10 +410,12 @@ export default function ClubPanel() {
         )}
       </section>
 
-      <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Twoje zgłoszenia</span><h2>Konkurencje Twoich zawodników</h2><p>Przy każdym zgłoszeniu widzisz także, ilu zawodników jest obecnie w tej samej kategorii.</p></div></div>
-        {!clubEntries.length ? <EmptyState title="Brak zgłoszeń" text="Wyszukaj zawodnika wyżej i zgłoś go do jednej z pasujących kategorii." /> : (
-          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Konkurencja</th><th>Kategoria</th><th>W kategorii</th><th>Tatami</th><th>Orientacyjnie</th><th>Status</th></tr></thead><tbody>
+      <section className="club-site-section" id="club-entries">
+        <div className="club-site-section-head">
+          <div><span className="eyebrow">Potwierdzenie zgłoszeń</span><h2>Moje zgłoszenia</h2><p>W tym miejscu klub widzi wyłącznie zgłoszenia swoich zawodników.</p></div>
+        </div>
+        {!clubEntries.length ? <EmptyState title="Brak zgłoszeń" text="Po zgłoszeniu zawodnika do kategorii pojawi się tutaj potwierdzenie." /> : (
+          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Konkurencja</th><th>Kategoria</th><th>W kategorii</th><th>Tatami</th><th>Szacowany start</th><th>Status</th></tr></thead><tbody>
             {clubEntries.map((entry) => {
               const athlete = athletes.find((a) => a.id === entry.athleteId)
               const comp = comps.find((c) => c.id === entry.competitionId)
@@ -351,6 +426,6 @@ export default function ClubPanel() {
           </tbody></table></div>
         )}
       </section>
-    </DashboardLayout>
+    </ClubWebsiteLayout>
   )
 }
