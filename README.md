@@ -1,3 +1,12 @@
+# ETAP 59 - drukowanie drabinek i list kata
+
+- Każda wybrana kategoria kumite ma przycisk **Drukuj drabinkę**.
+- Wydruk zawiera nazwę zawodów, konkurencję, kategorię, datę, miejsce, tatami oraz pełną drabinkę.
+- Układ drabinki jest przygotowany przede wszystkim pod A3 poziomo.
+- Każda wybrana kategoria kata ma przycisk **Drukuj listę kata**.
+- Wydruk kata zawiera kolejność startową, zawodnika, klub, wykonywane kata i wynik, jeśli został już zapisany.
+- Widok do druku nie zawiera przycisków ani elementów panelu organizatora.
+
 # ETAP 51 - termin zgłoszeń klubów
 
 - Organizator ustawia dokładną datę i godzinę zakończenia zapisów.

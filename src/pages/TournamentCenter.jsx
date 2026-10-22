@@ -50,6 +50,31 @@ const registrationTimeLeft = (value, now = Date.now()) => {
   return { closed: false, text: `Pozostało ${parts.join(' ')}` }
 }
 
+const printSection = (elementId, title) => {
+  const target = document.getElementById(elementId)
+  if (!target) return
+
+  const previousTitle = document.title
+  const cleanup = () => {
+    document.body.classList.remove('print-section-mode')
+    target.classList.remove('print-section-active')
+    document.title = previousTitle
+  }
+
+  document.title = title || previousTitle
+  document.body.classList.add('print-section-mode')
+  target.classList.add('print-section-active')
+  window.addEventListener('afterprint', cleanup, { once: true })
+
+  window.setTimeout(() => {
+    try {
+      window.print()
+    } finally {
+      window.setTimeout(cleanup, 400)
+    }
+  }, 80)
+}
+
 const ageOnDate = (birthDate, eventDate) => {
   if (!birthDate) return null
   const birth = new Date(`${birthDate}T00:00:00`)
@@ -365,13 +390,31 @@ export default function TournamentCenter() {
               <div><strong>{selectedKataSession.mat}</strong><span>{competitions.find((c) => c.id === selectedKataSession.competitionId)?.name || 'Kata'} • {selectedKataSession.category} • {selectedKataSession.judgeCount} sędziów</span></div>
               <div className="form-actions">
                 <button type="button" className="btn btn-outline" onClick={() => { db.showKataList(selectedKataSession.id); refresh() }}>Lista na TV</button>
+                <button type="button" className="btn btn-outline" onClick={() => printSection('print-kata-category', `${tournament.name} - ${selectedKataSession.category} - kata`)}>Drukuj listę kata</button>
                 <a className="btn btn-outline" href={`/organizator/kata-sedzia/${encodeURIComponent(selectedKataSession.mat)}?sessionId=${encodeURIComponent(selectedKataSession.id)}`} target="_blank" rel="noreferrer">Panel sędziego kata</a>
                 <a className="btn btn-primary" href={`/tatami/${encodeURIComponent(selectedKataSession.mat)}`} target="_blank" rel="noreferrer">Tablica TV • {selectedKataSession.mat}</a>
                 <button type="button" className="btn btn-ghost" onClick={() => { if (confirm('Usunąć listę startową i wszystkie zapisane oceny tej kategorii?')) { db.resetKataSession(selectedKataSession.id); setSelectedKataSessionId(''); refresh() } }}>Usuń listę</button>
               </div>
             </div>
-            <div className="kata-admin-list">
-              {selectedKataSession.results.slice().sort((a, b) => a.order - b.order).map((result) => { const athlete = athletes.find((item) => item.id === result.athleteId); const club = athlete ? clubs.find((item) => item.id === athlete.clubId) : null; return <article key={result.athleteId} className={`kata-admin-row ${result.status}`}><b>{result.order}</b><div><strong>{athlete ? `${athlete.firstName} ${athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{club?.shortName || club?.name || ''}</span></div><em>{result.status === 'done' ? `Ocena: ${scoreText(result.finalScore)}` : result.status === 'active' ? 'TERAZ' : 'Oczekuje'}</em></article> })}
+            <div id="print-kata-category" className="competition-print-section print-kata-sheet">
+              <div className="competition-print-header print-only">
+                <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+                <h1>{competitions.find((c) => c.id === selectedKataSession.competitionId)?.name || 'Kata'} - {selectedKataSession.category}</h1>
+                <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selectedKataSession.mat}</span><span>{selectedKataSession.judgeCount} sędziów</span></div>
+              </div>
+              <div className="kata-admin-list print-screen-only">
+                {selectedKataSession.results.slice().sort((a, b) => a.order - b.order).map((result) => { const athlete = athletes.find((item) => item.id === result.athleteId); const club = athlete ? clubs.find((item) => item.id === athlete.clubId) : null; return <article key={result.athleteId} className={`kata-admin-row ${result.status}`}><b>{result.order}</b><div><strong>{athlete ? `${athlete.firstName} ${athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{club?.shortName || club?.name || ''}</span></div><em>{result.status === 'done' ? `Ocena: ${scoreText(result.finalScore)}` : result.status === 'active' ? 'TERAZ' : 'Oczekuje'}</em></article> })}
+              </div>
+              <table className="kata-print-table print-only">
+                <thead><tr><th>Nr</th><th>Zawodnik</th><th>Klub</th><th>Wykonywane kata</th><th>Wynik</th></tr></thead>
+                <tbody>
+                  {selectedKataSession.results.slice().sort((a, b) => a.order - b.order).map((result) => {
+                    const athlete = athletes.find((item) => item.id === result.athleteId)
+                    const club = athlete ? clubs.find((item) => item.id === athlete.clubId) : null
+                    return <tr key={`print-${result.athleteId}`}><td>{result.order}</td><td>{athlete ? `${athlete.firstName} ${athlete.lastName}` : 'Nieznany zawodnik'}</td><td>{club?.shortName || club?.name || '-'}</td><td>{result.kataName || '-'}</td><td>{result.status === 'done' ? scoreText(result.finalScore) : '-'}</td></tr>
+                  })}
+                </tbody>
+              </table>
             </div>
           </>
         ) : <EmptyState title="Brak listy startowej kata" text="Wybierz kategorię kata i wylosuj kolejność. Następnie otwórz panel sędziego." />}
@@ -399,13 +442,19 @@ export default function TournamentCenter() {
               <div><strong>{selected.mat}</strong><span>{competitions.find((c) => c.id === selected.competitionId)?.name} • {selected.category}</span></div>
               <div className="form-actions">
                 <button type="button" className="btn btn-outline" onClick={() => { db.setMatState(selected.mat, { mode: 'bracket', competitionId: selected.competitionId, category: selected.category, currentMatchId: null }); refresh() }}>Pokaż drabinkę na TV</button>
+                <button type="button" className="btn btn-outline" onClick={() => printSection('print-kumite-bracket', `${tournament.name} - ${selected.category} - drabinka`)}>Drukuj drabinkę</button>
                 <a className="btn btn-outline" href={`/organizator/sedzia/${encodeURIComponent(selected.mat)}?competitionId=${encodeURIComponent(selected.competitionId)}&category=${encodeURIComponent(selected.category)}`} target="_blank" rel="noreferrer">Panel sędziego</a>
                 <a className="btn btn-primary" href={`/tatami/${encodeURIComponent(selected.mat)}`} target="_blank" rel="noreferrer">Tablica TV • {selected.mat}</a>
                 <button type="button" className="btn btn-ghost" onClick={() => { if (confirm('Usunąć tę drabinkę?')) { db.resetBracket(selected); setSelectedBracket(''); refresh() } }}>Usuń drabinkę</button>
               </div>
             </div>
-            <div className="academy-bracket-panel-wrap">
-              <div className="academy-bracket-panel-head">
+            <div id="print-kumite-bracket" className="academy-bracket-panel-wrap competition-print-section print-kumite-sheet">
+              <div className="competition-print-header print-only">
+                <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+                <h1>{selectedCompetition?.name || 'Kumite'} - {selected.category}</h1>
+                <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selected.mat}</span><span>{selectedSideTheme.red.code} / {selectedSideTheme.blue.code}</span></div>
+              </div>
+              <div className="academy-bracket-panel-head print-screen-only">
                 <div>
                   <span>DRABINKA</span>
                   <strong>{selectedCompetition?.name || 'Kumite'} - {selected.category}</strong>

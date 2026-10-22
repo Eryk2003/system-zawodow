@@ -498,3 +498,103 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .auto-tv-status{display:grid;align-content:center;gap:5px;padding:16px 18px;border:1px solid #e0e0e4;border-radius:13px;background:#f7f7f9}.auto-tv-status small{font-size:9px;font-weight:1000;letter-spacing:.08em;color:#7a7a82;text-transform:uppercase}.auto-tv-status strong{font-size:19px}.auto-tv-status span{color:#65656d;line-height:1.45}.auto-tv-status em{font-style:normal;margin-top:4px;font-size:11px;font-weight:900;color:#888891}.auto-tv-status-ok{border-color:#bfe2c8;background:#f0faf3}.auto-tv-status-waiting{border-color:#ead6a0;background:#fffaf0}.auto-tv-status-warning{border-color:#e9c991;background:#fff8ec}.auto-tv-status-error{border-color:#efc2bd;background:#fff3f1}
 .auto-tv-actions{grid-column:1/-1;display:flex;align-items:center;gap:9px;flex-wrap:wrap}.auto-tv-note{margin-top:14px;padding:12px 14px;border-radius:10px;background:#171719;color:#d9d9de;font-size:12px;line-height:1.5}.auto-tv-note b,.auto-tv-note strong{color:#fff}
 @media(max-width:900px){.auto-tv-grid{grid-template-columns:1fr}.auto-tv-actions{grid-column:auto}.auto-tv-head{flex-direction:column}.auto-tv-badge{min-width:0}}
+
+/* =========================================================
+   ETAP 59 - druk drabinek kumite i list kata.
+   ========================================================= */
+.print-only{display:none}
+
+@media print{
+  @page{margin:10mm}
+  @page bracketPage{size:A3 landscape;margin:8mm}
+  @page kataPage{size:A4 portrait;margin:12mm}
+
+  html,body{background:#fff!important;color:#000!important}
+  body.print-section-mode{background:#fff!important}
+  body.print-section-mode *{visibility:hidden!important}
+  body.print-section-mode .print-section-active,
+  body.print-section-mode .print-section-active *{visibility:visible!important}
+  body.print-section-mode .print-section-active{
+    position:absolute!important;
+    left:0!important;
+    top:0!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+    border-radius:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+  }
+  body.print-section-mode .print-only{display:block!important}
+  body.print-section-mode .print-screen-only{display:none!important}
+  body.print-section-mode .print-kumite-sheet{page:bracketPage}
+  body.print-section-mode .print-kata-sheet{page:kataPage}
+
+  .competition-print-header{
+    border-bottom:2px solid #111;
+    padding:0 0 7mm;
+    margin:0 0 7mm;
+    color:#111!important;
+    break-after:avoid;
+  }
+  .competition-print-header>div:first-child{display:flex;justify-content:space-between;align-items:center;gap:12mm}
+  .competition-print-header>div:first-child strong{font-size:16pt;letter-spacing:.05em}
+  .competition-print-header>div:first-child span{font-size:10pt;color:#444!important}
+  .competition-print-header h1{margin:4mm 0 3mm;font-size:20pt;line-height:1.05;color:#111!important}
+  .competition-print-meta{display:flex;gap:7mm;flex-wrap:wrap;font-size:9.5pt;color:#333!important}
+  .competition-print-meta span{padding-right:7mm;border-right:1px solid #aaa}
+  .competition-print-meta span:last-child{border-right:0}
+
+  /* Kumite - czysta drabinka do wydruku */
+  .print-kumite-sheet .academy-bracket{
+    display:flex!important;
+    gap:7mm!important;
+    width:max-content!important;
+    min-width:0!important;
+    padding:0!important;
+    overflow:visible!important;
+    color:#000!important;
+    -webkit-print-color-adjust:exact;
+    print-color-adjust:exact;
+  }
+  .print-kumite-sheet .academy-bracket-round{width:56mm!important;min-width:56mm!important}
+  .print-kumite-sheet .academy-bracket-round-head{height:12mm!important;margin-bottom:2mm!important;color:#000!important}
+  .print-kumite-sheet .academy-bracket-round-head span,
+  .print-kumite-sheet .academy-bracket-round-head em{color:#555!important}
+  .print-kumite-sheet .academy-bracket-round-head strong{color:#000!important;font-size:11pt!important}
+  .print-kumite-sheet .academy-bracket-round-grid{grid-template-rows:repeat(var(--academy-bracket-rows),13mm)!important}
+  .print-kumite-sheet .academy-bracket-slot{min-height:25mm!important}
+  .print-kumite-sheet .academy-bracket-match{
+    background:#fff!important;
+    color:#000!important;
+    border:1px solid #222!important;
+    border-radius:2mm!important;
+    box-shadow:none!important;
+    break-inside:avoid;
+  }
+  .print-kumite-sheet .academy-bracket-match-head{height:7mm!important;min-height:7mm!important;background:#eee!important;border-bottom:1px solid #555!important;padding:0 2mm!important}
+  .print-kumite-sheet .academy-bracket-match-head span,
+  .print-kumite-sheet .academy-bracket-match-head em{font-size:7pt!important;color:#222!important}
+  .print-kumite-sheet .academy-bracket-player{min-height:11mm!important;grid-template-columns:12mm minmax(0,1fr) 8mm!important;gap:1.5mm!important;padding:1.5mm 2mm!important;color:#000!important;background:#fff!important}
+  .print-kumite-sheet .academy-bracket-player strong{font-size:8pt!important;line-height:1.1!important;color:#000!important}
+  .print-kumite-sheet .academy-bracket-player small{font-size:6.5pt!important;color:#444!important}
+  .print-kumite-sheet .academy-bracket-player>b{font-size:10pt!important;color:#000!important}
+  .print-kumite-sheet .academy-bracket-player-side{font-size:6.5pt!important;min-height:8mm!important;border:1px solid #555!important}
+  .print-kumite-sheet .academy-bracket-player-aka .academy-bracket-player-side{background:#d71920!important;color:#fff!important}
+  .print-kumite-sheet .academy-bracket-player-ao .academy-bracket-player-side{background:#1266d6!important;color:#fff!important}
+  .print-kumite-sheet .academy-bracket-player-shiro .academy-bracket-player-side{background:#fff!important;color:#000!important}
+  .print-kumite-sheet .academy-bracket-player.winner{background:#edf8ef!important}
+  .print-kumite-sheet .academy-bracket-connector-out,
+  .print-kumite-sheet .academy-bracket-connector-in{border-top-color:#222!important}
+  .print-kumite-sheet .academy-bracket-connector-pair{border-right-color:#222!important}
+
+  /* Kata - lista startowa / wyniki */
+  .kata-print-table{width:100%!important;border-collapse:collapse!important;font-size:10pt;color:#000!important}
+  .kata-print-table th,.kata-print-table td{border:1px solid #555!important;padding:3.2mm 2.5mm!important;text-align:left!important;vertical-align:middle!important;background:#fff!important;color:#000!important}
+  .kata-print-table th{background:#eee!important;font-size:8.5pt!important;text-transform:uppercase!important;letter-spacing:.04em!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .kata-print-table td:first-child,.kata-print-table th:first-child{width:12mm;text-align:center!important}
+  .kata-print-table td:last-child,.kata-print-table th:last-child{width:24mm;text-align:center!important}
+  .kata-print-table tr{break-inside:avoid}
+}
