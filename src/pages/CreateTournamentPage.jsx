@@ -37,6 +37,7 @@ export default function CreateTournamentPage() {
     name: '',
     date: today(),
     startTime: '09:00',
+    registrationDeadline: '',
     venue: '',
     avgBoutMinutes: '2',
     boutSeconds: '120',
@@ -97,6 +98,12 @@ export default function CreateTournamentPage() {
     if (!form.date) return setError('Wybierz datę zawodów.')
     if (!form.startTime) return setError('Wpisz godzinę rozpoczęcia zawodów.')
     if (!form.venue.trim()) return setError('Wpisz miejsce zawodów.')
+    if (form.registrationDeadline) {
+      const deadline = new Date(form.registrationDeadline)
+      const eventStart = new Date(`${form.date}T${form.startTime || '00:00'}`)
+      if (Number.isNaN(deadline.getTime())) return setError('Wpisz prawidłowy termin zgłoszeń.')
+      if (!Number.isNaN(eventStart.getTime()) && deadline.getTime() >= eventStart.getTime()) return setError('Termin zgłoszeń musi być wcześniejszy niż rozpoczęcie zawodów.')
+    }
     const matCount = Number(form.matCount)
     const avgBoutMinutes = Number(form.avgBoutMinutes)
     const boutSeconds = Number(form.boutSeconds)
@@ -456,6 +463,7 @@ export default function CreateTournamentPage() {
             <label className="span-2">Nazwa zawodów<input autoFocus required value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="np. IKA Poland Open 2027" /></label>
             <label>Data zawodów<input required type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} /></label>
             <label>Godzina rozpoczęcia<input required type="time" value={form.startTime} onChange={(event) => setForm({ ...form, startTime: event.target.value })} /></label>
+            <label className="span-2">Termin zgłoszeń klubów<input type="datetime-local" value={form.registrationDeadline} onChange={(event) => setForm({ ...form, registrationDeadline: event.target.value })} /><small className="field-hint">Po tym terminie kluby nadal zobaczą zawody i swoje zgłoszenia, ale nie będą mogły ich zmieniać.</small></label>
             <label className="span-2">Miejsce zawodów<input required value={form.venue} onChange={(event) => setForm({ ...form, venue: event.target.value })} placeholder="np. Hala Sportowa, Raszyn" /></label>
             <label>Liczba tatami / stanowisk<input className="numeric-input" inputMode="numeric" value={form.matCount} onChange={(event) => updateMatCount(event.target.value)} placeholder="np. 5" /></label>
             <label>Czas walki (min)<input className="numeric-input" inputMode="decimal" value={form.avgBoutMinutes} onChange={(event) => updateBoutMinutes(event.target.value)} placeholder="np. 1" /></label>

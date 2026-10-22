@@ -26,6 +26,30 @@ const boutTimeText = (seconds) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
+const formatRegistrationDeadline = (value) => {
+  if (!value) return 'Nie ustawiono'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
+}
+
+const registrationTimeLeft = (value, now = Date.now()) => {
+  if (!value) return { closed: false, text: 'Brak terminu - zgłoszenia otwarte' }
+  const end = new Date(value).getTime()
+  if (!Number.isFinite(end)) return { closed: false, text: 'Nieprawidłowy termin' }
+  const diff = end - now
+  if (diff <= 0) return { closed: true, text: 'Zapisy zakończone' }
+  const minutes = Math.floor(diff / 60000)
+  const days = Math.floor(minutes / 1440)
+  const hours = Math.floor((minutes % 1440) / 60)
+  const mins = minutes % 60
+  const parts = []
+  if (days) parts.push(`${days} d`)
+  if (hours || days) parts.push(`${hours} godz.`)
+  parts.push(`${mins} min`)
+  return { closed: false, text: `Pozostało ${parts.join(' ')}` }
+}
+
 const ageOnDate = (birthDate, eventDate) => {
   if (!birthDate) return null
   const birth = new Date(`${birthDate}T00:00:00`)
@@ -48,6 +72,7 @@ export default function TournamentCenter() {
   const [selectedKataSessionId, setSelectedKataSessionId] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [deadlineNow, setDeadlineNow] = useState(() => Date.now())
 
   const tournament = db.getTournament()
   const athletes = db.getAthletes()
@@ -81,6 +106,11 @@ export default function TournamentCenter() {
     }, 1000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => setDeadlineNow(Date.now()), 30000)
+    return () => clearInterval(interval)
+  }, [])
   const athleteName = (id) => {
     const a = athletes.find((x) => x.id === id)
     return a ? `${a.firstName} ${a.lastName}` : 'Oczekiwanie'
@@ -108,6 +138,7 @@ export default function TournamentCenter() {
   const selectedCompetition = competitions.find((c) => c.id === selected.competitionId) || null
   const selectedSideTheme = getKumiteSideTheme(selectedCompetition)
   const selectedKataSession = kataSessions.find((session) => session.id === (selectedKataSessionId || kataSessions[0]?.id)) || null
+  const registrationStatus = registrationTimeLeft(tournament.registrationDeadline, deadlineNow)
 
   const saveTournamentField = (field, value) => {
     db.saveTournament({ ...db.getTournament(), [field]: value })
@@ -279,6 +310,17 @@ export default function TournamentCenter() {
           <label>Miejsce<input value={tournament.venue} onChange={(e) => saveTournamentField('venue', e.target.value)} /></label>
           <label>Domyślny czas jednej walki (min)<input className="numeric-input" inputMode="decimal" value={tournament.avgBoutMinutes ?? ''} onChange={(e) => saveTournamentBoutMinutes(e.target.value)} /></label>
           <label>Domyślny czas walki (sek.)<input className="numeric-input" inputMode="numeric" value={tournament.boutSeconds ?? ''} onChange={(e) => saveTournamentBoutSeconds(e.target.value)} /><small className="field-hint">Minuty i sekundy są zsynchronizowane. Kategoria może mieć własny czas 1:00, 1:30, 2:00 lub 3:00.</small></label>
+        </div>
+      </section>
+
+      <section className="panel-section registration-deadline-admin">
+        <div className="panel-section-head">
+          <div><span className="eyebrow">Zgłoszenia klubów</span><h2>Termin zgłoszeń</h2><p>Ustaw dokładną datę i godzinę zakończenia zapisów. Kluby zobaczą licznik pozostałego czasu, a po terminie formularz zgłoszeń zostanie automatycznie zablokowany.</p></div>
+          <span className={`registration-deadline-status ${registrationStatus.closed ? 'closed' : 'open'}`}>{registrationStatus.text}</span>
+        </div>
+        <div className="registration-deadline-admin-grid">
+          <label>Zapisy do<input type="datetime-local" value={tournament.registrationDeadline || ''} onChange={(e) => saveTournamentField('registrationDeadline', e.target.value)} /></label>
+          <div className="registration-deadline-preview"><small>Kluby zobaczą</small><strong>{formatRegistrationDeadline(tournament.registrationDeadline)}</strong><span>{registrationStatus.text}</span></div>
         </div>
       </section>
 

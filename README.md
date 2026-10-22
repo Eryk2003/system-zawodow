@@ -1,3 +1,10 @@
+# ETAP 51 - termin zgłoszeń klubów
+
+- Organizator ustawia dokładną datę i godzinę zakończenia zapisów.
+- Klub widzi termin i licznik pozostałego czasu przy aktywnych zawodach.
+- Po upływie terminu strona klubowa automatycznie blokuje dodawanie i usuwanie zgłoszeń.
+- Zawody i istniejące zgłoszenia nadal pozostają widoczne.
+
 # IKA Poland - System Zawodów - ETAP 49
 
 ## Naprawa 404 Panelu Sędziego na Vercel

@@ -20,6 +20,7 @@ export const DEFAULT_TOURNAMENT = {
   status: 'preparation',
   created: false,
   startTime: '09:00',
+  registrationDeadline: '',
   matCount: 3,
   competitionIds: [],
   avgBoutMinutes: 2,

@@ -37,6 +37,31 @@ function daysToEvent(value) {
   return Math.ceil((event.getTime() - now.getTime()) / 86400000)
 }
 
+function formatRegistrationDeadline(value) {
+  if (!value) return 'Termin zgłoszeń nie został ustawiony'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('pl-PL', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
+}
+
+function registrationCountdown(value, now = Date.now()) {
+  if (!value) return { closed: false, label: 'ZGŁOSZENIA OTWARTE', text: 'Termin zgłoszeń nie został ustawiony', short: 'Zapisy otwarte' }
+  const end = new Date(value).getTime()
+  if (!Number.isFinite(end)) return { closed: false, label: 'ZGŁOSZENIA OTWARTE', text: 'Termin zgłoszeń nie został ustawiony', short: 'Zapisy otwarte' }
+  const diff = end - now
+  if (diff <= 0) return { closed: true, label: 'ZAPISY ZAKOŃCZONE', text: 'Termin zgłoszeń minął', short: 'Zapisy zakończone' }
+  const totalMinutes = Math.floor(diff / 60000)
+  const days = Math.floor(totalMinutes / 1440)
+  const hours = Math.floor((totalMinutes % 1440) / 60)
+  const minutes = totalMinutes % 60
+  const parts = []
+  if (days) parts.push(`${days} ${days === 1 ? 'dzień' : 'dni'}`)
+  if (hours || days) parts.push(`${hours} godz.`)
+  parts.push(`${minutes} min`)
+  const left = parts.join(' ')
+  return { closed: false, label: 'ZGŁOSZENIA OTWARTE', text: `Do końca zapisów: ${left}`, short: left }
+}
+
 function ClubSetup({ user, onCreated }) {
   const [form, setForm] = useState({ name: '', shortName: '', city: '', country: 'Polska', phone: '', email: user.email })
   const submit = (e) => {
@@ -114,6 +139,7 @@ export default function ClubPanel() {
   const [clubAthleteSearch, setClubAthleteSearch] = useState('')
   const [registrationMessage, setRegistrationMessage] = useState('')
   const [dataTick, setDataTick] = useState(0)
+  const [deadlineNow, setDeadlineNow] = useState(() => Date.now())
 
   const entries = useMemo(() => db.getEntries(), [dataTick])
   const comps = useMemo(() => db.getCompetitions(), [dataTick])
@@ -145,6 +171,11 @@ export default function ClubPanel() {
       window.removeEventListener('ika:cloud', refreshAll)
     }
   }, [club?.id])
+
+  useEffect(() => {
+    const interval = setInterval(() => setDeadlineNow(Date.now()), 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const visibleCompetitionNames = useMemo(() => {
     if (!visibleTournament) return []
@@ -192,6 +223,8 @@ export default function ClubPanel() {
   )
 
   const eventDays = daysToEvent(visibleTournament?.date)
+  const registrationStatus = registrationCountdown(visibleTournament?.registrationDeadline, deadlineNow)
+  const registrationsClosed = Boolean(visibleTournament && registrationStatus.closed)
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
@@ -214,6 +247,10 @@ export default function ClubPanel() {
 
   const toggleTournamentRegistration = (athlete, category) => {
     if (!club || !visibleTournament) return
+    if (registrationsClosed) {
+      setRegistrationMessage('Termin zgłoszeń minął. Nie można już dodawać ani usuwać zgłoszeń.')
+      return
+    }
     const ownAthleteIds = new Set(athletes.map((item) => item.id))
     const currentlyRegistered = categoryEntries(category)
       .filter((entry) => ownAthleteIds.has(entry.athleteId))
@@ -278,7 +315,7 @@ export default function ClubPanel() {
           <article className="club-event-card" aria-label="Aktywne zawody IKA Poland">
             <div className="club-event-main">
               <div>
-                <span className="club-event-open">ZGŁOSZENIA OTWARTE</span>
+                <span className={`club-event-open ${registrationsClosed ? 'closed' : ''}`}>{registrationStatus.label}</span>
                 <h3>{visibleTournament.name}</h3>
                 <p>{formatEventDate(visibleTournament.date)}{visibleTournament.startTime ? ` - start ${visibleTournament.startTime}` : ''}{visibleTournament.venue ? ` - ${visibleTournament.venue}` : ''}</p>
               </div>
@@ -292,6 +329,12 @@ export default function ClubPanel() {
               <div><small>Twoi zgłoszeni zawodnicy</small><strong>{registeredAthleteCount}</strong></div>
               <div><small>Twoje zgłoszenia</small><strong>{clubEntries.length}</strong></div>
               <div><small>Tatami</small><strong>{visibleTournament.matCount || '-'}</strong></div>
+              <div className={`club-deadline-summary ${registrationsClosed ? 'closed' : ''}`}><small>Do końca zapisów</small><strong>{registrationStatus.short}</strong></div>
+            </div>
+
+            <div className={`club-registration-deadline ${registrationsClosed ? 'closed' : ''}`}>
+              <div><small>ZAPISY DO</small><strong>{formatRegistrationDeadline(visibleTournament.registrationDeadline)}</strong></div>
+              <div><small>STATUS</small><strong>{registrationStatus.text}</strong></div>
             </div>
 
             <div className="club-event-categories">
@@ -302,7 +345,7 @@ export default function ClubPanel() {
             </div>
 
             <div className="club-event-actions">
-              <a className="btn btn-primary" href="#club-registration">Zgłoś zawodników</a>
+              <a className={`btn ${registrationsClosed ? 'btn-ghost registration-disabled-link' : 'btn-primary'}`} href={registrationsClosed ? '#club-entries' : '#club-registration'}>{registrationsClosed ? 'Zapisy zakończone' : 'Zgłoś zawodników'}</a>
               <a className="btn btn-outline" href="#club-entries">Moje zgłoszenia</a>
             </div>
           </article>
@@ -347,6 +390,13 @@ export default function ClubPanel() {
             <p>Wybierz swojego zawodnika. Strona pokaże tylko kategorie pasujące do jego wieku i płci. Przy kategorii widoczna jest wyłącznie łączna liczba zgłoszeń, bez danych innych klubów.</p>
           </div>
         </div>
+
+        {visibleTournament && (
+          <div className={`registration-deadline-banner ${registrationsClosed ? 'closed' : ''}`}>
+            <div><small>Termin zgłoszeń</small><strong>{formatRegistrationDeadline(visibleTournament.registrationDeadline)}</strong></div>
+            <div><small>Status</small><strong>{registrationStatus.text}</strong></div>
+          </div>
+        )}
 
         {!visibleTournament ? (
           <EmptyState title="Brak otwartych zawodów" text="Po opublikowaniu zawodów przez organizatora pojawi się tutaj formularz zgłoszeniowy." />
@@ -395,7 +445,7 @@ export default function ClubPanel() {
                               <div className={`club-category-registration-row ${registered ? 'registered' : ''}`} key={category.id}>
                                 <div><small>{competition?.name || 'Konkurencja'}</small><strong>{category.name}</strong></div>
                                 <div className="category-participant-count"><strong>{participantCount}</strong><span>{participantCount === 1 ? 'zawodnik' : 'zawodników'} w kategorii</span></div>
-                                <button type="button" className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`} onClick={() => toggleTournamentRegistration(athlete, category)}>{registered ? 'Usuń zgłoszenie' : 'Zgłoś'}</button>
+                                <button type="button" disabled={registrationsClosed} className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`} onClick={() => toggleTournamentRegistration(athlete, category)}>{registrationsClosed ? 'Zapisy zakończone' : registered ? 'Usuń zgłoszenie' : 'Zgłoś'}</button>
                               </div>
                             )
                           })}

@@ -413,3 +413,31 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 @media(max-width:700px){
   .club-site-main{width:100%;border-left:0;border-right:0}.club-site-topbar{padding:12px 16px;gap:10px}.club-site-account>span{display:none}.club-site-nav{gap:14px;font-size:11px}.club-site-intro,.club-site-section{padding:30px 20px}.club-site-section-head{align-items:flex-start;flex-direction:column}.club-athletes-head>button{width:100%}.club-event-summary{grid-template-columns:1fr}.club-event-summary>div{border-right:0;border-top:1px solid #e7e7ea}.club-event-summary>div:first-child{border-top:0}.club-event-summary>div:nth-child(3){grid-column:auto}.club-event-actions a{width:100%}.club-list-search{grid-template-columns:1fr}.club-list-search strong{min-width:0}.club-site-intro-actions{width:100%}.club-site-intro-actions a{flex:1}
 }
+
+
+/* =========================================================
+   ETAP 51 - termin zgłoszeń klubów i licznik czasu.
+   ========================================================= */
+.registration-deadline-admin .panel-section-head{align-items:center}
+.registration-deadline-status{display:inline-flex;align-items:center;justify-content:center;min-width:190px;padding:10px 14px;border-radius:999px;background:#e9f7ed;color:#216c34;font-size:12px;font-weight:950;white-space:nowrap}
+.registration-deadline-status.closed{background:#ffe9e7;color:#a51d16}
+.registration-deadline-admin-grid{display:grid;grid-template-columns:minmax(300px,520px) minmax(260px,1fr);gap:18px;align-items:stretch}
+.registration-deadline-admin-grid>label{display:grid;gap:7px;font-size:12px;font-weight:850;color:#4a4a50}
+.registration-deadline-admin-grid input{width:100%;border:1px solid #d6d6da;background:#fff;border-radius:9px;padding:12px 13px;outline:none;color:#171719}
+.registration-deadline-admin-grid input:focus{border-color:#e1261c;box-shadow:0 0 0 3px rgba(225,38,28,.1)}
+.registration-deadline-preview{display:grid;align-content:center;gap:4px;padding:14px 16px;border:1px solid #e1e1e5;border-radius:12px;background:#f8f8f9}
+.registration-deadline-preview small{font-size:10px;font-weight:900;color:#777;text-transform:uppercase;letter-spacing:.06em}
+.registration-deadline-preview strong{font-size:18px}.registration-deadline-preview span{color:#e1261c;font-size:12px;font-weight:900}
+.club-event-open.closed{background:#6d7078;color:#fff}
+.club-event-summary{grid-template-columns:repeat(4,1fr)}
+.club-deadline-summary strong{font-size:18px!important;line-height:1.2}.club-deadline-summary.closed{background:#fff1ef}.club-deadline-summary.closed strong{color:#a51d16}
+.club-registration-deadline{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:18px 22px 0;border:1px solid #dfe0e4;border-radius:13px;overflow:hidden;background:#dfe0e4}
+.club-registration-deadline>div{padding:15px 17px;background:#f8faf8}.club-registration-deadline>div:last-child{background:#eef8f0}
+.club-registration-deadline small,.club-registration-deadline strong{display:block}.club-registration-deadline small{font-size:9px;font-weight:950;color:#777b83;letter-spacing:.08em}.club-registration-deadline strong{margin-top:4px;font-size:16px}
+.club-registration-deadline.closed>div{background:#fff3f2}.club-registration-deadline.closed strong{color:#9f2119}
+.registration-deadline-banner{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-bottom:18px;border:1px solid #cfe4d4;border-radius:13px;overflow:hidden;background:#cfe4d4}
+.registration-deadline-banner>div{padding:13px 15px;background:#f1faf3}.registration-deadline-banner small,.registration-deadline-banner strong{display:block}.registration-deadline-banner small{font-size:9px;color:#647069;font-weight:950;text-transform:uppercase;letter-spacing:.07em}.registration-deadline-banner strong{margin-top:4px;font-size:14px}.registration-deadline-banner.closed{border-color:#efc6c2;background:#efc6c2}.registration-deadline-banner.closed>div{background:#fff2f0}.registration-deadline-banner.closed strong{color:#9e2119}
+.registration-disabled-link{pointer-events:none;opacity:.7}
+.club-category-registration-row button:disabled{cursor:not-allowed;opacity:.58}
+@media(max-width:900px){.registration-deadline-admin-grid{grid-template-columns:1fr}.club-event-summary{grid-template-columns:1fr 1fr}.club-event-summary>div:nth-child(2n){border-right:0}.club-event-summary>div:nth-child(n+3){border-top:1px solid #e7e7ea}}
+@media(max-width:700px){.registration-deadline-admin .panel-section-head{align-items:flex-start}.registration-deadline-status{min-width:0}.club-event-summary{grid-template-columns:1fr}.club-event-summary>div{border-right:0!important;border-top:1px solid #e7e7ea}.club-event-summary>div:first-child{border-top:0}.club-registration-deadline,.registration-deadline-banner{grid-template-columns:1fr}}
