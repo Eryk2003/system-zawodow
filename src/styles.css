@@ -653,3 +653,132 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   body.print-single-identifier .athlete-id-card{display:none!important}
   body.print-single-identifier .athlete-id-card.identifier-print-selected{display:grid!important;grid-column:1/-1!important;width:92mm!important;margin:0 auto!important}
 }
+
+/* =========================================================
+   ETAP 62 - badge zawodnika zgodny z zaakceptowanym wzorem IKA Poland.
+   Grafika wzorcowa jest tlem, a dane zawodnika i QR sa nakladane dynamicznie.
+   ========================================================= */
+.athlete-identifiers-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:26px;
+}
+.athlete-id-card-wrap{min-width:0;display:grid;gap:10px;align-content:start}
+.athlete-id-card-art{
+  position:relative;
+  display:block;
+  width:100%;
+  aspect-ratio:3/4;
+  overflow:hidden;
+  border:0;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 22px 58px rgba(18,18,22,.18);
+  container-type:inline-size;
+}
+.athlete-id-card-art:before{display:none!important}
+.athlete-id-template-bg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  pointer-events:none;
+  user-select:none;
+}
+.athlete-id-dynamic-photo{
+  position:absolute;
+  left:14.6%;
+  top:25.55%;
+  width:29.6%;
+  height:29.8%;
+  overflow:hidden;
+  border-radius:1.4cqw;
+  background:#35353b;
+  box-shadow:inset 0 0 0 .42cqw rgba(255,255,255,.86);
+}
+.athlete-id-dynamic-photo img{width:100%;height:100%;display:block;object-fit:cover}
+.athlete-id-dynamic-photo-fallback{width:100%;height:100%;display:grid;place-items:center;background:linear-gradient(145deg,#2a2a30,#565660);color:#fff;font-size:12cqw;font-weight:1000;letter-spacing:-.05em}
+.athlete-id-dynamic-number{
+  position:absolute;
+  left:45.1%;
+  top:43.7%;
+  width:28.7%;
+  height:11.6%;
+  display:grid;
+  place-items:center;
+  overflow:hidden;
+  background:linear-gradient(145deg,#d61519,#b0080e 75%,#97080c);
+  color:#fff;
+}
+.athlete-id-dynamic-number strong{font-size:17.3cqw;line-height:.82;letter-spacing:-.075em;font-weight:1000;text-shadow:0 .35cqw 0 rgba(0,0,0,.12)}
+.athlete-id-dynamic-fields{position:absolute;left:23.3%;top:56.4%;width:38.8%;height:27.3%;display:grid;grid-template-rows:1.18fr 1fr .92fr 1.18fr;background:#fff;color:#111;z-index:2}
+.athlete-id-dynamic-field{min-width:0;display:grid;align-content:center;gap:.3cqw;padding:.35cqw 1cqw .6cqw;border-bottom:.12cqw solid #d8d8dc;background:#fff}
+.athlete-id-dynamic-field:last-child{border-bottom:0}
+.athlete-id-dynamic-field small{font-size:2.15cqw;line-height:1;font-weight:500;color:#171719;letter-spacing:-.015em;text-transform:none}
+.athlete-id-dynamic-field strong{display:block;min-width:0;font-size:3.45cqw;line-height:1.06;font-weight:950;color:#111820;letter-spacing:-.035em;overflow-wrap:anywhere}
+.athlete-id-dynamic-name strong{font-size:5.15cqw;line-height:.98}
+.athlete-id-dynamic-categories strong{font-size:3.15cqw;line-height:1.03;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.athlete-id-dynamic-qr{
+  position:absolute;
+  left:62.85%;
+  top:56.25%;
+  width:22.4%;
+  height:25.3%;
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto auto;
+  align-items:center;
+  justify-items:center;
+  gap:.45cqw;
+  padding:1.2cqw 1.25cqw 1cqw;
+  border:.28cqw solid #e31b23;
+  border-radius:1.65cqw;
+  background:#fff;
+  color:#111;
+  z-index:3;
+  box-shadow:0 .5cqw 1.2cqw rgba(0,0,0,.06);
+}
+.athlete-id-dynamic-qr-code{width:100%;aspect-ratio:1;background:#fff;display:grid;place-items:center;overflow:hidden}
+.athlete-id-dynamic-qr-code img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.athlete-id-dynamic-qr-caption{width:100%;display:grid;grid-template-columns:3.6cqw 1fr;align-items:center;gap:.55cqw;padding-top:.2cqw}
+.athlete-id-dynamic-qr-icon{display:grid;place-items:center;width:3.4cqw;height:3.4cqw;border-radius:.45cqw;background:#e31b23;color:#fff;font-size:2.45cqw;font-weight:1000;line-height:1}
+.athlete-id-dynamic-qr-caption strong{font-size:2.2cqw;line-height:1.02;font-weight:1000;letter-spacing:-.025em}
+.athlete-id-dynamic-qr>small{width:100%;padding-top:.55cqw;border-top:.22cqw solid #e31b23;color:#777;font-size:1.75cqw;line-height:1;text-align:left}
+.athlete-id-print-one{margin:0}
+
+@media(max-width:1050px){
+  .athlete-identifiers-grid{grid-template-columns:1fr;max-width:680px;margin:0 auto}
+}
+
+@media print{
+  @page athleteIdPage{size:A4 portrait;margin:7mm}
+  .athlete-identifiers-grid{
+    page:athleteIdPage;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:6mm!important;
+    align-items:start!important;
+  }
+  .athlete-id-card-wrap{break-inside:avoid!important;display:block!important}
+  .athlete-id-card-art{
+    display:block!important;
+    width:92mm!important;
+    height:122.666mm!important;
+    aspect-ratio:3/4!important;
+    border-radius:3mm!important;
+    box-shadow:none!important;
+    overflow:hidden!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+  .athlete-id-template-bg{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .athlete-id-print-one{display:none!important}
+  body.print-single-identifier .athlete-id-card-wrap{display:none!important}
+  body.print-single-identifier .athlete-id-card-wrap.identifier-print-selected{display:block!important;grid-column:1/-1!important;margin:0 auto!important;width:92mm!important}
+  body.print-single-identifier .athlete-id-card-wrap.identifier-print-selected .athlete-id-card-art{margin:0 auto!important}
+}
+
+@media print{
+  .athlete-id-card-art{min-height:0!important;border:0!important}
+  body.print-single-identifier .athlete-id-card-wrap.identifier-print-selected .athlete-id-card{display:block!important}
+}

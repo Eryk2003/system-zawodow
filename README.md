@@ -1,3 +1,10 @@
+
+## ETAP 62 — dynamiczny badge zawodnika zgodny z zaakceptowanym wzorem
+- Po zamknięciu zgłoszeń organizator otrzymuje badge każdego zgłoszonego zawodnika.
+- Wygląd badge’a wykorzystuje zaakceptowany wzór IKA Poland jako warstwę graficzną.
+- Dynamicznie podmieniane są: zdjęcie, numer startowy, imię i nazwisko, klub, kraj oraz kategorie.
+- Każdy badge ma indywidualny kod QR prowadzący bezpośrednio do `/rodzic?athlete=...`, czyli do podglądu LIVE startów danego zawodnika.
+- Można drukować pojedynczy badge albo wszystkie identyfikatory.
 # ETAP 61 – identyfikatory zawodników po zamknięciu zgłoszeń
 
 - Identyfikatory są dostępne wyłącznie dla organizatora i dopiero po zamknięciu zgłoszeń.

@@ -10,85 +10,68 @@ const isRegistrationClosed = (deadline) => {
   return Number.isFinite(end) && end <= Date.now()
 }
 
-const formatDate = (value) => {
-  if (!value) return '-'
-  const date = new Date(`${value}T12:00:00`)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date)
-}
+const safeText = (value, fallback = '-') => String(value || '').trim() || fallback
 
-function AthleteIdentifierCard({ row, tournament, onPrintOne }) {
+function AthleteIdentifierCard({ row, onPrintOne }) {
+  const athleteName = `${safeText(row.athlete.firstName, '')} ${safeText(row.athlete.lastName, '')}`.trim()
   const lookupUrl = `${window.location.origin}/rodzic?athlete=${encodeURIComponent(row.athlete.id)}`
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=8&data=${encodeURIComponent(lookupUrl)}`
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&format=png&data=${encodeURIComponent(lookupUrl)}`
+  const categoriesLabel = row.categories.join(' • ') || 'Brak kategorii'
 
   return (
-    <article className="athlete-id-card" data-athlete-id={row.athlete.id}>
-      <div className="athlete-id-top">
-        <div className="athlete-id-brand">
-          <strong><span>IKA</span> POLAND</strong>
-          <small>IDENTYFIKATOR ZAWODNIKA</small>
-        </div>
-        <img src="/ika-poland-logo.jpg" alt="IKA Poland" />
-      </div>
+    <div className="athlete-id-card-wrap" data-athlete-id={row.athlete.id}>
+      <article className="athlete-id-card athlete-id-card-art" aria-label={`Identyfikator zawodnika ${athleteName}`}>
+        <img className="athlete-id-template-bg" src="/ika-athlete-badge-template.png" alt="" aria-hidden="true" />
 
-      <div className="athlete-id-event">
-        <span>{tournament.name}</span>
-        <small>{formatDate(tournament.date)}{tournament.venue ? ` • ${tournament.venue}` : ''}</small>
-      </div>
-
-      <div className="athlete-id-main">
-        <div className="athlete-id-photo">
+        <div className="athlete-id-dynamic-photo">
           {row.athlete.photo ? (
-            <img src={row.athlete.photo} alt={`${row.athlete.firstName} ${row.athlete.lastName}`} />
+            <img src={row.athlete.photo} alt={athleteName} />
           ) : (
-            <div className="athlete-id-photo-fallback">{`${row.athlete.firstName?.[0] || ''}${row.athlete.lastName?.[0] || ''}`}</div>
+            <div className="athlete-id-dynamic-photo-fallback">
+              {`${row.athlete.firstName?.[0] || ''}${row.athlete.lastName?.[0] || ''}`}
+            </div>
           )}
         </div>
-        <div className="athlete-id-number">
-          <span>NUMER STARTOWY</span>
+
+        <div className="athlete-id-dynamic-number" aria-label={`Numer startowy ${padNumber(row.startNumber)}`}>
           <strong>{padNumber(row.startNumber)}</strong>
         </div>
-      </div>
 
-      <div className="athlete-id-info">
-        <div className="athlete-id-field athlete-id-name">
-          <small>IMIĘ I NAZWISKO</small>
-          <strong>{row.athlete.firstName} {row.athlete.lastName}</strong>
+        <div className="athlete-id-dynamic-fields">
+          <div className="athlete-id-dynamic-field athlete-id-dynamic-name">
+            <small>Imię i nazwisko:</small>
+            <strong>{athleteName}</strong>
+          </div>
+          <div className="athlete-id-dynamic-field">
+            <small>Klub:</small>
+            <strong>{row.club?.name || row.club?.shortName || 'Klub niepodany'}</strong>
+          </div>
+          <div className="athlete-id-dynamic-field">
+            <small>Kraj:</small>
+            <strong>{row.club?.country || 'Polska'}</strong>
+          </div>
+          <div className="athlete-id-dynamic-field athlete-id-dynamic-categories">
+            <small>{row.categories.length > 1 ? 'Kategorie:' : 'Kategoria:'}</small>
+            <strong>{categoriesLabel}</strong>
+          </div>
         </div>
-        <div className="athlete-id-field">
-          <small>KLUB</small>
-          <strong>{row.club?.name || row.club?.shortName || 'Klub niepodany'}</strong>
-        </div>
-        <div className="athlete-id-field athlete-id-country">
-          <small>KRAJ</small>
-          <strong>{row.club?.country || 'Polska'}</strong>
-        </div>
-        <div className="athlete-id-field athlete-id-categories">
-          <small>{row.categories.length > 1 ? 'KATEGORIE' : 'KATEGORIA'}</small>
-          <strong>{row.categories.join(' • ') || 'Brak kategorii'}</strong>
-        </div>
-      </div>
 
-      <div className="athlete-id-qr-row">
-        <div className="athlete-id-qr-copy">
-          <span>SPRAWDŹ GODZINĘ STARTU</span>
-          <strong>Zeskanuj kod QR</strong>
-          <small>Aktualne tatami, konkurencje i przewidywane godziny startów.</small>
+        <div className="athlete-id-dynamic-qr">
+          <div className="athlete-id-dynamic-qr-code">
+            <img src={qrUrl} alt={`Kod QR – starty zawodnika ${athleteName}`} referrerPolicy="no-referrer" />
+          </div>
+          <div className="athlete-id-dynamic-qr-caption">
+            <span className="athlete-id-dynamic-qr-icon" aria-hidden="true">◷</span>
+            <strong>Sprawdź<br />godzinę startu</strong>
+          </div>
+          <small>Zeskanuj kod QR</small>
         </div>
-        <div className="athlete-id-qr">
-          <img src={qrUrl} alt={`Kod QR zawodnika ${row.athlete.firstName} ${row.athlete.lastName}`} referrerPolicy="no-referrer" />
-        </div>
-      </div>
-
-      <div className="athlete-id-footer">
-        <span>INTERNATIONAL KARATE ASSOCIATION</span>
-        <strong>POLAND</strong>
-      </div>
+      </article>
 
       <button className="btn btn-outline athlete-id-print-one print-screen-only" type="button" onClick={() => onPrintOne(row.athlete.id)}>
         Drukuj ten identyfikator
       </button>
-    </article>
+    </div>
   )
 }
 
@@ -137,14 +120,14 @@ export default function AthleteIdentifiers() {
 
   const printAll = () => {
     document.body.classList.remove('print-single-identifier')
-    document.querySelectorAll('.athlete-id-card.identifier-print-selected').forEach((node) => node.classList.remove('identifier-print-selected'))
+    document.querySelectorAll('.athlete-id-card-wrap.identifier-print-selected').forEach((node) => node.classList.remove('identifier-print-selected'))
     window.print()
   }
 
   const printOne = (athleteId) => {
-    const target = document.querySelector(`.athlete-id-card[data-athlete-id="${CSS.escape(athleteId)}"]`)
+    const target = document.querySelector(`.athlete-id-card-wrap[data-athlete-id="${CSS.escape(athleteId)}"]`)
     if (!target) return
-    document.querySelectorAll('.athlete-id-card.identifier-print-selected').forEach((node) => node.classList.remove('identifier-print-selected'))
+    document.querySelectorAll('.athlete-id-card-wrap.identifier-print-selected').forEach((node) => node.classList.remove('identifier-print-selected'))
     target.classList.add('identifier-print-selected')
     document.body.classList.add('print-single-identifier')
     const cleanup = () => {
@@ -162,7 +145,7 @@ export default function AthleteIdentifiers() {
         <div>
           <span className="eyebrow">Akredytacje zawodników</span>
           <h2>{tournament.name}</h2>
-          <p>Identyfikatory są dostępne wyłącznie po zamknięciu zgłoszeń. Kod QR otwiera bezpośrednio aktualny podgląd startów konkretnego zawodnika.</p>
+          <p>Identyfikatory są dostępne wyłącznie po zamknięciu zgłoszeń. Każdy badge ma stały numer startowy i indywidualny QR otwierający podgląd startów LIVE konkretnego zawodnika.</p>
         </div>
         <div className="identifier-toolbar-actions">
           <a className="btn btn-outline" href="/organizator/zawody">Wróć do Centrum Zawodów</a>
@@ -183,7 +166,7 @@ export default function AthleteIdentifiers() {
       ) : (
         <section className="athlete-identifiers-grid">
           {rows.map((row) => (
-            <AthleteIdentifierCard key={row.athlete.id} row={row} tournament={tournament} onPrintOne={printOne} />
+            <AthleteIdentifierCard key={row.athlete.id} row={row} onPrintOne={printOne} />
           ))}
         </section>
       )}
