@@ -9,6 +9,8 @@ function boutCode(roundName, matchNo, queueOrder) {
   if (roundName === 'Finał') return 'F'
   if (roundName === '1/8 finału') return `1/8-${matchNo}`
   if (roundName === '1/16 finału') return `1/16-${matchNo}`
+  if (roundName === '1/32 finału') return `1/32-${matchNo}`
+  if (roundName === '1/64 finału') return `1/64-${matchNo}`
   return `W${queueOrder || matchNo}`
 }
 
@@ -54,13 +56,15 @@ export default function KumiteBracket({
       .sort((a, b) => a.index - b.index)
   }, [resolved])
 
-  const gridRows = useMemo(() => {
+  const bracketSize = useMemo(() => {
+    const explicit = Math.max(0, ...resolved.map((match) => Number(match.bracketSize || 0)))
+    if (explicit) return explicit
     if (!rounds.length) return 2
-    return Math.max(
-      2,
-      ...rounds.map((round) => round.matches.length * 2 ** (round.index + 1)),
-    )
-  }, [rounds])
+    return Math.max(2, ...rounds.map((round) => round.matches.length * 2 ** (round.index + 1)))
+  }, [resolved, rounds])
+
+  const gridRows = bracketSize
+  const sizeClass = bracketSize >= 128 ? 'academy-bracket-128' : bracketSize >= 64 ? 'academy-bracket-64' : bracketSize >= 32 ? 'academy-bracket-32' : ''
 
   const athleteInfo = (id) => {
     const athlete = athletes.find((item) => item.id === id)
@@ -80,7 +84,7 @@ export default function KumiteBracket({
 
   return (
     <div
-      className={`academy-bracket academy-bracket-${variant}`}
+      className={`academy-bracket academy-bracket-${variant} ${sizeClass}`}
       style={{ '--academy-bracket-rows': gridRows }}
     >
       {rounds.map((round, roundPosition) => {
@@ -100,12 +104,13 @@ export default function KumiteBracket({
 
             <div className="academy-bracket-round-grid">
               {round.matches.map((match, matchIndex) => {
-                const rowStart = (Number(match.matchNo || matchIndex + 1) - 1) * span + 1
+                const position = Number.isFinite(Number(match.bracketPosition)) ? Number(match.bracketPosition) : (Number(match.matchNo || matchIndex + 1) - 1)
+                const rowStart = position * span + 1
                 const red = athleteInfo(match.redResolvedId)
                 const blue = athleteInfo(match.blueResolvedId)
                 const redWinner = Boolean(match.winnerId && match.winnerId === match.redResolvedId)
                 const blueWinner = Boolean(match.winnerId && match.winnerId === match.blueResolvedId)
-                const pairTop = matchIndex % 2 === 0
+                const pairTop = position % 2 === 0
                 const isHighlighted = Boolean(highlightMatchId && match.id === highlightMatchId)
 
                 return (

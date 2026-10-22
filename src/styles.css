@@ -804,3 +804,47 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .auto-tv-permission-help{margin-top:14px;padding:15px 17px;border:1px solid #efc98b;border-radius:12px;background:#fff8ea;color:#5f480f;line-height:1.5}
 .auto-tv-permission-help strong{display:block;margin-bottom:8px;color:#3f2f08;font-size:13px}
 .auto-tv-permission-help ol{margin:0 0 7px 20px;padding:0}.auto-tv-permission-help li{margin:4px 0}.auto-tv-permission-help small{color:#785f22;font-weight:750}
+
+/* =========================================================
+   ETAP 65 - duże drabinki 2-128 zawodników.
+   Stała wysokość obszaru roboczego + kompaktowy tryb dla 64/128.
+   ========================================================= */
+.academy-bracket-panel-wrap .academy-bracket-panel,
+.academy-bracket-panel-wrap .academy-bracket{max-height:72vh;overflow:auto}
+.academy-bracket-round-head{position:sticky;top:0;z-index:8;background:inherit}
+.academy-bracket-64{gap:28px}
+.academy-bracket-64 .academy-bracket-round{width:300px;min-width:300px}
+.academy-bracket-64 .academy-bracket-round-grid{grid-template-rows:repeat(var(--academy-bracket-rows),60px)}
+.academy-bracket-64 .academy-bracket-slot{min-height:116px}
+.academy-bracket-64 .academy-bracket-player{min-height:42px;padding:5px 8px}
+.academy-bracket-64 .academy-bracket-match-head{min-height:25px;height:25px}
+
+.academy-bracket-128{gap:24px}
+.academy-bracket-128 .academy-bracket-round{width:280px;min-width:280px}
+.academy-bracket-128 .academy-bracket-round-grid{grid-template-rows:repeat(var(--academy-bracket-rows),52px)}
+.academy-bracket-128 .academy-bracket-slot{min-height:100px}
+.academy-bracket-128 .academy-bracket-player{min-height:37px;grid-template-columns:43px minmax(0,1fr) 30px;gap:6px;padding:4px 7px}
+.academy-bracket-128 .academy-bracket-player strong{font-size:11px}
+.academy-bracket-128 .academy-bracket-player small{font-size:8px}
+.academy-bracket-128 .academy-bracket-player>b{font-size:17px}
+.academy-bracket-128 .academy-bracket-match-head{min-height:23px;height:23px;padding:0 7px}
+.academy-bracket-128 .academy-bracket-match-head span{font-size:9px}
+.academy-bracket-128 .academy-bracket-match-head em{font-size:8px}
+
+.academy-bracket-tv.academy-bracket-64 .academy-bracket-round{width:320px;min-width:320px}
+.academy-bracket-tv.academy-bracket-128 .academy-bracket-round{width:300px;min-width:300px}
+
+@media print{
+  /* Duże drabinki mogą przechodzić na kolejne arkusze A3 bez ściskania
+     całej 64/128-osobowej drabinki do nieczytelnego rozmiaru. */
+  .print-kumite-sheet .academy-bracket-64 .academy-bracket-round,
+  .print-kumite-sheet .academy-bracket-128 .academy-bracket-round{width:48mm!important;min-width:48mm!important}
+  .print-kumite-sheet .academy-bracket-64 .academy-bracket-round-grid,
+  .print-kumite-sheet .academy-bracket-128 .academy-bracket-round-grid{grid-template-rows:repeat(var(--academy-bracket-rows),10.5mm)!important}
+  .print-kumite-sheet .academy-bracket-64 .academy-bracket-slot,
+  .print-kumite-sheet .academy-bracket-128 .academy-bracket-slot{min-height:20mm!important}
+  .print-kumite-sheet .academy-bracket-64 .academy-bracket-player,
+  .print-kumite-sheet .academy-bracket-128 .academy-bracket-player{min-height:8.5mm!important;padding:1mm 1.4mm!important;grid-template-columns:10mm minmax(0,1fr) 7mm!important}
+  .print-kumite-sheet .academy-bracket-64 .academy-bracket-player strong,
+  .print-kumite-sheet .academy-bracket-128 .academy-bracket-player strong{font-size:7pt!important}
+}

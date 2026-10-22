@@ -1,3 +1,12 @@
+# ETAP 65 — duże drabinki 2–128 zawodników
+
+- Obsługa drabinek kumite od 2 do 128 zawodników.
+- Wolne losy są rozkładane równomiernie w całej drabince.
+- Dla 50 zawodników system tworzy 18 walk wstępnych, 14 wolnych losów i 49 realnych walk łącznie.
+- Dodane rundy 1/32 i 1/64 finału.
+- Duże drabinki mają kompaktowy, przewijany widok w Centrum Zawodów i na TV.
+- Wydruk dużych drabinek jest przygotowany do dzielenia na kolejne arkusze A3.
+
 
 ## ETAP 62 — dynamiczny badge zawodnika zgodny z zaakceptowanym wzorem
 - Po zamknięciu zgłoszeń organizator otrzymuje badge każdego zgłoszonego zawodnika.

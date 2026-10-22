@@ -1,6 +1,7 @@
 import { DEFAULT_COMPETITIONS, DEFAULT_TOURNAMENT } from './defaults.js'
 import { queueCloudWrite } from './cloudSync.js'
 import { getKumiteWinRule } from './kumiteRules.js'
+import { MAX_BRACKET_ATHLETES, planOpeningRound } from './bracketUtils.js'
 
 const KEYS = {
   accounts: 'ika_accounts_v1',
@@ -112,6 +113,8 @@ function roundName(slotCount, preliminary = false) {
   if (matchCount === 4) return 'Ćwierćfinał'
   if (matchCount === 8) return '1/8 finału'
   if (matchCount === 16) return '1/16 finału'
+  if (matchCount === 32) return '1/32 finału'
+  if (matchCount === 64) return '1/64 finału'
   return `Runda ${matchCount}`
 }
 
@@ -1031,14 +1034,16 @@ export const db = {
     const entries = read(KEYS.entries, []).filter(
       (e) => e.competitionId === competitionId && e.category === category && e.mat === mat && (!categoryId || e.categoryId === categoryId),
     )
-    const athleteIds = entries.map((e) => e.athleteId)
+    const athleteIds = [...new Set(entries.map((e) => e.athleteId).filter(Boolean))]
+    if (athleteIds.length < 2) throw new Error('Do utworzenia drabinki kumite potrzeba co najmniej 2 zawodników.')
+    if (athleteIds.length > MAX_BRACKET_ATHLETES) throw new Error(`Jedna drabinka może mieć maksymalnie ${MAX_BRACKET_ATHLETES} zawodników.`)
+
     if (shuffle) {
       for (let i = athleteIds.length - 1; i > 0; i -= 1) {
         const j = Math.floor(Math.random() * (i + 1))
         ;[athleteIds[i], athleteIds[j]] = [athleteIds[j], athleteIds[i]]
       }
     }
-    if (athleteIds.length < 2) throw new Error('Do utworzenia drabinki kumite potrzeba co najmniej 2 zawodników.')
 
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
     const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
@@ -1052,28 +1057,34 @@ export const db = {
     const created = []
     let queueOrder = 1
     let roundIndex = 0
-    const base = 2 ** Math.floor(Math.log2(athleteIds.length))
-    const prelimCount = athleteIds.length - base
-    let cursor = 0
     let slots = []
+    const openingPlan = planOpeningRound(athleteIds)
+    const { bracketSize } = openingPlan
 
-    if (prelimCount > 0) {
+    // Dla niepełnej potęgi 2 powstaje wyłącznie tyle REALNYCH walk
+    // wstępnych, ile jest konieczne. Wolne losy są rozłożone równomiernie
+    // w teoretycznej pierwszej rundzie i od razu przechodzą do kolejnej.
+    if (openingPlan.opening) {
       const prelimRoundId = uid('round')
-      for (let i = 0; i < prelimCount; i += 1) {
+      let prelimNo = 1
+      slots = openingPlan.opening.map((slot) => {
+        if (slot.type === 'bye') return { athleteId: slot.athleteId }
         const match = {
           id: uid('match'), competitionId, category, categoryId, mat, roundId: prelimRoundId, roundIndex,
-          roundName: roundName(prelimCount * 2, true), matchNo: i + 1, queueOrder: queueOrder++,
-          redAthleteId: athleteIds[cursor++], blueAthleteId: athleteIds[cursor++],
+          roundName: 'Runda wstępna', matchNo: prelimNo++, queueOrder: queueOrder++,
+          bracketPosition: slot.position, bracketSize,
+          redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, boutSeconds: categoryBoutSeconds, status: 'scheduled',
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
-        slots.push({ sourceMatchId: match.id })
-      }
+        return { sourceMatchId: match.id }
+      })
       roundIndex += 1
+    } else {
+      slots = athleteIds.map((athleteId) => ({ athleteId }))
     }
-
-    while (cursor < athleteIds.length) slots.push({ athleteId: athleteIds[cursor++] })
 
     while (slots.length >= 2) {
       const thisRoundSlots = slots
@@ -1086,9 +1097,11 @@ export const db = {
         const match = {
           id: uid('match'), competitionId, category, categoryId, mat, roundId, roundIndex,
           roundName: name, matchNo: i / 2 + 1, queueOrder: queueOrder++,
+          bracketPosition: i / 2, bracketSize,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, boutSeconds: categoryBoutSeconds, status: 'scheduled',
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
         nextSlots.push({ sourceMatchId: match.id })
