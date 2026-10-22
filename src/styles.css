@@ -849,22 +849,12 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .print-kumite-sheet .academy-bracket-128 .academy-bracket-player strong{font-size:7pt!important}
 }
 
-/* =========================================================
-   ETAP 67 - PL/EN + zarządzanie klubami przez organizatora
-   ========================================================= */
-.language-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border:1px solid #d9d9df;border-radius:999px;background:#fff;flex:0 0 auto}
-.language-switch button{min-width:38px;height:32px;padding:0 9px;border:0;border-radius:999px;background:transparent;color:#5f6068;font-size:11px;font-weight:950;cursor:pointer}
-.language-switch button.active{background:#171719;color:#fff}
-.language-switch-compact button{min-width:34px;height:28px;padding:0 8px;font-size:10px}
-.topbar>.language-switch{margin-left:auto}
-.auth-top-actions{display:flex;align-items:center;gap:14px}.auth-top-actions>a{font-size:13px;color:#c5c5c8}
-.organizer-clubs-panel{margin-top:20px;padding:22px;border:1px solid #dedee3;border-radius:18px;background:#fff}
-.organizer-clubs-panel .panel-section-head>strong{display:grid;place-items:center;min-width:48px;height:48px;border-radius:12px;background:#171719;color:#fff;font-size:19px}
-.organizer-club-list{display:grid;gap:9px;margin-top:16px}
-.organizer-club-row{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:16px;align-items:center;padding:14px 15px;border:1px solid #e2e2e6;border-radius:12px;background:#fafafa}
-.organizer-club-row>div:first-child{min-width:0}.organizer-club-row>div:first-child strong,.organizer-club-row>div:first-child span{display:block}.organizer-club-row>div:first-child strong{font-size:15px}.organizer-club-row>div:first-child span{margin-top:3px;color:#75757d;font-size:11px}
-.organizer-club-count{text-align:center}.organizer-club-count small,.organizer-club-count strong{display:block}.organizer-club-count small{font-size:9px;color:#85858c;font-weight:900;text-transform:uppercase}.organizer-club-count strong{font-size:20px}
-.organizer-own-club{padding:8px 11px;border-radius:999px;background:#ececef;color:#5f6068;font-size:10px;font-weight:950;white-space:nowrap}
-.btn-danger{border:1px solid #c92119!important;background:#c92119!important;color:#fff!important}.btn-danger:hover{background:#a91812!important}.btn-danger:disabled{opacity:.55;cursor:not-allowed}
-@media(max-width:900px){.dashboard-user>.language-switch{order:-1}.organizer-club-row{grid-template-columns:minmax(0,1fr) auto}.organizer-club-count{display:none}}
-@media(max-width:700px){.public-nav{order:3;width:100%}.topbar>.language-switch{margin-left:0}.auth-top-actions>a{display:none}.organizer-club-row{grid-template-columns:1fr}.organizer-club-row .btn{width:100%}.organizer-own-club{width:max-content}}
+
+/* ETAP 67 - PL/EN, testowy organizator i zarządzanie klubami */
+.language-switch{display:inline-flex;align-items:center;padding:3px;border:1px solid #d8d8dc;border-radius:999px;background:#fff;gap:2px}
+.language-switch button{border:0;background:transparent;color:#666;min-width:34px;height:30px;border-radius:999px;font-size:11px;font-weight:950;cursor:pointer}
+.language-switch button.active{background:#e1261c;color:#fff}.language-switch.compact button{min-width:30px;height:27px;font-size:10px}
+.public-nav .language-switch{margin-left:4px}.dashboard-user .language-switch{flex:0 0 auto}.auth-top-actions{display:flex;align-items:center;gap:14px}.auth-top-actions>a{font-size:13px;color:#c5c5c8}
+.temporary-demo-box{border:1px solid #d8b35a;background:#fff8e5}.temporary-demo-box code{font-weight:900}.temporary-demo-box small{color:#725b1d;line-height:1.4}.temp-organizer-warning{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}.alert-warning{background:#fff7df;border:1px solid #ecd28a;color:#755700}
+.organizer-club-management{max-width:980px;margin:0 auto 60px}.organizer-club-management .panel-section-head>strong{font-size:34px}.organizer-club-list{display:grid;gap:9px}.organizer-club-list article{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 17px;border:1px solid #e0e0e4;border-radius:12px;background:#fff}.organizer-club-list article>div{display:grid;gap:3px}.organizer-club-list article span,.organizer-club-list article small{color:#74747b}.btn-danger{background:#b42318;color:#fff;border:1px solid #b42318}.btn-danger:hover{background:#8f1d14}
+@media(max-width:900px){.public-nav{flex-wrap:wrap}.organizer-club-list article{align-items:flex-start;flex-direction:column}.organizer-club-list .btn{width:100%}.auth-top-actions{gap:8px}}

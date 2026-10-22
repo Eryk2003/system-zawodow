@@ -488,9 +488,12 @@ export function disposeCloudSync() {
   initialized = false
 }
 
-export async function removeClubFromSystem(ownerId) {
-  if (!cloudSyncConfigured || !supabase || !ownerId) return { cloud: false }
-  const { error } = await supabase.rpc('remove_club_account', { target_owner_id: ownerId })
+
+// ETAP 67: organizator może trwale usunąć prywatny rekord klubu z Supabase.
+export async function deleteClubPrivateState(ownerId) {
+  if (!supabase || currentIdentity.role !== 'organizer') throw new Error('Usuwanie klubu wymaga zalogowanego organizatora Supabase.')
+  if (!ownerId) throw new Error('Brak identyfikatora właściciela klubu.')
+  const { error } = await supabase.from('club_private_state').delete().eq('owner_id', ownerId)
   if (error) throw new Error(error.message || 'Nie udało się usunąć klubu z Supabase.')
-  return { cloud: true }
+  return true
 }

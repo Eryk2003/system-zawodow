@@ -743,19 +743,15 @@ export const db = {
   },
   deleteClub: (clubId) => {
     const clubs = read(KEYS.clubs, [])
-    const target = clubs.find((club) => club.id === clubId) || null
+    const target = clubs.find((club) => club.id === clubId)
+    if (!target) return null
     const athleteIds = new Set(read(KEYS.athletes, []).filter((athlete) => athlete.clubId === clubId).map((athlete) => athlete.id))
-    const removedEntries = read(KEYS.entries, []).filter((entry) => athleteIds.has(entry.athleteId))
-    const affected = new Set(removedEntries.map((entry) => `${entry.competitionId}|||${entry.category}`))
     write(KEYS.clubs, clubs.filter((club) => club.id !== clubId))
     write(KEYS.athletes, read(KEYS.athletes, []).filter((athlete) => athlete.clubId !== clubId))
     write(KEYS.entries, read(KEYS.entries, []).filter((entry) => !athleteIds.has(entry.athleteId)))
-    write(KEYS.matches, read(KEYS.matches, []).filter((match) => !affected.has(`${match.competitionId}|||${match.category}`)))
-    write(KEYS.kataSessions, read(KEYS.kataSessions, []).filter((session) => !affected.has(`${session.competitionId}|||${session.category}`)))
-    const tournament = db.getTournament()
-    const numbers = { ...(tournament.athleteStartNumbers || {}) }
-    athleteIds.forEach((id) => delete numbers[id])
-    write(KEYS.tournament, { ...tournament, athleteStartNumbers: numbers })
+    // Skład zawodników się zmienił, więc istniejące losowania trzeba utworzyć ponownie.
+    write(KEYS.matches, [])
+    write(KEYS.kataSessions, [])
     regenerateScheduleInternal()
     emit()
     return target

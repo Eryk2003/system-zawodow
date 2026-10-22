@@ -1,11 +1,9 @@
-# ETAP 67 - PL/EN + usuwanie klubów
+# ETAP 67 — PL/EN, usuwanie klubów i testowy organizator
 
-- Widoczny przełącznik języka **PL / EN** na stronie publicznej, logowaniu, strefie klubu i panelu organizatora.
-- Angielska wersja głównej ścieżki rejestracji/logowania i najważniejszej nawigacji.
-- Organizator widzi listę klubów i może użyć **Usuń klub**.
-- Usunięcie usuwa profil klubu z danych zawodów, zawodników i zgłoszenia oraz blokuje konto w Supabase, aby klub nie odtworzył danych po ponownym logowaniu.
-- Po usunięciu klubu drabinki/kata dotkniętych kategorii są unieważniane i wymagają ponownego losowania.
-- Wymagane jednorazowe uruchomienie `supabase/ETAP-67-PL-EN-USUWANIE-KLUBOW.sql`.
+- Widoczny przełącznik PL / EN w nagłówkach i logowaniu.
+- Organizator może usuwać klub wraz z zawodnikami i zgłoszeniami; przy realnym koncie Supabase rekord prywatny jest usuwany z bazy.
+- Tymczasowe dane testowe organizatora działają do 23.10.2026, 23:59: `admin@ikapoland.demo` / `IKA12345`.
+- Tryb testowy jest lokalny i nie zastępuje docelowego konta organizatora Supabase.
 
 # ETAP 66 — bezpieczne konta klubów i synchronizacja Supabase
 
