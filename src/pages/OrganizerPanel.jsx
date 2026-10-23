@@ -1,3 +1,4 @@
+import OrganizerRoleManager from '../components/OrganizerRoleManager.jsx'
 import React, { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DashboardLayout } from '../components/Layout'
@@ -36,6 +37,8 @@ export default function OrganizerPanel() {
       <div className="organizer-start-card"><span className="eyebrow">IKA Poland</span><h2>{en ? 'Competition organizer panel' : 'Panel organizatora zawodów'}</h2><p>{en ? 'Create events, manage clubs and run the competition.' : 'Twórz zawody, zarządzaj klubami i prowadź cały turniej.'}</p><div className="organizer-primary-actions"><Link className="btn btn-outline organizer-create-btn" to="/organizator/klub">{organizerClub ? `${en ? 'My club' : 'Mój klub'} • ${organizerAthletes.length}` : (en ? '+ Create my club' : '+ Utwórz mój klub')}</Link><Link className="btn btn-primary organizer-create-btn" to="/organizator/nowe-zawody">{en ? '+ Create event' : '+ Stwórz zawody'}</Link><Link className="btn btn-outline organizer-create-btn" to="/klasyfikacja">{en ? 'LIVE rankings' : 'Klasyfikacja LIVE'}</Link></div></div>
       {hasTournament && <Link className="current-tournament-card" to="/organizator/zawody"><div><span className="eyebrow">{en ? 'Current event — visible to clubs' : 'Aktualnie utworzone zawody - widoczne dla klubów'}</span><h3>{tournament.name}</h3><p>{tournament.date}{tournament.startTime ? ` • ${tournament.startTime}` : ''} • {tournament.venue}</p></div><span className="current-tournament-open">{en ? 'Open event →' : 'Otwórz zawody →'}</span></Link>}
     </section>
+
+    <OrganizerRoleManager />
 
     <section className="panel-section organizer-club-management"><div className="panel-section-head"><div><span className="eyebrow">{en ? 'Administration' : 'Administracja'}</span><h2>{en ? 'Registered clubs' : 'Zarejestrowane kluby'}</h2><p>{en ? 'The organizer may remove a club together with its athletes and entries.' : 'Organizator może usunąć klub razem z jego zawodnikami i zgłoszeniami.'}</p></div><strong>{clubs.length}</strong></div>
       {message && <div className="alert alert-success">{message}</div>}{error && <div className="alert alert-error">{error}</div>}
