@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
+import { openTatamiTvWindow } from '../lib/tvWindow'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 
 const fmt = (seconds) => {
@@ -107,6 +108,13 @@ export default function JudgePanel() {
     })
   }
 
+  const openTelebim = () => {
+    openTatamiTvWindow(matName).then(({ ok, message }) => {
+      if (ok) { setError(''); setMessage(message) }
+      else { setError(message) }
+    })
+  }
+
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
@@ -125,7 +133,7 @@ export default function JudgePanel() {
       <header className="judge-topbar">
         <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
-        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
+        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>TV na drugi ekran</button></div>
       </header>
 
       {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}

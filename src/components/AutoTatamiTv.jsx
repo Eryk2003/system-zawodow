@@ -144,7 +144,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
     setStatus({
       kind: 'waiting',
       title: 'Czekam na telewizor HDMI',
-      text: `AUTO TV jest aktywne dla ${selectedMatRef.current}. Podłącz HDMI i ustaw w Windows: Win+P → Rozszerz.`,
+      text: `AUTO TV jest aktywne dla ${selectedMatRef.current}. Podłącz HDMI i wybierz tryb rozszerzony (Mac: Monitory → Rozszerz; Windows: Win+P → Rozszerz).`,
     })
   }
 
@@ -230,7 +230,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
       setStatus({
         kind: 'warning',
         title: 'Tryb zgodności',
-        text: 'Ta przeglądarka nie obsługuje automatycznego wykrywania ekranów. Tablica TV została otwarta ręcznie. Do AUTO HDMI użyj aktualnego Chrome na Windows.',
+        text: 'Ta przeglądarka nie obsługuje automatycznego wykrywania ekranów. Tablica TV została otwarta ręcznie. Do automatycznego przenoszenia użyj Chrome lub Edge z obsługą Window Management API i zezwól na zarządzanie oknami.',
       })
       return
     }
@@ -330,6 +330,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
         </div>
       )}
 
+      <div className="auto-tv-note auto-tv-mac-help"><strong>MacBook + telewizor:</strong> Wybierz na Macu <b>Ustawienia systemowe → Monitory → Rozszerz ekran</b> (nie Klonuj). W Safari przenieś otwarte okno TV na telewizor ręcznie i włącz pełny ekran. Panel sędziego zostaje na MacBooku.</div>
       <div className="auto-tv-note">
         <strong>Windows:</strong> po podłączeniu HDMI wybierz <b>Win+P → Rozszerz</b>. Przy pierwszym uruchomieniu Chrome lub Edge musi mieć zgodę na <b>Zarządzanie oknami</b>. AUTO TV działa na stronie HTTPS (Vercel).
       </div>
