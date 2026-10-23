@@ -1,9 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/cloudSync'
+import { useAuth } from '../lib/AuthContext'
 
 /** The backend decides who is the principal administrator. Never trust client claims. */
 export default function OrganizerRoleManager() {
+  const { user } = useAuth()
   const [authorized, setAuthorized] = useState(false)
+  const [diagnostic, setDiagnostic] = useState('')
   const [loading, setLoading] = useState(true)
   const [accounts, setAccounts] = useState([])
   const [email, setEmail] = useState('')
@@ -12,18 +15,21 @@ export default function OrganizerRoleManager() {
   const [success, setSuccess] = useState('')
 
   const reload = useCallback(async () => {
-    if (!supabase) { setLoading(false); return }
+    if (!supabase) { setDiagnostic('Brak połączenia z systemem kont. Sprawdź konfigurację Vercel.'); setLoading(false); return }
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !sessionData?.session?.user) { setDiagnostic('Brak aktywnej sesji Supabase. Wyloguj się i zaloguj ponownie przez Logowanie organizatora.'); setAuthorized(false); setLoading(false); return }
     const { data, error: requestError } = await supabase.rpc('ika_list_organizer_accounts')
     if (requestError) {
-      // For non-admins the function returns a permission error. Keep the section hidden.
       setAuthorized(false)
-      if (!/not authorized|permission denied|not allowed|insufficient privilege/i.test(requestError.message || '')) {
-        setError('Panel ról nie jest jeszcze gotowy. Uruchom SQL z paczki ETAP 67.')
-      }
+      const message = requestError.message || ''
+      setDiagnostic(/not authorized|permission denied|not allowed|insufficient privilege/i.test(message)
+        ? 'To konto nie ma potwierdzonych uprawnień głównego administratora w Supabase. Sprawdź, czy UID zalogowanego konta odpowiada wpisowi w ika_primary_admins.'
+        : 'Nie udało się odczytać uprawnień z bazy (' + (requestError.code || 'RPC') + '). Sprawdź funkcję ika_list_organizer_accounts oraz sesję logowania.')
     } else {
       setAuthorized(true)
       setAccounts(Array.isArray(data) ? data : [])
       setError('')
+      setDiagnostic('')
     }
     setLoading(false)
   }, [])
@@ -46,7 +52,15 @@ export default function OrganizerRoleManager() {
     finally { setBusy(false) }
   }
 
-  if (loading || !authorized) return null
+  if (loading) return null
+  if (!authorized) {
+    if (user?.role !== 'organizer') return null
+    return <section className="panel-section" aria-label="Stan uprawnień organizatorów">
+      <div className="panel-section-head"><div><span className="eyebrow">Diagnostyka dostępu</span><h2>Uprawnienia organizatorów</h2></div></div>
+      <p role="status">{diagnostic || 'Nie udało się potwierdzić uprawnień. Zaloguj się ponownie.'}</p>
+      <button className="btn" type="button" onClick={reload}>Sprawdź ponownie</button>
+    </section>
+  }
   return (
     <section className="panel-section organizer-club-management" aria-label="Zarządzanie organizatorami">
       <div className="panel-section-head"><div>
