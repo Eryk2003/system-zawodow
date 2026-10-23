@@ -1,3 +1,4 @@
+import OrganizerRoleManager from '../components/OrganizerRoleManager.jsx'
 import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
@@ -292,6 +293,7 @@ export default function TournamentCenter() {
 
   return (
     <DashboardLayout title="Centrum zawodów" organizer>
+      <OrganizerRoleManager />
       <div className="organizer-banner">
         <div><span className="eyebrow">Turniej</span><h2>{tournament.name}</h2><p>{tournament.date}{tournament.startTime ? ` • ${tournament.startTime}` : ''} • {tournament.venue}</p></div>
         <div className="live-control"><span className={liveId ? 'live-dot active' : 'live-dot'} />{liveId ? 'Telebim pokazuje zawodnika' : 'Telebim oczekuje'}</div>
@@ -496,29 +498,9 @@ export default function TournamentCenter() {
         ) : <EmptyState title="Brak drabinki" text="Po utworzeniu drabinki zobaczysz ją tutaj. Sterowanie walką odbywa się wyłącznie w Panelu sędziego." />}
       </section>
 
-      <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Aplikacja</span><h2>Aktualności i komunikaty</h2><p>Publikuj ważne informacje i komunikaty dotyczące zawodów bezpośrednio w systemie.</p></div><a className="btn btn-outline" href="/aktualnosci" target="_blank" rel="noreferrer">Otwórz aktualności</a></div>
-        <form className="form-grid" onSubmit={addNews}>
-          <label className="span-2">Tytuł<input required value={newsForm.title} onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })} /></label>
-          <label>Data<input type="date" required value={newsForm.date} onChange={(e) => setNewsForm({ ...newsForm, date: e.target.value })} /></label>
-          <label className="checkbox-label"><input type="checkbox" checked={newsForm.important} onChange={(e) => setNewsForm({ ...newsForm, important: e.target.checked })} /> Oznacz jako ważne</label>
-          <label className="span-2">Treść<textarea required rows="4" value={newsForm.body} onChange={(e) => setNewsForm({ ...newsForm, body: e.target.value })} /></label>
-          <button className="btn btn-primary span-2">Opublikuj</button>
-        </form>
-        {!!news.length && <div className="simple-admin-list">{news.map((n) => <div key={n.id}><div><strong>{n.important ? 'WAŻNE • ' : ''}{n.title}</strong><span>{n.date}</span></div><button type="button" className="link-btn danger" onClick={() => { db.deleteNewsItem(n.id); refresh() }}>Usuń</button></div>)}</div>}
-      </section>
+      
 
-      <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Katalog</span><h2>Konkurencje IKA Poland</h2><p>Możesz wyłączyć konkurencję na dany turniej albo dopisać nową.</p></div></div>
-        <div className="catalog-list">
-          {competitions.map((c) => <div className="catalog-row" key={c.id}><div><strong>{c.name}</strong><small>{c.group}</small></div><label className="switch"><input type="checkbox" checked={c.active} onChange={() => toggleCompetition(c.id)} /><span /></label></div>)}
-        </div>
-        <form className="add-competition" onSubmit={addCompetition}>
-          <input value={newCompetition.name} onChange={(e) => setNewCompetition({ ...newCompetition, name: e.target.value })} placeholder="Nazwa nowej konkurencji" />
-          <select value={newCompetition.group} onChange={(e) => setNewCompetition({ ...newCompetition, group: e.target.value })}><option>Kata</option><option>Kumite</option><option>Dzieci</option><option>Para Karate</option><option>Pozostałe</option></select>
-          <button className="btn btn-outline">+ Dodaj konkurencję</button>
-        </form>
-      </section>
+      
     </DashboardLayout>
   )
 }
