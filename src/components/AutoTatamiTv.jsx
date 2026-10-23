@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { openTatamiTvWindow } from '../lib/tvWindow'
 
 const MAT_KEY = 'ika_auto_tv_mat_v1'
 const WINDOW_NAME = 'ika-auto-tatami-tv'
@@ -193,6 +194,12 @@ export default function AutoTatamiTv({ matCount = 1 }) {
     })
   }
 
+  const launchFullscreenTv = async () => {
+    const { ok, message } = await openTatamiTvWindow(selectedMatRef.current)
+    setStatus({ kind: ok ? 'ok' : 'warning', title: ok ? 'TV uruchomione na ekranie zewnętrznym' : 'Ustawienia TV wymagają uwagi', text: message })
+    if (!ok) setPermissionHelp(true)
+  }
+
   const retryScreenAccess = async () => {
     const popup = openStandbyWindow()
     if (!popup) {
@@ -200,7 +207,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
       return
     }
     if (!('getScreenDetails' in window)) {
-      setStatus({ kind: 'warning', title: 'Tryb ręczny TV', text: 'Ta przeglądarka nie obsługuje automatycznego zarządzania ekranami. Okno TV pozostaje otwarte i można przeciągnąć je na telewizor.' })
+      setStatus({ kind: 'warning', title: 'Tryb ręczny TV', text: 'Ta przeglądarka nie obsługuje automatycznego przenoszenia okien. Użyj Chrome/Edge albo dołączonego uruchamiacza systemowego, bez przeciągania okien.' })
       return
     }
     try {
@@ -304,6 +311,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
         </div>
 
         <div className="auto-tv-actions">
+          <button className="btn btn-primary" type="button" onClick={launchFullscreenTv}>URUCHOM TV — PEŁNY EKRAN</button>
           {!enabled ? (
             <button className="btn btn-primary" type="button" onClick={enableAutoTv}>Włącz AUTO TV</button>
           ) : (
@@ -330,7 +338,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
         </div>
       )}
 
-      <div className="auto-tv-note auto-tv-mac-help"><strong>MacBook + telewizor:</strong> Wybierz na Macu <b>Ustawienia systemowe → Monitory → Rozszerz ekran</b> (nie Klonuj). W Safari przenieś otwarte okno TV na telewizor ręcznie i włącz pełny ekran. Panel sędziego zostaje na MacBooku.</div>
+      <div className="auto-tv-note auto-tv-mac-help"><strong>MacBook + telewizor:</strong> Wybierz na Macu <b>Ustawienia systemowe → Monitory → Rozszerz ekran</b> (nie Klonuj). W starszym Safari automatyczne otwarcie TV wymaga uruchamiacza systemowego z paczki, a nie przeciągania okna. Panel sędziego zostaje na MacBooku.</div>
       <div className="auto-tv-note">
         <strong>Windows:</strong> po podłączeniu HDMI wybierz <b>Win+P → Rozszerz</b>. Przy pierwszym uruchomieniu Chrome lub Edge musi mieć zgodę na <b>Zarządzanie oknami</b>. AUTO TV działa na stronie HTTPS (Vercel).
       </div>

@@ -133,7 +133,7 @@ export default function JudgePanel() {
       <header className="judge-topbar">
         <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
-        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>TV na drugi ekran</button></div>
+        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>URUCHOM TV</button></div>
       </header>
 
       {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}
