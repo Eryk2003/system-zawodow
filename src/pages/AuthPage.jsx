@@ -44,7 +44,7 @@ export default function AuthPage({ mode = 'login' }) {
           {error && <div className="alert alert-error">{error}</div>}{success && <div className="alert alert-success">{success}</div>}
           <button disabled={busy} className="btn btn-primary btn-wide">{busy ? (language === 'en' ? 'Please wait…' : 'Proszę czekać…') : isRegister ? t.createAccount : t.signIn}</button>
         </form>
-        <div className="auth-switch">{isRegister ? <>{t.haveAccount} <Link to="/logowanie">{t.signIn}</Link></> : <>{t.noAccount} <Link to="/rejestracja">{t.registerClub}</Link></>}</div>
+        <div className="auth-switch">{organizerOnly ? <Link to="/logowanie">{language === 'en' ? 'Club login' : 'Logowanie klubu'}</Link> : isRegister ? <>{t.haveAccount} <Link to="/logowanie">{t.signIn}</Link></> : <>{t.noAccount} <Link to="/rejestracja">{t.registerClub}</Link></>}</div>
         {tempAvailable && <div className="demo-box temporary-demo-box"><strong>TESTOWY ORGANIZATOR — ważny do 23.10.2026, 23:59</strong><code>{TEMP_ORGANIZER_EMAIL}</code><code>{TEMP_ORGANIZER_PASSWORD}</code><button type="button" className="btn btn-outline btn-sm" onClick={fillTest}>Wstaw dane testowe</button><small>Tryb testowy służy do sprawdzania panelu. Docelowe konto organizatora będzie kontem Supabase.</small></div>}
       </div>
     </div>

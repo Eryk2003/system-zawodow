@@ -142,7 +142,7 @@ export function AuthProvider({ children }) {
       },
       login: async (payload) => {
         const normalizedEmail = payload.email.trim().toLowerCase()
-        if (normalizedEmail === TEMP_ORGANIZER_EMAIL && payload.password === TEMP_ORGANIZER_PASSWORD) {
+        if (!cloudSyncConfigured && normalizedEmail === TEMP_ORGANIZER_EMAIL && payload.password === TEMP_ORGANIZER_PASSWORD) {
           if (!isTemporaryOrganizerAvailable()) throw new Error('Testowe konto organizatora wygasło 23.10.2026 o 23:59.')
           if (cloudSyncConfigured && supabase) {
             try { await supabase.auth.signOut() } catch {}

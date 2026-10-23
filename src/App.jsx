@@ -19,7 +19,7 @@ import { useAuth } from './lib/AuthContext'
 function ProtectedRoute({ children, role }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="loading-screen">Ładowanie…</div>
-  if (!user) return <Navigate to="/logowanie" replace />
+  if (!user) return <Navigate to={role === 'organizer' ? '/organizator/logowanie' : '/logowanie'} replace />
   if (role && user.role !== role) return <Navigate to={user.role === 'organizer' ? '/organizator' : '/panel'} replace />
   return children
 }
