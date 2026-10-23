@@ -60,12 +60,7 @@ export function AuthProvider({ children }) {
       // Lokalne konto demo pozostaje tylko do pracy offline/deweloperskiej.
       if (cloudSyncConfigured && supabase) {
         const localTest = getSession()
-        if (localTest?.id === 'organizer_demo' && isTemporaryOrganizerAvailable()) {
-          if (mounted) setUser(temporaryOrganizerUser())
-          if (mounted) setLoading(false)
-          return
-        }
-        if (localTest?.id === 'organizer_demo' && !isTemporaryOrganizerAvailable()) logoutAccount()
+        if (localTest?.id === 'organizer_demo') logoutAccount()
 
         try {
           const { data } = await supabase.auth.getSession()

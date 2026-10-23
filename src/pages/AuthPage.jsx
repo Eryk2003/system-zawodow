@@ -5,6 +5,7 @@ import { useAuth, TEMP_ORGANIZER_EMAIL, TEMP_ORGANIZER_PASSWORD, isTemporaryOrga
 import { LanguageSwitch, useLanguage } from '../lib/I18nContext.jsx'
 
 export default function AuthPage({ mode = 'login' }) {
+  const organizerOnly = mode === 'organizer'
   const isRegister = mode === 'register'
   const { login, register } = useAuth()
   const { language, t } = useLanguage()
@@ -13,7 +14,7 @@ export default function AuthPage({ mode = 'login' }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [busy, setBusy] = useState(false)
-  const tempAvailable = !isRegister && isTemporaryOrganizerAvailable()
+  const tempAvailable = !isRegister && !organizerOnly && isTemporaryOrganizerAvailable()
 
   const submit = async (e) => {
     e.preventDefault(); setError(''); setSuccess('')
@@ -21,6 +22,10 @@ export default function AuthPage({ mode = 'login' }) {
     try {
       setBusy(true)
       const user = isRegister ? await register(form) : await login(form)
+      if (organizerOnly && user.role !== 'organizer') {
+        setError(language === 'en' ? 'This account does not have organizer permissions.' : 'To konto nie ma uprawnień organizatora.')
+        return
+      }
       navigate(user.role === 'organizer' ? '/organizator' : '/panel')
     } catch (err) {
       if (err?.code === 'EMAIL_CONFIRMATION_REQUIRED') setSuccess(err.message)
@@ -34,9 +39,9 @@ export default function AuthPage({ mode = 'login' }) {
     <div className="auth-page">
       <div className="auth-top"><Brand /><div className="auth-top-actions"><LanguageSwitch /><Link to="/">{t.backHome}</Link></div></div>
       <div className="auth-card">
-        <span className="eyebrow">{isRegister ? (language === 'en' ? 'New club' : 'Nowy klub') : t.login}</span>
-        <h1>{isRegister ? t.registerClub : t.login}</h1>
-        <p>{isRegister ? (language === 'en' ? 'Create a club account. After signing in you can add athletes and enter them into IKA Poland events.' : 'Utwórz konto klubu. Po zalogowaniu dodasz zawodników i zgłosisz ich na zawody opublikowane przez IKA Poland.') : (language === 'en' ? 'Clubs and the organizer use the same login form. Account permissions are detected automatically.' : 'Kluby i organizator logują się tym samym formularzem. Uprawnienia są rozpoznawane automatycznie.')}</p>
+        <span className="eyebrow">{organizerOnly ? (language === 'en' ? 'Organizer zone' : 'Strefa organizatora') : isRegister ? (language === 'en' ? 'New club' : 'Nowy klub') : t.login}</span>
+        <h1>{organizerOnly ? (language === 'en' ? 'Organizer login' : 'Logowanie organizatora') : isRegister ? t.registerClub : t.login}</h1>
+        <p>{organizerOnly ? (language === 'en' ? 'Sign in using an organizer account assigned in Supabase.' : 'Zaloguj się kontem organizatora z uprawnieniami nadanymi w Supabase.') : isRegister ? (language === 'en' ? 'Create a club account. After signing in you can add athletes and enter them into IKA Poland events.' : 'Utwórz konto klubu. Po zalogowaniu dodasz zawodników i zgłosisz ich na zawody opublikowane przez IKA Poland.') : (language === 'en' ? 'Clubs and the organizer use the same login form. Account permissions are detected automatically.' : 'Kluby i organizator logują się tym samym formularzem. Uprawnienia są rozpoznawane automatycznie.')}</p>
         <form onSubmit={submit} className="form-stack">
           {isRegister && <label>{t.ownerName}<input required value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="np. Jan Kowalski" /></label>}
           <label>{t.email}<input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="klub@example.pl" /></label>

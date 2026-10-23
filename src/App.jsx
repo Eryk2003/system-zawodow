@@ -31,6 +31,7 @@ export default function App() {
       <Route path="/aktualnosci" element={<NewsPage />} />
       <Route path="/logowanie" element={<AuthPage mode="login" />} />
       <Route path="/rejestracja" element={<AuthPage mode="register" />} />
+      <Route path="/organizator/logowanie" element={<AuthPage mode="organizer" />} />
       <Route path="/rodzic" element={<ParentLookup />} />
       <Route path="/klasyfikacja" element={<RankingsPage />} />
       <Route path="/telebim" element={<Telebim />} />
