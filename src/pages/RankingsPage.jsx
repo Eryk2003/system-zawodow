@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { PublicHeader, EmptyState } from '../components/Layout'
 import { db } from '../lib/demoStore'
+import ClubLogo from '../components/ClubLogo.jsx'
 
 function MedalSummary({ row }) {
   return <span className="ranking-medals"><b>🥇 {row.gold}</b><b>🥈 {row.silver}</b><b>🥉 {row.bronze}</b></span>
 }
 
-function RankingTable({ type, rows }) {
+function RankingTable({ type, rows, getClub }) {
   const isClub = type === 'clubs'
   if (!rows.length) {
     return <EmptyState title="Klasyfikacja jeszcze pusta" text="Wyniki pojawią się automatycznie po zakończeniu pierwszej kategorii i ustaleniu podium." />
@@ -19,8 +20,8 @@ function RankingTable({ type, rows }) {
           {rows.map((row) => (
             <tr key={isClub ? (row.clubId || row.clubName) : row.athleteId} className={row.place <= 3 ? `ranking-top ranking-top-${row.place}` : ''}>
               <td><strong className="ranking-place">{row.place}</strong></td>
-              <td><strong>{isClub ? row.clubName : row.athleteName}</strong></td>
-              {!isClub && <td>{row.clubName}</td>}
+              <td>{isClub ? <span className="ika-ranking-club-cell"><ClubLogo club={getClub(row)} /><strong>{row.clubName}</strong></span> : <strong>{row.athleteName}</strong>}</td>
+              {!isClub && <td><span className="ika-ranking-club-cell"><ClubLogo club={getClub(row)} size="sm" /><span>{row.clubName}</span></span></td>}
               <td><MedalSummary row={row} /></td>
               <td><strong className="ranking-points">{row.points} pkt</strong></td>
             </tr>
@@ -35,6 +36,10 @@ export default function RankingsPage() {
   const [rankings, setRankings] = useState(() => db.getLiveRankings())
   const [tab, setTab] = useState('clubs')
   const tournament = db.getTournament()
+  const getClub = (row) => {
+    const clubs = db.getClubs()
+    return clubs.find((club) => club.id === row?.clubId) || clubs.find((club) => club.name === row?.clubName) || { name: row?.clubName || 'Klub' }
+  }
 
   useEffect(() => {
     const refresh = () => setRankings(db.getLiveRankings())
@@ -66,7 +71,7 @@ export default function RankingsPage() {
           <button className={tab === 'athletes' ? 'active' : ''} onClick={() => setTab('athletes')}>Klasyfikacja zawodników</button>
         </div>
 
-        <RankingTable type={tab} rows={tab === 'clubs' ? rankings.clubs : rankings.athletes} />
+        <RankingTable type={tab} rows={tab === 'clubs' ? rankings.clubs : rankings.athletes} getClub={getClub} />
 
         {!!rankings.podiums.length && (
           <section className="ranking-results-feed">
@@ -79,7 +84,7 @@ export default function RankingsPage() {
                   {podium.placements.map((result, index) => (
                     <div key={`${result.athleteId}-${index}`}>
                       <b>{result.place}. {result.athleteName}</b>
-                      <span>{result.clubName} • zawodnik +{result.points} pkt • klub +{result.clubPoints ?? (result.place === 1 ? 6 : result.place === 2 ? 4 : 2)} pkt</span>
+                      <span className="ika-ranking-podium-club"><ClubLogo club={getClub(result)} size="sm" />{result.clubName} • zawodnik +{result.points} pkt • klub +{result.clubPoints ?? (result.place === 1 ? 6 : result.place === 2 ? 4 : 2)} pkt</span>
                     </div>
                   ))}
                 </article>

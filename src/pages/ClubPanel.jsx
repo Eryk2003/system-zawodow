@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { ClubWebsiteLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
+import ClubLogoField from '../components/ClubLogoField.jsx'
 import { useAuth } from '../lib/AuthContext'
 import { db } from '../lib/demoStore'
 
@@ -63,7 +64,7 @@ function registrationCountdown(value, now = Date.now()) {
 }
 
 function ClubSetup({ user, onCreated }) {
-  const [form, setForm] = useState({ name: '', shortName: '', city: '', country: 'Polska', phone: '', email: user.email })
+  const [form, setForm] = useState({ name: '', shortName: '', city: '', country: 'Polska', phone: '', email: user.email, logo: '' })
   const submit = (e) => {
     e.preventDefault()
     const saved = db.saveClub({ ...form, ownerId: user.id })
@@ -75,6 +76,7 @@ function ClubSetup({ user, onCreated }) {
       <h2>Utwórz profil klubu</h2>
       <p>Ten krok wykonujesz tylko raz. Profil klubu służy do dodawania zawodników i wysyłania zgłoszeń na zawody IKA Poland.</p>
       <form className="form-grid" onSubmit={submit}>
+        <div className="span-2"><ClubLogoField value={form.logo} onChange={(logo) => setForm((previous) => ({ ...previous, logo }))} /></div>
         <label className="span-2">Pełna nazwa klubu<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="np. Klub Karate ..." /></label>
         <label>Skrócona nazwa<input value={form.shortName} onChange={(e) => setForm({ ...form, shortName: e.target.value })} placeholder="np. KKA" /></label>
         <label>Miasto<input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
@@ -300,6 +302,11 @@ export default function ClubPanel() {
           <a className="btn btn-primary" href="#club-active-tournaments">Zobacz zawody</a>
           <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a>
         </div>
+      </section>
+
+      <section className="club-site-section ika-club-logo-settings" id="club-logo-settings">
+        <div className="club-site-section-head"><div><h2>Logo klubu</h2><p>Logo będzie widoczne obok nazwy klubu w klasyfikacji medalowej. Możesz je później zmienić lub usunąć.</p></div></div>
+        <ClubLogoField value={club.logo || ''} onChange={(logo) => { const updated = db.saveClub({ ...club, logo }); setClub(updated) }} />
       </section>
 
       <section className="club-site-section" id="club-active-tournaments">
