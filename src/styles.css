@@ -885,3 +885,7 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   font-weight:900;
 }
 
+
+
+/* ETAP 67 - branding globalny IKA / POLAND everywhere */
+.ika-brand-inline,.ika-brand-wordmark{display:inline-flex;align-items:baseline;gap:.26em;white-space:nowrap;text-transform:uppercase;font-weight:950;letter-spacing:.02em}.ika-brand-inline .ika-brand-ika,.ika-brand-wordmark .ika-brand-ika{color:#fff!important;text-shadow:0 0 1px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.65)}.ika-brand-inline .ika-brand-poland,.ika-brand-wordmark .ika-brand-poland{color:#e1261c!important}.brand strong.ika-brand-wordmark,.judge-topbar strong.ika-brand-wordmark,.telebim-top strong.ika-brand-wordmark,.kata-tv-header strong.ika-brand-wordmark,.competition-print-header strong.ika-brand-wordmark{display:inline-flex}.brand strong.ika-brand-wordmark{font-size:16px}.club-site-footer .ika-brand-inline,.footer .ika-brand-inline,.tatami-brand .ika-brand-inline{font-weight:950}.eyebrow .ika-brand-inline{font-size:inherit;font-weight:inherit}.tatami-brand .ika-brand-inline{font-size:inherit}

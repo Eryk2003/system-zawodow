@@ -21,7 +21,7 @@ export default function TrainingSchedule() {
       <PublicHeader />
       <main className="public-page schedule-page">
         <section className="lookup-hero">
-          <span className="eyebrow">Grafik IKA Poland</span>
+          <span className="eyebrow">Grafik <span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span></span>
           <h1>Treningi i grupy</h1>
           <p>Kliknij grupę albo najedź na nią kursorem, aby zobaczyć pełne informacje o treningach.</p>
         </section>

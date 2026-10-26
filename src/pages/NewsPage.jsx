@@ -20,7 +20,7 @@ export default function NewsPage() {
       <PublicHeader />
       <main className="public-page news-page">
         <section className="lookup-hero">
-          <span className="eyebrow">Komunikaty IKA Poland</span>
+          <span className="eyebrow">Komunikaty <span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span></span>
           <h1>Aktualności i ważne informacje</h1>
           <p>W jednym miejscu znajdują się komunikaty organizatora i najważniejsze informacje dotyczące zawodów.</p>
         </section>

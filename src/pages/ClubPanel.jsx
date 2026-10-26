@@ -305,7 +305,7 @@ export default function ClubPanel() {
       <section className="club-site-section" id="club-active-tournaments">
         <div className="club-site-section-head">
           <div>
-            <span className="eyebrow">Zawody IKA Poland</span>
+            <span className="eyebrow">Zawody <span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span></span>
             <h2>Aktywne zawody do zgłoszenia</h2>
             <p>Klub widzi opublikowane zawody i może zgłaszać wyłącznie swoich zawodników. Dane zawodników innych klubów nie są wyświetlane.</p>
           </div>
