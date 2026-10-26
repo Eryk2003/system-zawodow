@@ -586,11 +586,21 @@ function buildLiveRankings() {
   // Klasyfikacja zawodników jest medalowa dokładnie jak klasyfikacja klubowa: najpierw złote, potem srebrne i brązowe medale.
   // Punkty 6/4/2 pokazują dorobek zawodnika, ale nie wyprzedzają liczby medali wyższego koloru.
   const athleteSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.points - a.points || String(a.athleteName).localeCompare(String(b.athleteName), 'pl')
-  // Klasyfikacja klubowa jest medalowa: najpierw liczba złotych, potem srebrnych i brązowych.
-  // Punkty 6/4/2 są widocznym dorobkiem klubu, ale nie mogą przeskoczyć klubu z większą liczbą złotych medali.
-  const clubSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.points - a.points || String(a.clubName).localeCompare(String(b.clubName), 'pl')
+  // Olimpijska klasyfikacja klubów: złoto > srebro > brąz. Punkty nie decydują o kolejności.
+  // Przy identycznym dorobku kluby dzielą miejsce (np. 1, 2, 2, 4).
+  const clubSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || String(a.clubName).localeCompare(String(b.clubName), 'pl')
   const athletes = [...athleteMap.values()].sort(athleteSorter).map((row, index) => ({ ...row, place: index + 1 }))
-  const clubs = [...clubMap.values()].sort(clubSorter).map((row, index) => ({ ...row, place: index + 1 }))
+  const sortedClubs = [...clubMap.values()].sort(clubSorter)
+  let previousMedals = null
+  let sharedPlace = 0
+  const clubs = sortedClubs.map((row, index) => {
+    const medals = [row.gold, row.silver, row.bronze].join(':')
+    if (medals !== previousMedals) {
+      sharedPlace = index + 1
+      previousMedals = medals
+    }
+    return { ...row, place: sharedPlace }
+  })
 
   return { athletes, clubs, podiums, updatedAt: Date.now() }
 }

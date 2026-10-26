@@ -15,15 +15,21 @@ function RankingTable({ type, rows, getClub }) {
   return (
     <div className="table-wrap ranking-table-wrap">
       <table className="ranking-table">
-        <thead><tr><th>Miejsce</th><th>{isClub ? 'Klub' : 'Zawodnik'}</th>{!isClub && <th>Klub</th>}<th>Medale</th><th>{isClub ? 'Punkty klubowe' : 'Punkty'}</th></tr></thead>
+        <thead><tr><th>Miejsce</th><th>{isClub ? 'Klub' : 'Zawodnik'}</th>{!isClub && <th>Klub</th>}{isClub ? <><th>🥇 Złote</th><th>🥈 Srebrne</th><th>🥉 Brązowe</th></> : <><th>Medale</th><th>Punkty</th></>}</tr></thead>
         <tbody>
           {rows.map((row) => (
             <tr key={isClub ? (row.clubId || row.clubName) : row.athleteId} className={row.place <= 3 ? `ranking-top ranking-top-${row.place}` : ''}>
               <td><strong className="ranking-place">{row.place}</strong></td>
               <td>{isClub ? <span className="ika-ranking-club-cell"><ClubLogo club={getClub(row)} /><strong>{row.clubName}</strong></span> : <strong>{row.athleteName}</strong>}</td>
               {!isClub && <td><span className="ika-ranking-club-cell"><ClubLogo club={getClub(row)} size="sm" /><span>{row.clubName}</span></span></td>}
-              <td><MedalSummary row={row} /></td>
-              <td><strong className="ranking-points">{row.points} pkt</strong></td>
+              {isClub ? <>
+                <td className="ranking-medal-count">{row.gold}</td>
+                <td className="ranking-medal-count">{row.silver}</td>
+                <td className="ranking-medal-count">{row.bronze}</td>
+              </> : <>
+                <td><MedalSummary row={row} /></td>
+                <td><strong className="ranking-points">{row.points} pkt</strong></td>
+              </>}
             </tr>
           ))}
         </tbody>
@@ -60,7 +66,7 @@ export default function RankingsPage() {
         <div className="ranking-hero">
           <div><span className="eyebrow">Klasyfikacja LIVE</span><h1>Kluby i zawodnicy</h1><p>{tournament.created ? tournament.name : 'Aktualne zawody IKA Poland'} - wyniki aktualizują się automatycznie po zakończeniu kategorii.</p></div>
           {tab === 'clubs' ? (
-            <div className="ranking-points-legend"><strong>Klasyfikacja klubowa</strong><span>🥇 = 6 pkt</span><span>🥈 = 4 pkt</span><span>🥉 = 2 pkt</span><span style={{gridColumn:'1 / -1'}}>O kolejności decydują najpierw złote, potem srebrne i brązowe medale.</span></div>
+            <div className="ranking-points-legend ranking-olympic-legend"><strong>Klasyfikacja medalowa klubów</strong><span>🥇 Najpierw złote</span><span>🥈 Potem srebrne</span><span>🥉 Następnie brązowe</span><span style={{gridColumn:'1 / -1'}}>Punkty nie decydują o miejscu. Identyczna liczba medali każdego koloru oznacza wspólne miejsce.</span></div>
           ) : (
             <div className="ranking-points-legend"><strong>Klasyfikacja zawodników</strong><span>🥇 = 6 pkt</span><span>🥈 = 4 pkt</span><span>🥉 = 2 pkt</span><span style={{gridColumn:'1 / -1'}}>O kolejności decydują najpierw złote, potem srebrne i brązowe medale.</span></div>
           )}
@@ -84,7 +90,7 @@ export default function RankingsPage() {
                   {podium.placements.map((result, index) => (
                     <div key={`${result.athleteId}-${index}`}>
                       <b>{result.place}. {result.athleteName}</b>
-                      <span className="ika-ranking-podium-club"><ClubLogo club={getClub(result)} size="sm" />{result.clubName} • zawodnik +{result.points} pkt • klub +{result.clubPoints ?? (result.place === 1 ? 6 : result.place === 2 ? 4 : 2)} pkt</span>
+                      <span className="ika-ranking-podium-club"><ClubLogo club={getClub(result)} size="sm" />{result.clubName} • {tab === 'clubs' ? (result.place === 1 ? '🥇 Złoto' : result.place === 2 ? '🥈 Srebro' : '🥉 Brąz') : ('zawodnik +' + result.points + ' pkt')}</span>
                     </div>
                   ))}
                 </article>
