@@ -100,7 +100,7 @@ export default function KataJudgePanel() {
   if (!session) {
     return (
       <main className="judge-screen judge-empty">
-        <div className="judge-topbar"><div><strong>IKA POLAND</strong><span>Panel sędziego kata • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak listy startowej kata</h1><p>Najpierw utwórz listę startową dla kategorii kata w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
@@ -159,7 +159,7 @@ export default function KataJudgePanel() {
   return (
     <main className="judge-screen kata-judge-screen">
       <header className="judge-topbar kata-judge-topbar">
-        <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+        <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
         <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>URUCHOM TV</button></div>
       </header>

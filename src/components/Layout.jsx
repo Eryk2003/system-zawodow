@@ -8,7 +8,7 @@ export function Brand() {
   return (
     <Link className="brand" to="/">
       <img className="brand-logo" src="/ika-poland-logo.jpg" alt="IKA Poland" />
-      <span><strong>IKA Poland</strong><small>System Zawodów</small></span>
+      <span><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><small>System Zawodów</small></span>
     </Link>
   )
 }
@@ -46,7 +46,7 @@ export function ClubWebsiteLayout({ children, clubName = '', organizer = false }
         <div className="club-site-account"><LanguageSwitch compact /><span>{clubName || user?.email || 'Klub'}</span><button className="btn btn-ghost btn-sm" type="button" onClick={onLogout}>{t.logout}</button></div>
       </header>
       <main className="club-site-main">{children}</main>
-      <footer className="club-site-footer">IKA Poland - strona zgłoszeń klubów i zawodników na zawody</footer>
+      <footer className="club-site-footer"><span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span> - strona zgłoszeń klubów i zawodników na zawody</footer>
     </div>
   )
 }

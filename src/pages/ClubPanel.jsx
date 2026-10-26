@@ -272,7 +272,7 @@ export default function ClubPanel() {
     return (
       <ClubWebsiteLayout organizer={organizerMode}>
         <section className="club-site-intro">
-          <span className="eyebrow">IKA Poland</span>
+          <span className="eyebrow"><span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span></span>
           <h1>Strefa zgłoszeń klubów</h1>
           <p>Zarejestrowany klub dodaje tutaj swoich zawodników, a następnie zgłasza ich na aktywne zawody IKA Poland.</p>
         </section>

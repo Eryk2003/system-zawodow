@@ -139,7 +139,7 @@ export default function TatamiDisplay() {
     return (
       <main className="tatami-screen tatami-empty">
         <FullscreenControl />
-        <div className="tatami-brand">IKA POLAND</div>
+        <div className="tatami-brand"><span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span></div>
         <h1>{matName}</h1>
         <p>Oczekiwanie na uruchomienie drabinki.</p>
       </main>
@@ -152,7 +152,7 @@ export default function TatamiDisplay() {
       <main className="tatami-screen kata-tv-screen kata-list-screen">
         <FullscreenControl />
         <header className="kata-tv-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>LISTA UCZESTNIKÓW</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category}</span></div>
           <div><b>{matName}</b><span>{payload.kata.judgeCount} sędziów</span></div>
         </header>
@@ -176,7 +176,7 @@ export default function TatamiDisplay() {
       <main className="tatami-screen kata-tv-screen kata-athlete-screen">
         <FullscreenControl />
         <header className="kata-tv-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>{payload.competition?.name || 'Kata'}</b><span>{payload.state?.category || payload.kata.session.category}</span></div>
           <div><b>{matName}</b><span>Następny zawodnik</span></div>
         </header>
@@ -199,7 +199,7 @@ export default function TatamiDisplay() {
       <main className="tatami-screen kata-tv-screen kata-scores-screen">
         <FullscreenControl />
         <header className="kata-tv-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>OCENY SĘDZIÓW</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category}</span></div>
           <div><b>{matName}</b><span>{payload.kata.judgeCount} sędziów</span></div>
         </header>
@@ -227,7 +227,7 @@ export default function TatamiDisplay() {
       <main className="tatami-screen kata-tv-screen kata-final-screen">
         <FullscreenControl />
         <header className="kata-tv-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>KOŃCOWA OCENA</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category}</span></div>
           <div><b>{matName}</b><span>Wynik zapisany</span></div>
         </header>
@@ -283,7 +283,7 @@ export default function TatamiDisplay() {
         >
           <FullscreenControl />
           <header className="final-results-header">
-            <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+            <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
             <div><b>ZWYCIĘZCA</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
             <div><b>{matName}</b><span>Kategoria zakończona</span></div>
           </header>
@@ -321,7 +321,7 @@ export default function TatamiDisplay() {
       >
         <FullscreenControl />
         <header className="final-results-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>WYNIKI KOŃCOWE</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
           <div><b>{matName}</b><span>{finalList.length} zawodników</span></div>
         </header>
@@ -373,7 +373,7 @@ export default function TatamiDisplay() {
       <main className="tatami-screen scoreboard-screen">
         <FullscreenControl />
         <header className="scoreboard-header">
-          <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+          <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
           <div><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
         </header>
         <section className="scoreboard-body">
@@ -423,7 +423,7 @@ export default function TatamiDisplay() {
     <main className="tatami-screen bracket-screen">
       <FullscreenControl />
       <header className="bracket-header">
-        <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
+        <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
         <div className="bracket-title"><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
         <div className="next-fight-box"><small>NASTĘPNA WALKA</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '-'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '-'}</strong></div>
       </header>

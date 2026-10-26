@@ -419,7 +419,7 @@ export default function TournamentCenter() {
             </div>
             <div id="print-kata-category" className="competition-print-section print-kata-sheet">
               <div className="competition-print-header print-only">
-                <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+                <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
                 <h1>{competitions.find((c) => c.id === selectedKataSession.competitionId)?.name || 'Kata'} - {selectedKataSession.category}</h1>
                 <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selectedKataSession.mat}</span><span>{selectedKataSession.judgeCount} sędziów</span></div>
               </div>
@@ -471,7 +471,7 @@ export default function TournamentCenter() {
             </div>
             <div id="print-kumite-bracket" className="academy-bracket-panel-wrap competition-print-section print-kumite-sheet">
               <div className="competition-print-header print-only">
-                <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+                <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
                 <h1>{selectedCompetition?.name || 'Kumite'} - {selected.category}</h1>
                 <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selected.mat}</span><span>{selectedSideTheme.red.code} / {selectedSideTheme.blue.code}</span></div>
               </div>

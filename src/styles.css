@@ -858,3 +858,30 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .temporary-demo-box{border:1px solid #d8b35a;background:#fff8e5}.temporary-demo-box code{font-weight:900}.temporary-demo-box small{color:#725b1d;line-height:1.4}.temp-organizer-warning{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}.alert-warning{background:#fff7df;border:1px solid #ecd28a;color:#755700}
 .organizer-club-management{max-width:980px;margin:0 auto 60px}.organizer-club-management .panel-section-head>strong{font-size:34px}.organizer-club-list{display:grid;gap:9px}.organizer-club-list article{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 17px;border:1px solid #e0e0e4;border-radius:12px;background:#fff}.organizer-club-list article>div{display:grid;gap:3px}.organizer-club-list article span,.organizer-club-list article small{color:#74747b}.btn-danger{background:#b42318;color:#fff;border:1px solid #b42318}.btn-danger:hover{background:#8f1d14}
 @media(max-width:900px){.public-nav{flex-wrap:wrap}.organizer-club-list article{align-items:flex-start;flex-direction:column}.organizer-club-list .btn{width:100%}.auth-top-actions{gap:8px}}
+
+
+/* ETAP 67 - branding IKA / POLAND */
+.ika-brand-inline,
+.ika-brand-wordmark{
+  display:inline-flex;
+  align-items:baseline;
+  gap:.28em;
+  white-space:nowrap;
+}
+.ika-brand-ika{
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.55), 0 0 1px rgba(0,0,0,.85);
+}
+.ika-brand-poland{
+  color:#e1261c;
+}
+.brand strong.ika-brand-wordmark,
+.telebim-top strong.ika-brand-wordmark,
+.judge-topbar strong.ika-brand-wordmark{
+  display:inline-flex;
+}
+.club-site-footer .ika-brand-inline,
+.footer .ika-brand-inline{
+  font-weight:900;
+}
+

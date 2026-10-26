@@ -118,7 +118,7 @@ export default function JudgePanel() {
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
-        <div className="judge-topbar"><div><strong>IKA POLAND</strong><span>Panel sędziego • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak drabinki na tym tatami</h1><p>Najpierw utwórz drabinkę kumite w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
@@ -131,7 +131,7 @@ export default function JudgePanel() {
   return (
     <main className={`judge-screen judge-${theme.mode}`}>
       <header className="judge-topbar">
-        <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+        <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
         <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>URUCHOM TV</button></div>
       </header>

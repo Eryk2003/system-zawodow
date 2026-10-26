@@ -32,7 +32,7 @@ export default function Telebim() {
   return (
     <main className="telebim">
       <div className="telebim-top">
-        <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+        <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="telebim-now"><span /> TERAZ STARTUJE</div>
       </div>
       <div className="telebim-body">
