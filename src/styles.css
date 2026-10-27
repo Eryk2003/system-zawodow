@@ -884,3 +884,30 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .tv-penalty-col small{font-size:14px;line-height:1.15;font-weight:1000;letter-spacing:.06em}
 .tv-penalty-col strong{font-size:30px;line-height:1;font-weight:1000;letter-spacing:.04em}
 @media (max-width: 1200px){.tv-penalty-col strong{font-size:22px}.tv-penalty-col small{font-size:11px}}
+
+/* ETAP 72 - WAZARI / IPPON osobne kolumny +1 */
+.technique-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:min(560px,100%);margin:18px auto 10px}
+.technique-score-column{min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:7px;border-radius:14px;border:2px solid rgba(255,255,255,.3);background:rgba(0,0,0,.18);padding:12px 9px}
+.side-white .technique-score-column,.fighter-white .technique-score-column{border-color:#b6b7bd;background:#fff;color:#111}
+.technique-score-label{font-size:clamp(14px,1.1vw,17px);font-weight:1000;letter-spacing:.09em}
+.technique-score-count{font-size:clamp(26px,3vw,42px);font-weight:1000;line-height:1;font-variant-numeric:tabular-nums}
+.technique-score-column>small{font-size:11px;font-weight:850;opacity:.8}
+.technique-score-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+.technique-score-actions button{min-width:0;min-height:42px;cursor:pointer;font-size:22px;font-weight:1000;border-radius:9px;border:1px solid rgba(255,255,255,.4);color:inherit;background:rgba(255,255,255,.14)}
+.technique-score-actions .technique-score-add{background:#e1261c;color:#fff;border-color:#f34438}
+.technique-score-actions .technique-score-minus{font-size:16px;background:rgba(0,0,0,.2)}
+.technique-score-actions button:disabled{opacity:.35;cursor:not-allowed}
+.side-white .technique-score-actions .technique-score-add{color:#fff}
+.side-white .technique-score-actions .technique-score-minus{color:#111;background:#ececef;border-color:#c9c9cd}
+.technique-score-grid-tv{width:min(760px,92%);gap:12px;margin:10px auto 2px}
+.technique-score-grid-tv .technique-score-column{min-height:70px;padding:8px 10px;gap:4px;background:rgba(0,0,0,.12)}
+.technique-score-grid-tv .technique-score-count{font-size:clamp(24px,2.5vw,39px)}
+.technique-score-grid-tv .technique-score-label{font-size:clamp(13px,1.2vw,18px)}
+.technique-score-grid-tv .technique-score-column>small{display:none}
+/* Keep the TV layout readable without pushing the penalty columns below the screen. */
+.scoreboard-body .fighter{padding:clamp(10px,2.5vw,38px)}
+.scoreboard-body .scoreboard-athlete-photo{width:clamp(112px,13vw,200px);margin-bottom:9px}
+.scoreboard-body .fighter h1{font-size:clamp(36px,4vw,64px);margin:7px 0 6px}
+.scoreboard-body .score-number{font-size:clamp(100px,13vw,210px);margin-top:15px}
+@media(max-width:1280px){.technique-score-grid-judge .technique-score-column{padding:9px}.technique-score-grid-tv{gap:7px}.technique-score-grid-tv .technique-score-column{padding:6px}}
+@media(max-width:760px){.technique-score-grid-judge{grid-template-columns:repeat(2,minmax(0,1fr))}.technique-score-grid-tv .technique-score-count{font-size:24px}}

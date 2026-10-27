@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
+import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
 
 const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
 
@@ -411,6 +412,7 @@ export default function TatamiDisplay() {
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.redScore)}</strong>
+            <TechniqueScoreColumns match={m} side="red" mode="tv" />
             <div className="tv-penalties-grid">{renderTvPenalty(m, 'red', 'exit')}{renderTvPenalty(m, 'red', 'behavior')}</div>
           </div>
           <div className="fight-center">
@@ -432,6 +434,7 @@ export default function TatamiDisplay() {
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
+            <TechniqueScoreColumns match={m} side="blue" mode="tv" />
             <div className="tv-penalties-grid">{renderTvPenalty(m, 'blue', 'exit')}{renderTvPenalty(m, 'blue', 'behavior')}</div>
           </div>
         </section>

@@ -1090,7 +1090,7 @@ export const db = {
           bracketPosition: slot.position, bracketSize,
           redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1115,7 +1115,7 @@ export const db = {
           bracketPosition: i / 2, bracketSize,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1248,6 +1248,47 @@ export const db = {
       const winnerId = side === 'red' ? resolved.blueResolvedId : resolved.redResolvedId
       if (winnerId) {
         return db.finishMatch(matchId, winnerId, { automatic: true, reason: 'HANSOKU' })
+      }
+    }
+
+    emit()
+    return next
+  },
+
+  changeTechniqueScore: (matchId, side, technique, countDelta) => {
+    if (!['red', 'blue'].includes(side) || !['wazari', 'ippon'].includes(technique) || ![-1, 1].includes(countDelta)) {
+      throw new Error('Nieprawidlowa zmiana wyniku technicznego.')
+    }
+    const matches = read(KEYS.matches, [])
+    const match = matches.find((item) => item.id === matchId)
+    if (!match) return null
+    if (match.status === 'done' || match.winnerId) {
+      throw new Error('Walka zostala juz zakonczona. Nie mozna zmieniac punktow.')
+    }
+    if (match.status !== 'active') {
+      throw new Error('Punkty mozna zmieniac tylko podczas aktywnej walki.')
+    }
+
+    const key = side + (technique === 'wazari' ? 'WazariCount' : 'IpponCount')
+    const scoreKey = side === 'red' ? 'redScore' : 'blueScore'
+    const awardedPoints = technique === 'wazari' ? 1 : 2
+    const existingCount = Math.max(0, Math.floor(Number(match[key] || 0)))
+    if (countDelta < 0 && !existingCount) return match
+    const nextScore = Math.max(0, Number(match[scoreKey] || 0) + countDelta * awardedPoints)
+    const next = {
+      ...match,
+      [key]: existingCount + countDelta,
+      [scoreKey]: nextScore,
+    }
+    saveMatchInternal(next)
+
+    if (countDelta > 0) {
+      const competition = read(KEYS.competitions, []).find((item) => item.id === match.competitionId) || null
+      const winRule = getKumiteWinRule(competition)
+      if (winRule && nextScore >= winRule.targetScore) {
+        const resolved = resolveMatch(next, read(KEYS.matches, []))
+        const winnerId = side === 'red' ? resolved.redResolvedId : resolved.blueResolvedId
+        if (winnerId) return db.finishMatch(matchId, winnerId, { automatic: true, reason: winRule.title })
       }
     }
 

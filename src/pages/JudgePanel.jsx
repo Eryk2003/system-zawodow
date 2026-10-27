@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
+import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 
 const fmt = (seconds) => {
@@ -105,6 +106,17 @@ export default function JudgePanel() {
     })
   }
 
+  const changeTechniqueScore = (side, technique, delta) => {
+    if (!active) return
+    run(() => {
+      const result = db.changeTechniqueScore(active.id, side, technique, delta)
+      if (result?.status === 'done') {
+        const winner = athlete(result.winnerId)
+        setMessage(`Walka zakonczona automatycznie - ${winner.name} wygrywa zgodnie z zasadami ${theme.winRule?.title || 'Shobu'}.`)
+      }
+    })
+  }
+
   const changePenalty = (side, type, level) => {
     if (!active) return
     run(() => {
@@ -179,15 +191,7 @@ export default function JudgePanel() {
           <p>{red.club}</p>
           <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
           {active && <>
-            <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => changeScore('red', 1)}><strong>+1</strong></button>
-              <button onClick={() => changeScore('red', 2)}><strong>+2</strong></button>
-            </div>
-            <div className="judge-correction-row">
-              <span>Korekta wyniku</span>
-              <button onClick={() => changeScore('red', -1)}>-1</button>
-              <button onClick={() => changeScore('red', -2)}>-2</button>
-            </div>
+            <TechniqueScoreColumns match={activeRaw} side="red" onChange={changeTechniqueScore} />
 {renderPenaltyPanel('red')}
           </>}
         </div>
@@ -220,15 +224,7 @@ export default function JudgePanel() {
           <p>{blue.club}</p>
           <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
           {active && <>
-            <div className="judge-score-buttons judge-score-buttons-awards">
-              <button onClick={() => changeScore('blue', 1)}><strong>+1</strong></button>
-              <button onClick={() => changeScore('blue', 2)}><strong>+2</strong></button>
-            </div>
-            <div className="judge-correction-row">
-              <span>Korekta wyniku</span>
-              <button onClick={() => changeScore('blue', -1)}>-1</button>
-              <button onClick={() => changeScore('blue', -2)}>-2</button>
-            </div>
+            <TechniqueScoreColumns match={activeRaw} side="blue" onChange={changeTechniqueScore} />
 {renderPenaltyPanel('blue')}
           </>}
         </div>
