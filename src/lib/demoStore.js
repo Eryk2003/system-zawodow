@@ -586,21 +586,11 @@ function buildLiveRankings() {
   // Klasyfikacja zawodników jest medalowa dokładnie jak klasyfikacja klubowa: najpierw złote, potem srebrne i brązowe medale.
   // Punkty 6/4/2 pokazują dorobek zawodnika, ale nie wyprzedzają liczby medali wyższego koloru.
   const athleteSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.points - a.points || String(a.athleteName).localeCompare(String(b.athleteName), 'pl')
-  // Olimpijska klasyfikacja klubów: złoto > srebro > brąz. Punkty nie decydują o kolejności.
-  // Przy identycznym dorobku kluby dzielą miejsce (np. 1, 2, 2, 4).
-  const clubSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || String(a.clubName).localeCompare(String(b.clubName), 'pl')
+  // Klasyfikacja klubowa jest medalowa: najpierw liczba złotych, potem srebrnych i brązowych.
+  // Punkty 6/4/2 są widocznym dorobkiem klubu, ale nie mogą przeskoczyć klubu z większą liczbą złotych medali.
+  const clubSorter = (a, b) => b.gold - a.gold || b.silver - a.silver || b.bronze - a.bronze || b.points - a.points || String(a.clubName).localeCompare(String(b.clubName), 'pl')
   const athletes = [...athleteMap.values()].sort(athleteSorter).map((row, index) => ({ ...row, place: index + 1 }))
-  const sortedClubs = [...clubMap.values()].sort(clubSorter)
-  let previousMedals = null
-  let sharedPlace = 0
-  const clubs = sortedClubs.map((row, index) => {
-    const medals = [row.gold, row.silver, row.bronze].join(':')
-    if (medals !== previousMedals) {
-      sharedPlace = index + 1
-      previousMedals = medals
-    }
-    return { ...row, place: sharedPlace }
-  })
+  const clubs = [...clubMap.values()].sort(clubSorter).map((row, index) => ({ ...row, place: index + 1 }))
 
   return { athletes, clubs, podiums, updatedAt: Date.now() }
 }
@@ -1100,7 +1090,7 @@ export const db = {
           bracketPosition: slot.position, bracketSize,
           redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1125,7 +1115,7 @@ export const db = {
           bracketPosition: i / 2, bracketSize,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1229,12 +1219,11 @@ export const db = {
     return next
   },
 
-  changePenalty: (matchId, side, level) => {
+  changePenalty: (matchId, side, type, level) => {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
 
-    // Tak samo jak wynik, kary są zamknięte po zakończeniu walki.
     if (match.status === 'done' || match.winnerId) {
       throw new Error('Walka została już zakończona. Nie można zmieniać kar.')
     }
@@ -1242,13 +1231,18 @@ export const db = {
       throw new Error('Kary można zmieniać tylko podczas aktywnej walki.')
     }
 
-    const nextLevel = Math.max(0, Math.min(4, Number(level || 0)))
-    const key = side === 'red' ? 'redPenaltyLevel' : 'bluePenaltyLevel'
+    const penaltyType = typeof type === 'number' && level === undefined ? 'exit' : String(type || 'exit')
+    const requestedLevel = typeof type === 'number' && level === undefined ? type : level
+    const nextLevel = Math.max(0, Math.min(4, Number(requestedLevel || 0)))
+    const key = side === 'red'
+      ? (penaltyType === 'behavior' ? 'redBehaviorPenaltyLevel' : 'redExitPenaltyLevel')
+      : (penaltyType === 'behavior' ? 'blueBehaviorPenaltyLevel' : 'blueExitPenaltyLevel')
+
     const next = { ...match, [key]: nextLevel }
+    next.redPenaltyLevel = Math.max(Number(next.redPenaltyLevel || 0), Number(next.redExitPenaltyLevel || 0), Number(next.redBehaviorPenaltyLevel || 0))
+    next.bluePenaltyLevel = Math.max(Number(next.bluePenaltyLevel || 0), Number(next.blueExitPenaltyLevel || 0), Number(next.blueBehaviorPenaltyLevel || 0))
     saveMatchInternal(next)
 
-    // HANSOKU automatycznie kończy walkę. Zawodnik ukarany przegrywa,
-    // a przeciwnik zostaje zwycięzcą i przechodzi dalej w drabince.
     if (nextLevel === 4) {
       const resolved = resolveMatch(next, read(KEYS.matches, []))
       const winnerId = side === 'red' ? resolved.blueResolvedId : resolved.redResolvedId
