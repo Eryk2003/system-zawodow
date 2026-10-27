@@ -33,6 +33,7 @@ export function LanguageProvider({ children }) {
     setLanguageState(safe)
     try { localStorage.setItem(STORAGE_KEY, safe) } catch {}
     document.documentElement.lang = safe
+    window.dispatchEvent(new CustomEvent('ika:language', { detail: safe }))
   }
   const value = useMemo(() => ({ language, setLanguage, t: dictionary[language] }), [language])
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>
