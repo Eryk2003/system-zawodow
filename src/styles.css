@@ -911,3 +911,9 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .scoreboard-body .score-number{font-size:clamp(100px,13vw,210px);margin-top:15px}
 @media(max-width:1280px){.technique-score-grid-judge .technique-score-column{padding:9px}.technique-score-grid-tv{gap:7px}.technique-score-grid-tv .technique-score-column{padding:6px}}
 @media(max-width:760px){.technique-score-grid-judge{grid-template-columns:repeat(2,minmax(0,1fr))}.technique-score-grid-tv .technique-score-count{font-size:24px}}
+
+/* ETAP 73 - klub zglaszajacy */
+.ika73-club-source{display:block;margin-top:6px;color:#a61f1a;font-size:13px;font-weight:800;line-height:1.5}
+.ika73-club-source b{font-weight:1000;color:inherit}
+.ika73-selected-club{display:block;margin-top:8px;padding:10px 12px;border-left:4px solid #e1261c;background:#fff4f3;border-radius:6px;color:#70201d;font-weight:800}
+.ika73-selected-club b{font-weight:1000}

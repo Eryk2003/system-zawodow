@@ -44,6 +44,11 @@ export const PRIVATE_CLOUD_KEYS = new Set([
 export const CLOUD_KEYS = new Set([...PUBLIC_CLOUD_KEYS, ...PRIVATE_CLOUD_KEYS])
 
 const pending = new Map()
+/* ETAP 73: automatyczna synchronizacja co 10 sekund */
+const inFlightPublicWrites = new Set()
+let privateWritesInProgress = 0
+let pollingInterval = null
+let pollingNow = false
 let publicChannel = null
 let privateChannel = null
 let participantChannel = null
@@ -110,6 +115,7 @@ async function resolveIdentity() {
 async function upsertPublicNow(key, value) {
   if (!supabase || !PUBLIC_CLOUD_KEYS.has(key)) return
   if (currentIdentity.role !== 'organizer') return
+  inFlightPublicWrites.add(key)
   try {
     const { error } = await supabase
       .from('app_shared_state')
@@ -117,6 +123,8 @@ async function upsertPublicNow(key, value) {
     if (error) console.warn('[IKA cloud] zapis publiczny nieudany:', key, error.message)
   } catch (error) {
     console.warn('[IKA cloud] zapis publiczny nieudany:', key, error?.message || error)
+  } finally {
+    inFlightPublicWrites.delete(key)
   }
 }
 
@@ -324,8 +332,13 @@ async function syncLegacyPrivateState() {
 }
 
 async function syncPrivateNow() {
-  if (currentIdentity.role === 'club') return syncClubPrivateState()
-  if (currentIdentity.role === 'organizer') return syncOrganizerPrivateState()
+  privateWritesInProgress += 1
+  try {
+    if (currentIdentity.role === 'club') return await syncClubPrivateState()
+    if (currentIdentity.role === 'organizer') return await syncOrganizerPrivateState()
+  } finally {
+    privateWritesInProgress -= 1
+  }
 }
 
 export function queueCloudWrite(key, value) {
@@ -347,7 +360,7 @@ export function queueCloudWrite(key, value) {
   }, delay))
 }
 
-async function hydratePublicState() {
+async function hydratePublicState(polling = false) {
   const { data, error } = await supabase
     .from('app_shared_state')
     .select('state_key,state_value,updated_at')
@@ -357,11 +370,16 @@ async function hydratePublicState() {
 
   const cloudByKey = new Map((data || []).map((row) => [row.state_key, row]))
   for (const key of PUBLIC_CLOUD_KEYS) {
+    // Polling must not revert a locally pending or in-flight score or timer change.
+    if (polling && (pending.has(key) || inFlightPublicWrites.has(key))) continue
     const remote = cloudByKey.get(key)
     if (remote) {
+      if (polling && localStorage.getItem(key) === JSON.stringify(remote.state_value)) continue
       applyRemoteValue(key, remote.state_value)
       continue
     }
+    // No bootstrap writes during periodic read-only refresh.
+    if (polling) continue
     if (currentIdentity.role !== 'organizer') continue
     const raw = localStorage.getItem(key)
     if (raw == null) continue
@@ -450,6 +468,29 @@ export async function refreshCloudSyncForSession() {
   }
 }
 
+async function pollLatestCompetitionData() {
+  if (!initialized || !supabase || pollingNow) return
+  pollingNow = true
+  try {
+    await hydratePublicState(true)
+    const privateDirty = privateWritesInProgress > 0 || [...PRIVATE_CLOUD_KEYS].some((key) => pending.has(key))
+    if (!privateDirty) await hydrateSensitiveState()
+    // React routes refresh without changing URL, focus, scroll, timers or the TV window.
+    window.dispatchEvent(new Event('ika:periodic-refresh'))
+  } catch (error) {
+    console.warn('[IKA cloud] odswiezenie 10 s nieudane:', error?.message || error)
+  } finally {
+    pollingNow = false
+  }
+}
+
+function startTenSecondRefresh() {
+  if (pollingInterval) return
+  pollingInterval = window.setInterval(() => {
+    pollLatestCompetitionData().catch(() => {})
+  }, 10000)
+}
+
 export async function initializeCloudSync() {
   if (initialized || !cloudSyncConfigured || !supabase) return { enabled: cloudSyncConfigured }
   initialized = true
@@ -459,6 +500,7 @@ export async function initializeCloudSync() {
     await hydrateSensitiveState()
     subscribePublicState()
     subscribeRoleState()
+    startTenSecondRefresh()
 
     const result = supabase.auth.onAuthStateChange(() => {
       setTimeout(() => {
@@ -479,6 +521,8 @@ export async function initializeCloudSync() {
 }
 
 export function disposeCloudSync() {
+  if (pollingInterval) window.clearInterval(pollingInterval)
+  pollingInterval = null
   if (!supabase) return
   if (publicChannel) supabase.removeChannel(publicChannel)
   unsubscribeRoleChannels()

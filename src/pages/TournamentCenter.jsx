@@ -137,11 +137,17 @@ export default function TournamentCenter() {
     const interval = setInterval(() => setDeadlineNow(Date.now()), 30000)
     return () => clearInterval(interval)
   }, [])
-  const decorated = useMemo(() => entries.map((entry) => ({
-    ...entry,
-    athlete: athletes.find((a) => a.id === entry.athleteId),
-    competition: competitions.find((c) => c.id === entry.competitionId),
-  })).sort((a, b) => (a.estimatedStart || '').localeCompare(b.estimatedStart || '')), [entries, athletes, competitions, refreshKey])
+  /* ETAP 73: klub zglaszajacy */
+  const decorated = useMemo(() => entries.map((entry) => {
+    const athlete = athletes.find((a) => a.id === entry.athleteId)
+    const club = clubs.find((c) => c.id === athlete?.clubId || c.id === entry.clubId)
+    return {
+      ...entry,
+      athlete,
+      club,
+      competition: competitions.find((c) => c.id === entry.competitionId),
+    }
+  }).sort((a, b) => (a.estimatedStart || '').localeCompare(b.estimatedStart || '')), [entries, athletes, clubs, competitions, refreshKey])
 
   const bracketGroups = useMemo(() => {
     const map = new Map()
@@ -350,7 +356,7 @@ export default function TournamentCenter() {
         <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Nie wpisujesz godziny przy zawodniku. System rozkłada kategorie na dostępne tatami i liczy każdą walkę według czasu ustawionego dla kategorii. Przy 1:30 kolejne walki dostają czasy np. 09:00:00, 09:01:30, 09:03:00. Harmonogram możesz później poprawić ręcznie.</p></div></div>
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}
         <form className="entry-builder auto-entry-builder" onSubmit={addEntry}>
-          <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select></label>
+          <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select>{selectedAthlete && <small className="ika73-selected-club">Klub zgłaszający: <b>{clubs.find((c) => c.id === selectedAthlete.clubId)?.name || 'Nieprzypisany klub'}</b></small>}</label>
           <label>Kategoria<select required value={entryForm.categoryId} onChange={(e) => setEntryForm({ ...entryForm, categoryId: e.target.value })}><option value="">Wybierz utworzoną kategorię</option>{entryCategories.map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name || 'Konkurencja'} - {category.name}</option> })}</select>{entryForm.athleteId && <small>{selectedAthleteAge == null ? 'Nie udało się obliczyć wieku zawodnika.' : `Wiek zawodnika w dniu zawodów: ${selectedAthleteAge} lat`}</small>}</label>
           <div className="auto-schedule-note"><strong>Start i tatami: automatycznie</strong><small>Zawodnika można dodać wyłącznie do kategorii utworzonej wcześniej dla tych zawodów.</small></div>
           <button className="btn btn-primary" disabled={!categories.length}>Dodaj zawodnika</button>
@@ -381,7 +387,7 @@ export default function TournamentCenter() {
             {decorated.map((entry) => <article className={`schedule-card ${liveId === entry.id ? 'schedule-live' : ''}`} key={entry.id}>
               <div className="schedule-time"><strong>{entry.estimatedStart || '-'}</strong><small>{entry.mat || '-'}</small></div>
               <AthleteAvatar athlete={entry.athlete} />
-              <div className="schedule-person"><strong>{entry.athlete ? `${entry.athlete.firstName} ${entry.athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{entry.competition?.name || '-'} • {entry.category || '-'}</span></div>
+              <div className="schedule-person"><strong>{entry.athlete ? `${entry.athlete.firstName} ${entry.athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{entry.competition?.name || '-'} • {entry.category || '-'}</span><small className="ika73-club-source">Klub zgłaszający: <b>{entry.club?.name || entry.club?.shortName || 'Nieprzypisany klub'}</b></small></div>
               <StatusBadge status={entry.status} />
               <div className="schedule-actions">
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => updateStatus(entry, 'called')}>Wywołaj</button>

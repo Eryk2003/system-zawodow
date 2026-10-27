@@ -290,7 +290,8 @@ export default function TatamiDisplay() {
         club: placement?.clubName || info?.club || '',
         photo: info?.photo || athlete?.photo || '',
       }
-    }).sort((a, b) => {
+    /* ETAP 73: tylko podium na TV */
+    }).filter((result) => [1, 2, 3].includes(Number(result.place))).sort((a, b) => {
       const pa = a.place == null ? 99 : a.place
       const pb = b.place == null ? 99 : b.place
       return pa - pb || a.name.localeCompare(b.name, 'pl')
@@ -329,7 +330,7 @@ export default function TatamiDisplay() {
                 </div>
               </div>
             </article>
-            <small className="final-winner-next">Za chwilę pełna lista wyników</small>
+            <small className="final-winner-next">Za chwilę podium kategorii</small>
           </section>
         </main>
       )
@@ -343,8 +344,8 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="final-results-header">
           <div><strong>IKA POLAND</strong><span>{payload.tournament.name}</span></div>
-          <div><b>WYNIKI KOŃCOWE</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
-          <div><b>{matName}</b><span>{finalList.length} zawodników</span></div>
+          <div><b>PODIUM</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
+          <div><b>{matName}</b><span>{finalList.length} medalistów</span></div>
         </header>
 
         <section className="final-results-stage">

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import Home from './pages/Home'
 import AuthPage from './pages/AuthPage'
 import ClubPanel from './pages/ClubPanel'
@@ -25,6 +26,13 @@ function ProtectedRoute({ children, role }) {
 }
 
 export default function App() {
+  /* ETAP 73: odswiezanie widokow bez przeładowania */
+  const [, setLastRefresh] = useState(0)
+  useEffect(() => {
+    const update = () => setLastRefresh((previous) => previous + 1)
+    window.addEventListener('ika:periodic-refresh', update)
+    return () => window.removeEventListener('ika:periodic-refresh', update)
+  }, [])
   return (
     <Routes>
       <Route path="/" element={<Home />} />
