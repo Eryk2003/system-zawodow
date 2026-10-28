@@ -14,7 +14,7 @@ const safeText = (value, fallback = '-') => String(value || '').trim() || fallba
 
 function AthleteIdentifierCard({ row, onPrintOne }) {
   const athleteName = `${safeText(row.athlete.firstName, '')} ${safeText(row.athlete.lastName, '')}`.trim()
-  const lookupUrl = `${window.location.origin}/rodzic?athlete=${encodeURIComponent(row.athlete.id)}`
+  const lookupUrl = `${window.location.origin}/zawodnik?athlete=${encodeURIComponent(row.athlete.id)}`
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&format=png&data=${encodeURIComponent(lookupUrl)}`
   const categoriesLabel = row.categories.join(' • ') || 'Brak kategorii'
 

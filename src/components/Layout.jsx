@@ -21,7 +21,7 @@ export function PublicHeader() {
       <Brand />
       <nav className="public-nav">
         <NavLink to="/aktualnosci">{t.news}</NavLink>
-        <NavLink to="/rodzic">{t.athleteZone}</NavLink>
+        <NavLink to="/zawodnik">{t.athleteZone}</NavLink>
         <NavLink to="/klasyfikacja">{t.rankings}</NavLink>
         <NavLink to="/telebim">{t.scoreboard}</NavLink>
         {user ? <NavLink to={user.role === 'organizer' ? '/organizator' : '/panel'}>{user.role === 'organizer' ? t.organizer : t.clubEntries}</NavLink> : <NavLink to="/logowanie">{t.clubLogin}</NavLink>}
@@ -65,7 +65,7 @@ export function DashboardLayout({ title, children, organizer = false, showHeadin
       <main className="dashboard-main">
         <div className="page-heading">
           <div><span className="eyebrow">{organizer ? t.organizerPanel : t.clubPanel}</span><h1>{title}</h1></div>
-          {showHeadingActions && <div className="heading-actions"><Link className="btn btn-outline" to="/rodzic">{t.athletePreview}</Link><Link className="btn btn-outline" to="/klasyfikacja">{t.rankings}</Link>{organizer && <Link className="btn btn-outline" to="/telebim" target="_blank">{t.openScoreboard}</Link>}</div>}
+          {showHeadingActions && <div className="heading-actions"><Link className="btn btn-outline" to="/zawodnik">{t.athletePreview}</Link><Link className="btn btn-outline" to="/klasyfikacja">{t.rankings}</Link>{organizer && <Link className="btn btn-outline" to="/telebim" target="_blank">{t.openScoreboard}</Link>}</div>}
         </div>
         {user?.authProvider === 'temporary-test' && <div className="alert alert-warning temp-organizer-warning"><strong>TRYB TESTOWY ORGANIZATORA</strong><span> Dostęp ważny do 23.10.2026, 23:59. Zmiany prywatnych danych Supabase nie są w tym trybie synchronizowane.</span></div>}
         {children}

@@ -6,7 +6,7 @@ import { useAuth } from '../lib/AuthContext'
 import { db } from '../lib/demoStore'
 
 const emptyAthlete = {
-  firstName: '', lastName: '', birthDate: '', gender: '', grade: '', parentName: '', parentEmail: '', photo: '',
+  firstName: '', lastName: '', birthDate: '', gender: '', grade: '', photo: '',
 }
 
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase('pl')
@@ -122,8 +122,6 @@ function AthleteForm({ clubId, initial, onSaved, onCancel }) {
       <label>Data urodzenia<input required type="date" value={form.birthDate} onChange={(e) => setForm({ ...form, birthDate: e.target.value })} /></label>
       <label>Płeć<select required value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
       <label>Stopień / kyu<input value={form.grade} onChange={(e) => setForm({ ...form, grade: e.target.value })} placeholder="np. 6 kyu" /></label>
-      <label>Imię i nazwisko rodzica / opiekuna<input value={form.parentName} onChange={(e) => setForm({ ...form, parentName: e.target.value })} /></label>
-      <label className="span-2">E-mail rodzica / opiekuna<input type="email" value={form.parentEmail} onChange={(e) => setForm({ ...form, parentEmail: e.target.value })} /></label>
       <div className="form-actions span-2"><button type="button" className="btn btn-ghost" onClick={onCancel}>Anuluj</button><button className="btn btn-primary">Zapisz zawodnika</button></div>
     </form>
   )
@@ -200,7 +198,6 @@ export default function ClubPanel() {
       `${athlete.firstName} ${athlete.lastName}`,
       athlete.birthDate,
       athlete.grade,
-      athlete.parentName,
     ].filter(Boolean).join(' ')).includes(query))
   }, [athletes, athleteSearch])
 
@@ -214,8 +211,6 @@ export default function ClubPanel() {
       `${athlete.firstName} ${athlete.lastName}`,
       athlete.birthDate,
       athlete.grade,
-      athlete.parentName,
-      athlete.parentEmail,
     ].filter(Boolean).join(' ')).includes(query))
   }, [athletes, clubAthleteSearch])
 
@@ -388,8 +383,8 @@ export default function ClubPanel() {
         {!athletes.length ? (
           <EmptyState title="Brak zawodników" text="Dodaj pierwszego zawodnika. Będzie można zgłosić go do kategorii dostępnych na aktywnych zawodach." />
         ) : (
-          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Data urodzenia</th><th>Stopień</th><th>Rodzic / opiekun</th><th></th></tr></thead><tbody>
-            {filteredClubAthletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '-'}</small></div></div></td><td>{athlete.birthDate || '-'}</td><td>{athlete.grade || '-'}</td><td><strong>{athlete.parentName || '-'}</strong><small className="block-small">{athlete.parentEmail || ''}</small></td><td className="actions-cell"><button className="link-btn" type="button" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" type="button" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
+          <div className="table-wrap"><table><thead><tr><th>Zawodnik</th><th>Data urodzenia</th><th>Stopień</th><th></th></tr></thead><tbody>
+            {filteredClubAthletes.map((athlete) => <tr key={athlete.id}><td><div className="athlete-cell"><AthleteAvatar athlete={athlete} /><div><strong>{athlete.firstName} {athlete.lastName}</strong><small>{athlete.gender === 'K' ? 'Kobieta' : athlete.gender === 'M' ? 'Mężczyzna' : '-'}</small></div></div></td><td>{athlete.birthDate || '-'}</td><td>{athlete.grade || '-'}</td><td className="actions-cell"><button className="link-btn" type="button" onClick={() => { setEditing(athlete); setShowForm(true) }}>Edytuj</button><button className="link-btn danger" type="button" onClick={() => { if (confirm('Usunąć zawodnika?')) { db.deleteAthlete(athlete.id); refreshAthletes() } }}>Usuń</button></td></tr>)}
           </tbody></table></div>
         )}
       </section>

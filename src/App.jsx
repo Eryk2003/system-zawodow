@@ -1,5 +1,5 @@
 import React from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Home from './pages/Home'
 import AuthPage from './pages/AuthPage'
@@ -25,6 +25,11 @@ function ProtectedRoute({ children, role }) {
   return children
 }
 
+function LegacyAthleteRedirect() {
+  const location = useLocation()
+  return <Navigate to={`/zawodnik${location.search}`} replace />
+}
+
 export default function App() {
   /* ETAP 73: odswiezanie widokow bez przeładowania */
   const [, setLastRefresh] = useState(0)
@@ -40,7 +45,8 @@ export default function App() {
       <Route path="/logowanie" element={<AuthPage mode="login" />} />
       <Route path="/rejestracja" element={<AuthPage mode="register" />} />
       <Route path="/organizator/logowanie" element={<AuthPage mode="organizer" />} />
-      <Route path="/rodzic" element={<ParentLookup />} />
+      <Route path="/zawodnik" element={<ParentLookup />} />
+      <Route path="/rodzic" element={<LegacyAthleteRedirect />} />
       <Route path="/klasyfikacja" element={<RankingsPage />} />
       <Route path="/telebim" element={<Telebim />} />
       <Route path="/tatami/:mat" element={<TatamiDisplay />} />
