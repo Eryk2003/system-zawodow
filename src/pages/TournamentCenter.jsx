@@ -120,6 +120,8 @@ export default function TournamentCenter() {
   const kataSessions = db.getKataSessions()
   const schedule = db.getSchedule()
   const news = db.getNews()
+  const matStates = db.getMatStates()
+  const matNames = Array.from({ length: Math.max(1, Number(tournament.matCount) || 1) }, (_, index) => `Tatami ${index + 1}`)
 
   const selectedAthlete = athletes.find((a) => a.id === entryForm.athleteId)
   const selectedAthleteAge = selectedAthlete ? ageOnDate(selectedAthlete.birthDate, tournament.date) : null
@@ -134,6 +136,19 @@ export default function TournamentCenter() {
   })
 
   const refresh = () => setRefreshKey((v) => v + 1)
+
+  /* ETAP 86B - przerwa osobno na tatami */
+  const toggleBreakForMat = (mat, enabled) => {
+    try {
+      db.setMatBreakMode(mat, enabled)
+      setMessage(enabled ? `${mat}: włączono przerwę i plakat na telewizorze.` : `${mat}: wznowiono normalny widok TV.`)
+      setError('')
+      refresh()
+    } catch (err) {
+      setMessage('')
+      setError(err?.message || 'Nie udało się zmienić widoku tatami.')
+    }
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -315,6 +330,35 @@ export default function TournamentCenter() {
       </div>
 
       <AutoTatamiTv matCount={tournament.matCount || 1} />
+
+      <section className="panel-section break-display-panel ika86b-break-panel">
+        <div className="panel-section-head">
+          <div>
+            <span className="eyebrow">Telebimy</span>
+            <h2>Przerwa na tatami</h2>
+            <p>Włącz plakat tylko na wybranym tatami. Na pozostałych telewizorach walki i wyniki będą widoczne normalnie.</p>
+          </div>
+        </div>
+        {!tournament.poster && <div className="alert alert-info">Nie dodano plakatu zawodów. W czasie przerwy TV pokaże ekran BREAK.</div>}
+        <div className="ika86b-break-list">
+          {matNames.map((mat) => {
+            const paused = Boolean(matStates[mat]?.breakActive || matStates[mat]?.mode === 'break')
+            const clockRunning = matches.some((match) => match.mat === mat && match.status === 'active' && match.timerRunning)
+            return (
+              <div className={`ika86b-break-row ${paused ? 'is-break' : ''}`} key={mat}>
+                <div className="ika86b-break-info">
+                  <strong>{mat}</strong>
+                  <span>{paused ? 'PRZERWA — PLAKAT NA TV' : clockRunning ? 'WALKA TRWA — zatrzymaj zegar przed przerwą' : 'Normalny widok telebimu'}</span>
+                </div>
+                <div className="ika86b-break-actions">
+                  <button type="button" className="btn btn-primary" disabled={paused || clockRunning} onClick={() => toggleBreakForMat(mat, true)}>Włącz przerwę</button>
+                  <button type="button" className="btn btn-outline" disabled={!paused} onClick={() => toggleBreakForMat(mat, false)}>Wznów TV</button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-error">{error}</div>}

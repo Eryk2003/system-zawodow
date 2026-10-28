@@ -158,6 +158,31 @@ export default function TatamiDisplay() {
     return [...map.values()].sort((a, b) => a.index - b.index)
   }, [payload.matches])
 
+  /* ETAP 86B - ekran przerwy na wybranym tatami */
+  if (payload.state?.breakActive || payload.state?.mode === 'break') {
+    return (
+      <main className="tatami-screen ika86b-tv-break-screen">
+        <FullscreenControl />
+        <header className="ika86b-tv-break-header">
+          <div><strong>IKA POLAND</strong><span>{payload.tournament?.name || ''}</span></div>
+          <div><b>BREAK</b><span>The event will resume soon</span></div>
+          <div><b>{matName}</b><span>Intermission</span></div>
+        </header>
+        <section className="ika86b-tv-break-stage">
+          {payload.tournament?.poster ? (
+            <img className="ika86b-tv-break-poster" src={payload.tournament.poster} alt={`Poster - ${payload.tournament?.name || 'IKA Poland'}`} />
+          ) : (
+            <div className="ika86b-tv-break-placeholder">
+              <strong>BREAK</strong>
+              <span>{payload.tournament?.name || 'IKA POLAND'}</span>
+              <small>Please wait for the next bout.</small>
+            </div>
+          )}
+        </section>
+      </main>
+    )
+  }
+
   if (!payload.matches.length && !payload.kata) {
     return (
       <main className="tatami-screen tatami-empty">

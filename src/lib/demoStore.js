@@ -862,6 +862,33 @@ export const db = {
   getMatStates: () => read(KEYS.matStates, {}),
   getMatState: (mat) => read(KEYS.matStates, {})[mat] || null,
   setMatState: (mat, patch) => { const next = setMatStateInternal(mat, patch); emit(); return next },
+  /* ETAP 86B - przerwa osobno na kazdym tatami */
+  setMatBreakMode: (mat, enabled) => {
+    const tournament = db.getTournament()
+    const matCount = Math.max(1, Number(tournament?.matCount) || 1)
+    const validMats = Array.from({ length: matCount }, (_, index) => `Tatami ${index + 1}`)
+    if (!validMats.includes(mat)) throw new Error('Nieprawidlowe tatami.')
+
+    if (enabled && db.getMatches().some((match) => match.mat === mat && match.status === 'active' && match.timerRunning)) {
+      throw new Error('Najpierw zatrzymaj zegar aktywnej walki na tym tatami.')
+    }
+    const states = read(KEYS.matStates, {})
+    const before = states[mat] || { mat }
+    const isOnBreak = Boolean(before.breakActive || before.mode === 'break')
+    if (isOnBreak === Boolean(enabled)) return before
+    const previousMode = before.mode === 'break' ? (before.breakPreviousMode || 'bracket') : (before.mode || 'bracket')
+    const next = {
+      ...before,
+      mat,
+      breakActive: Boolean(enabled),
+      breakPreviousMode: enabled ? previousMode : null,
+      mode: enabled ? 'break' : previousMode,
+      updatedAt: Date.now(),
+    }
+    write(KEYS.matStates, { ...states, [mat]: next })
+    emit()
+    return next
+  },
 
   getKataSessions: () => read(KEYS.kataSessions, []),
   getKataSession: (sessionId) => read(KEYS.kataSessions, []).find((session) => session.id === sessionId) || null,

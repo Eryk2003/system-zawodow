@@ -1309,3 +1309,27 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
     }
   }
 }
+
+
+/* ETAP 86B - przerwa osobno na tatami */
+.ika86b-break-list{display:grid;gap:12px;margin-top:16px}
+.ika86b-break-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border:1px solid #dedee4;border-radius:15px;background:#fafafa}
+.ika86b-break-row.is-break{background:#fff5ef;border-color:#e2b582}
+.ika86b-break-info{display:grid;gap:6px}
+.ika86b-break-info strong{font-size:18px;font-weight:950;color:#161618}
+.ika86b-break-info span{font-size:12px;font-weight:800;color:#75757d}
+.ika86b-break-row.is-break .ika86b-break-info span{color:#ae4518}
+.ika86b-break-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ika86b-break-actions .btn{min-width:145px}
+.ika86b-break-actions button:disabled{opacity:.38;cursor:not-allowed}
+@media(max-width:700px){.ika86b-break-row{flex-direction:column;align-items:stretch}.ika86b-break-actions .btn{flex:1;min-width:0}}
+/* Wersja samodzielna: wyswietlana gdy ETAP 86 nie byl wczesniej instalowany. */
+.ika86b-tv-break-screen{min-height:100vh;background:radial-gradient(circle at top,#28100e 0%,#070709 42%,#000 100%);color:#fff;display:flex;flex-direction:column}
+.ika86b-tv-break-header{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:center;padding:22px 26px;border-bottom:1px solid rgba(255,255,255,.08);text-transform:uppercase}
+.ika86b-tv-break-header strong,.ika86b-tv-break-header b{display:block;font-size:clamp(25px,2.2vw,38px);font-weight:1000;letter-spacing:.03em}.ika86b-tv-break-header strong{color:#ef3b2d}
+.ika86b-tv-break-header span{display:block;margin-top:4px;font-size:clamp(13px,1vw,18px);color:#d8d8de}.ika86b-tv-break-header>div:nth-child(2){text-align:center}.ika86b-tv-break-header>div:last-child{text-align:right}
+.ika86b-tv-break-stage{flex:1;display:flex;align-items:center;justify-content:center;padding:28px;min-height:0}
+.ika86b-tv-break-poster{display:block;max-width:min(94vw,1550px);max-height:calc(100vh - 160px);width:auto;height:auto;border-radius:18px;box-shadow:0 20px 70px rgba(0,0,0,.45);object-fit:contain;background:#111}
+.ika86b-tv-break-placeholder{width:min(920px,90vw);min-height:56vh;border-radius:28px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);display:grid;place-items:center;gap:14px;padding:40px;text-align:center}
+.ika86b-tv-break-placeholder strong{font-size:clamp(44px,5vw,86px);font-weight:1000;letter-spacing:.08em;color:#ef3b2d}.ika86b-tv-break-placeholder span{font-size:clamp(20px,2vw,34px);font-weight:800}.ika86b-tv-break-placeholder small{font-size:clamp(15px,1vw,20px);color:#dadade}
+@media(max-width:900px){.ika86b-tv-break-header{grid-template-columns:1fr;text-align:center}.ika86b-tv-break-header>div:last-child{text-align:center}.ika86b-tv-break-poster{max-height:calc(100vh - 240px)}}
