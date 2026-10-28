@@ -984,3 +984,64 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
     flex-basis: 28px !important;
   }
 }
+
+/* ETAP 75B - male loga klubow w sekcji podiow zakonczonych kategorii */
+/* Nie dotyka loga w tabeli, profilu klubu ani na telebimie. */
+.ranking-results-feed .ranking-result-grid article > div > .ika-ranking-podium-club {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  flex-wrap: wrap !important;
+  gap: 5px !important;
+  min-width: 0;
+  max-width: min(70%, 320px);
+  text-align: right;
+  line-height: 1.35;
+}
+.ranking-results-feed .ranking-result-grid .ika-ranking-podium-club .ika-club-logo {
+  display: inline-flex !important;
+  box-sizing: border-box !important;
+  position: static !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  flex: 0 0 32px !important;
+  border-radius: 7px !important;
+  overflow: hidden !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  font-size: 11px !important;
+}
+.ranking-results-feed .ranking-result-grid .ika-ranking-podium-club .ika-club-logo > img {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+}
+.ranking-results-feed .ranking-result-grid article > div > b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  .ranking-results-feed .ranking-result-grid article > div > .ika-ranking-podium-club {
+    max-width: 68%;
+  }
+  .ranking-results-feed .ranking-result-grid .ika-ranking-podium-club .ika-club-logo {
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    flex-basis: 28px !important;
+  }
+}
