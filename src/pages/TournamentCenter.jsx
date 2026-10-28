@@ -314,7 +314,7 @@ export default function TournamentCenter() {
       db.generateBracket({ competitionId: category.competitionId, category: category.name, categoryId: category.id, mat: slot.mat, shuffle: true })
       const key = bracketKey(category.competitionId, category.name, slot.mat)
       setSelectedBracket(key)
-      setMessage('Drabinka została wylosowana. Kolejność zawodników została ustalona losowo.')
+      setMessage('Drabinka została wylosowana z rozstawieniem klubowym. System ogranicza pojedynki zawodników tego samego klubu, szczególnie we wczesnych rundach.')
       refresh()
     } catch (err) {
       setError(err.message)
@@ -543,6 +543,7 @@ export default function TournamentCenter() {
           <label>Kategoria kumite<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => competitions.find((c) => c.id === category.competitionId)?.group === 'Kumite').map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); const slot = schedule.find((item) => item.competitionId === category.competitionId && item.category === category.name); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}{slot?.mat ? ` • ${slot.mat}` : ''}</option> })}</select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie drabinkę</button>
         </form>
+        <p className="field-hint">Losowanie klubowe: zawodnicy tego samego klubu są rozstawiani możliwie daleko od siebie. Nie zawsze da się całkowicie uniknąć spotkania klubowiczów.</p>
 
         {!!bracketGroups.length && (
           <div className="bracket-tabs">

@@ -2,6 +2,7 @@ import { DEFAULT_COMPETITIONS, DEFAULT_TOURNAMENT } from './defaults.js'
 import { queueCloudWrite } from './cloudSync.js'
 import { getKumiteWinRule } from './kumiteRules.js'
 import { MAX_BRACKET_ATHLETES, planOpeningRound } from './bracketUtils.js'
+import { seedBracketByClub } from './clubSeeding.js'
 
 const KEYS = {
   accounts: 'ika_accounts_v1',
@@ -1283,12 +1284,9 @@ export const db = {
     if (athleteIds.length < 2) throw new Error('Do utworzenia drabinki kumite potrzeba co najmniej 2 zawodników.')
     if (athleteIds.length > MAX_BRACKET_ATHLETES) throw new Error(`Jedna drabinka może mieć maksymalnie ${MAX_BRACKET_ATHLETES} zawodników.`)
 
-    if (shuffle) {
-      for (let i = athleteIds.length - 1; i > 0; i -= 1) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[athleteIds[i], athleteIds[j]] = [athleteIds[j], athleteIds[i]]
-      }
-    }
+    /* ETAP 90 - rozstawienie klubowe kumite */
+    const athleteClubs = new Map(read(KEYS.athletes, []).map((athlete) => [athlete.id, athlete.clubId]))
+    const drawingIds = shuffle ? seedBracketByClub(athleteIds, athleteClubs) : athleteIds
 
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
     const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
@@ -1296,14 +1294,21 @@ export const db = {
     )
     const categoryBoutSeconds = getCategoryBoutSeconds(categoryRecord, tournament)
 
-    const allMatches = read(KEYS.matches, []).filter(
+    const storedMatches = read(KEYS.matches, [])
+    const currentCategoryMatches = storedMatches.filter(
+      (m) => m.competitionId === competitionId && m.category === category && m.mat === mat,
+    )
+    if (currentCategoryMatches.some((m) => m.status === 'active' || m.status === 'done' || m.winnerId)) {
+      throw new Error('Nie można przelosować drabinki po rozpoczęciu walk. Zachowano zapisane wyniki.')
+    }
+    const allMatches = storedMatches.filter(
       (m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat),
     )
     const created = []
     let queueOrder = 1
     let roundIndex = 0
     let slots = []
-    const openingPlan = planOpeningRound(athleteIds)
+    const openingPlan = planOpeningRound(drawingIds)
     const { bracketSize } = openingPlan
 
     // Dla niepełnej potęgi 2 powstaje wyłącznie tyle REALNYCH walk
@@ -1328,7 +1333,7 @@ export const db = {
       })
       roundIndex += 1
     } else {
-      slots = athleteIds.map((athleteId) => ({ athleteId }))
+      slots = drawingIds.map((athleteId) => ({ athleteId }))
     }
 
     while (slots.length >= 2) {

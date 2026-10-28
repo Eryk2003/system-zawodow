@@ -1,5 +1,8 @@
 // ETAP 70 — wspólne tłumaczenia interfejsu PL/EN.
 export const UI_TRANSLATIONS = Object.freeze({
+  "Drabinka została wylosowana z rozstawieniem klubowym. System ogranicza pojedynki zawodników tego samego klubu, szczególnie we wczesnych rundach.": "The bracket has been drawn with club-aware seeding. The system minimizes matches between athletes from the same club, especially in the early rounds.",
+  "Losowanie klubowe: zawodnicy tego samego klubu są rozstawiani możliwie daleko od siebie. Nie zawsze da się całkowicie uniknąć spotkania klubowiczów.": "Club-aware draw: athletes from the same club are placed as far apart as possible. Some same-club matches may be unavoidable.",
+  "Nie można przelosować drabinki po rozpoczęciu walk. Zachowano zapisane wyniki.": "You cannot redraw the bracket after matches have started. Saved results are preserved.",
   "Ładowanie…": "Loading…",
   "Łączenie z chmurą…": "Connecting to cloud…",
   "Aktualności": "News",
