@@ -1,3 +1,4 @@
+import { boutDurationFromSeconds, formatBoutDurationTyping, parseBoutDuration } from '../lib/boutDurationInput'
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { DashboardLayout, EmptyState } from '../components/Layout'
@@ -40,7 +41,7 @@ export default function CreateTournamentPage() {
     registrationDeadline: '',
     poster: '',
     venue: '',
-    avgBoutMinutes: '2',
+    avgBoutMinutes: '2:00',
     boutSeconds: '120',
     matCount: '3',
   })
@@ -119,13 +120,13 @@ export default function CreateTournamentPage() {
     setForm((current) => ({ ...current, matCount: normalizeNumericInput(value, { integer: true }) }))
   }
 
-  const updateBoutMinutes = (value) => {
-    const next = normalizeNumericInput(value)
-    const parsed = Number(next)
+  const updateBoutMinutes = (value, deleting = false) => {
+    const next = formatBoutDurationTyping(value, deleting)
+    const seconds = parseBoutDuration(next)
     setForm((current) => ({
       ...current,
       avgBoutMinutes: next,
-      boutSeconds: next === '' || !Number.isFinite(parsed) ? '' : String(Math.round(parsed * 60)),
+      boutSeconds: seconds === null ? '' : String(seconds),
     }))
   }
 
@@ -135,7 +136,7 @@ export default function CreateTournamentPage() {
     setForm((current) => ({
       ...current,
       boutSeconds: next,
-      avgBoutMinutes: next === '' || !Number.isFinite(parsed) ? '' : String(Math.round((parsed / 60) * 100) / 100),
+      avgBoutMinutes: next === '' || !Number.isFinite(parsed) ? '' : boutDurationFromSeconds(parsed),
     }))
   }
 
@@ -153,10 +154,10 @@ export default function CreateTournamentPage() {
       if (!Number.isNaN(eventStart.getTime()) && deadline.getTime() >= eventStart.getTime()) return setError('Termin zgłoszeń musi być wcześniejszy niż rozpoczęcie zawodów.')
     }
     const matCount = Number(form.matCount)
-    const avgBoutMinutes = Number(form.avgBoutMinutes)
+    const avgBoutMinutes = Number(form.boutSeconds) / 60
     const boutSeconds = Number(form.boutSeconds)
     if (!Number.isInteger(matCount) || matCount < 1) return setError('Wpisz prawidłową liczbę tatami / stanowisk.')
-    if (!Number.isFinite(avgBoutMinutes) || avgBoutMinutes <= 0) return setError('Wpisz prawidłowy czas walki w minutach.')
+    if (parseBoutDuration(form.avgBoutMinutes) === null || !Number.isFinite(avgBoutMinutes) || avgBoutMinutes <= 0) return setError('Wpisz prawidłowy czas walki w formacie min:sek (np. 1:30).')
     if (!Number.isInteger(boutSeconds) || boutSeconds < 1) return setError('Wpisz prawidłowy czas walki w sekundach.')
 
     const created = db.createTournament({
@@ -527,7 +528,7 @@ export default function CreateTournamentPage() {
             <label className="span-2">Termin zgłoszeń klubów<input type="datetime-local" value={form.registrationDeadline} onChange={(event) => setForm({ ...form, registrationDeadline: event.target.value })} /><small className="field-hint">Po tym terminie kluby nadal zobaczą zawody i swoje zgłoszenia, ale nie będą mogły ich zmieniać.</small></label>
             <label className="span-2">Miejsce zawodów<input required value={form.venue} onChange={(event) => setForm({ ...form, venue: event.target.value })} placeholder="np. Hala Sportowa, Raszyn" /></label>
             <label>Liczba tatami / stanowisk<input className="numeric-input" inputMode="numeric" value={form.matCount} onChange={(event) => updateMatCount(event.target.value)} placeholder="np. 5" /></label>
-            <label>Czas walki (min)<input className="numeric-input" inputMode="decimal" value={form.avgBoutMinutes} onChange={(event) => updateBoutMinutes(event.target.value)} placeholder="np. 1" /></label>
+            <label>Czas walki (min:sek)<input className="numeric-input" inputMode="numeric" value={form.avgBoutMinutes} onChange={(event) => updateBoutMinutes(event.target.value, event.nativeEvent?.inputType?.startsWith('delete') || false)} onBlur={() => setForm((current) => { const seconds = parseBoutDuration(current.avgBoutMinutes); return seconds === null ? current : { ...current, avgBoutMinutes: boutDurationFromSeconds(seconds) } })} placeholder="np. 1:30" /></label>
             <label>Czas walki (sek.)<input className="numeric-input" inputMode="numeric" value={form.boutSeconds} onChange={(event) => updateBoutSeconds(event.target.value)} placeholder="np. 60" /><small className="field-hint">Sekundy przeliczają się automatycznie z minut, np. 1 min = 60 sek.</small></label>
           </div>
         </section>
