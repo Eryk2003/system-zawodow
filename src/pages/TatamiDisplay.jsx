@@ -391,6 +391,10 @@ export default function TatamiDisplay() {
 
   if (displayMode === 'scoreboard' && payload.currentMatch) {
     const m = payload.currentMatch
+    /* ETAP 74: zwyciezca walki na TV */
+    const isFinished = m.status === 'done' && Boolean(m.winnerId)
+    const isRedWinner = isFinished && m.winnerId === m.redResolvedId
+    const isBlueWinner = isFinished && m.winnerId === m.blueResolvedId
     return (
       <main className="tatami-screen scoreboard-screen">
         <FullscreenControl />
@@ -399,7 +403,7 @@ export default function TatamiDisplay() {
           <div><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
         </header>
         <section className="scoreboard-body">
-          <div className={`fighter fighter-red ${sideTheme.red.className}`}>
+          <div className={`fighter fighter-red ${sideTheme.red.className} ${isFinished ? (isRedWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
             <div className="fighter-side">{sideTheme.red.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.redAthlete?.photo ? (
@@ -412,16 +416,17 @@ export default function TatamiDisplay() {
             </div>
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
+            {isRedWinner && <div className="ika74-winner-badge ika74-winner-badge-tv">ZWYCIĘZCA</div>}
             <strong className="score-number">{scoreText(m.redScore)}</strong>
             <TechniqueScoreColumns match={m} side="red" mode="tv" />
             <div className="tv-penalties-grid">{renderTvPenalty(m, 'red', 'exit')}{renderTvPenalty(m, 'red', 'behavior')}</div>
           </div>
           <div className="fight-center">
-            <span>{m.roundName} • WALKA {m.matchNo}</span>
+            <span>{isFinished ? 'WALKA ZAKOŃCZONA' : `${m.roundName} • WALKA ${m.matchNo}`}</span>
             <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>HANSOKU = PRZEGRANA</small>
+            <small>{isFinished ? 'ZWYCIĘZCA' : (m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY')}</small><small>HANSOKU = PRZEGRANA</small>
           </div>
-          <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
+          <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className} ${isFinished ? (isBlueWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
             <div className="fighter-side">{sideTheme.blue.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.blueAthlete?.photo ? (
@@ -434,6 +439,7 @@ export default function TatamiDisplay() {
             </div>
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
+            {isBlueWinner && <div className="ika74-winner-badge ika74-winner-badge-tv">ZWYCIĘZCA</div>}
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
             <TechniqueScoreColumns match={m} side="blue" mode="tv" />
             <div className="tv-penalties-grid">{renderTvPenalty(m, 'blue', 'exit')}{renderTvPenalty(m, 'blue', 'behavior')}</div>

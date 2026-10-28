@@ -78,7 +78,7 @@ export default function JudgePanel() {
   }
 
   const showBracket = () => run(() => db.setMatState(matName, {
-    mode: 'bracket', competitionId, category, currentMatchId: null,
+    mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null,
   }), 'Na tablicy TV wyświetlana jest drabinka.')
 
   const start = () => {
@@ -137,9 +137,20 @@ export default function JudgePanel() {
     )
   }
 
+  /* ETAP 74: ostatnia zakonczona walka */
+  const lastCompleted = matState?.lastCompletedMatchId
+    ? resolvedMatches.find((match) => match.id === matState.lastCompletedMatchId && match.status === 'done' && match.winnerId)
+    : null
+  const winnerPresentation = !active && lastCompleted &&
+    Date.now() - Number(lastCompleted.completedAt || 0) >= 0 &&
+    Date.now() - Number(lastCompleted.completedAt || 0) < 12000
+    ? lastCompleted : null
+  const shownMatch = active || winnerPresentation || next
   const activeRaw = active ? allMatches.find((m) => m.id === active.id) : null
-  const red = athlete((active || next)?.redResolvedId)
-  const blue = athlete((active || next)?.blueResolvedId)
+  const red = athlete(shownMatch?.redResolvedId)
+  const blue = athlete(shownMatch?.blueResolvedId)
+  const isRedWinner = Boolean(winnerPresentation && winnerPresentation.winnerId === winnerPresentation.redResolvedId)
+  const isBlueWinner = Boolean(winnerPresentation && winnerPresentation.winnerId === winnerPresentation.blueResolvedId)
 
   const renderPenaltyPanel = (side) => {
     const exitLevel = penaltyLevelFor(activeRaw, side, 'exit')
@@ -185,11 +196,12 @@ export default function JudgePanel() {
       {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}
 
       <section className="judge-current">
-        <div className={`judge-fighter ${theme.red.className}`}>
+        <div className={`judge-fighter ${theme.red.className} ${winnerPresentation ? (isRedWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
           <span className="judge-side-code">{theme.red.code}</span>
           <h2>{red.name}</h2>
+          {isRedWinner && <div className="ika74-winner-badge">ZWYCIĘZCA</div>}
           <p>{red.club}</p>
-          <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
+          <strong className="judge-score">{scoreText((active || winnerPresentation)?.redScore || 0)}</strong>
           {active && <>
             <TechniqueScoreColumns match={activeRaw} side="red" onChange={changeTechniqueScore} />
 {renderPenaltyPanel('red')}
@@ -197,8 +209,8 @@ export default function JudgePanel() {
         </div>
 
         <div className="judge-center">
-          <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
-          <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
+          <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : winnerPresentation ? 'WALKA ZAKOŃCZONA' : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
+          <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : winnerPresentation ? getComputedRemaining(winnerPresentation) : tournament.boutSeconds)}</strong>
           <small>KARY OSOBNO: WYCHODZENIE ZA MATĘ oraz NIESPORTOWE ZACHOWANIE</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
@@ -218,11 +230,12 @@ export default function JudgePanel() {
           ) : <strong className="judge-done">KONIEC DRABINKI</strong>}
         </div>
 
-        <div className={`judge-fighter ${theme.blue.className}`}>
+        <div className={`judge-fighter ${theme.blue.className} ${winnerPresentation ? (isBlueWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
           <span className="judge-side-code">{theme.blue.code}</span>
           <h2>{blue.name}</h2>
+          {isBlueWinner && <div className="ika74-winner-badge">ZWYCIĘZCA</div>}
           <p>{blue.club}</p>
-          <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
+          <strong className="judge-score">{scoreText((active || winnerPresentation)?.blueScore || 0)}</strong>
           {active && <>
             <TechniqueScoreColumns match={activeRaw} side="blue" onChange={changeTechniqueScore} />
 {renderPenaltyPanel('blue')}

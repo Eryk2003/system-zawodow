@@ -917,3 +917,12 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika73-club-source b{font-weight:1000;color:inherit}
 .ika73-selected-club{display:block;margin-top:8px;padding:10px 12px;border-left:4px solid #e1261c;background:#fff4f3;border-radius:6px;color:#70201d;font-weight:800}
 .ika73-selected-club b{font-weight:1000}
+
+/* ETAP 74: wyroznienie zwyciezcy, przygaszenie przegranego */
+.ika74-winner,.ika74-loser{transition:opacity .4s ease,filter .4s ease,box-shadow .4s ease}
+.judge-current>.judge-fighter.ika74-loser,.scoreboard-body>.fighter.ika74-loser{opacity:.28;filter:grayscale(1) brightness(.75)}
+.judge-current>.judge-fighter.ika74-winner,.scoreboard-body>.fighter.ika74-winner{position:relative;z-index:1;box-shadow:inset 0 0 0 5px #f4cc61,0 0 32px rgba(244,204,97,.28)}
+.ika74-winner-badge{align-self:center;width:max-content;max-width:100%;padding:12px 24px;margin:12px auto;border-radius:14px;background:linear-gradient(135deg,#ffe69d,#e9b74b);border:2px solid #fff3be;color:#241700;font-size:clamp(19px,2vw,31px);font-weight:1000;letter-spacing:.12em;line-height:1.1;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.26)}
+.ika74-winner-badge-tv{font-size:clamp(21px,2.5vw,38px);padding:12px 26px;margin:12px auto 2px}
+@media(max-width:1200px){.ika74-winner-badge{padding:10px 12px;letter-spacing:.05em}}
+@media(prefers-reduced-motion:reduce){.ika74-winner,.ika74-loser{transition:none}}

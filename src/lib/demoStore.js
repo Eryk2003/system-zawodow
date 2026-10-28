@@ -1582,7 +1582,16 @@ export function getTatamiPayload(mat) {
     ? matches.filter((m) => m.competitionId === state.competitionId && m.category === state.category)
     : matches
   const resolved = relevant.map((m) => resolveMatch(m, allMatches))
-  const current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
+  let current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
+  /* ETAP 74: prezentacja zwyciezcy ostatniej walki */
+  const lastCompletedMatch = state?.lastCompletedMatchId
+    ? resolved.find((match) => match.id === state.lastCompletedMatchId && match.status === 'done' && match.winnerId)
+    : null
+  const winnerDisplayActive = Boolean(
+    lastCompletedMatch && (!current || current.status !== 'active') &&
+    Date.now() - Number(lastCompletedMatch.completedAt || 0) >= 0 &&
+    Date.now() - Number(lastCompletedMatch.completedAt || 0) < 12000
+  )
   const next = resolved.find((m) => m.status !== 'done' && m.redResolvedId && m.blueResolvedId) || null
   const hydrate = (id) => {
     const athlete = athletes.find((a) => a.id === id)
@@ -1599,6 +1608,10 @@ export function getTatamiPayload(mat) {
     || null
 
   let displayMode = state?.mode || 'bracket'
+  if (winnerDisplayActive && (displayMode === 'bracket' || displayMode === 'podium')) {
+    current = lastCompletedMatch
+    displayMode = 'scoreboard'
+  }
   if (state?.mode === 'kata-final' && kataSession) {
     const elapsed = Math.max(0, Date.now() - Number(state.kataFinalShownAt || Date.now()))
     if (elapsed < 5000) displayMode = 'kata-final'
