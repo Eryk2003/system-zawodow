@@ -55,7 +55,17 @@ export default function CreateTournamentPage() {
   const [posterError, setPosterError] = useState('')
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const competitions = db.getCompetitions().filter((item) => item.active !== false)
+  /* ETAP 85 - filtr konkurencji w kreatorze zawodow */
+  const unusedCompetitionIds = new Set(['kodachi', 'obstacle'])
+  const competitions = db.getCompetitions().filter((item) => {
+    if (item.active === false) return false
+    if (!unusedCompetitionIds.has(item.id)) return true
+    // Nie ukrywamy konkurencji uzytych w juz zapisanych zawodach.
+    return Boolean(
+      createdTournament?.competitionIds?.includes(item.id) ||
+      categories.some((category) => category.competitionId === item.id)
+    )
+  })
   const allAthletes = db.getAthletes()
   const athletes = organizerClub ? db.getAthletesForClub(organizerClub.id) : []
   const entries = db.getEntries()
