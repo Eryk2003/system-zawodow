@@ -27,6 +27,15 @@ const boutTimeText = (seconds) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
+const formatDisplayTime = (value) => {
+  if (!value) return '-'
+  const text = String(value).trim()
+  if (!text) return '-'
+  const parts = text.split(':')
+  if (parts.length >= 2) return parts[0] + ':' + parts[1]
+  return text
+}
+
 const formatRegistrationDeadline = (value) => {
   if (!value) return 'Nie ustawiono'
   const date = new Date(value)
@@ -385,7 +394,7 @@ export default function TournamentCenter() {
         {!!decorated.length && (
           <div className="schedule-list athlete-schedule-list">
             {decorated.map((entry) => <article className={`schedule-card ${liveId === entry.id ? 'schedule-live' : ''}`} key={entry.id}>
-              <div className="schedule-time"><strong>{entry.estimatedStart || '-'}</strong><small>{entry.mat || '-'}</small></div>
+              <div className="schedule-time"><strong>{formatDisplayTime(entry.estimatedStart)}</strong><small>{entry.mat || '-'}</small></div>
               <AthleteAvatar athlete={entry.athlete} />
               <div className="schedule-person"><strong>{entry.athlete ? `${entry.athlete.firstName} ${entry.athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{entry.competition?.name || '-'} • {entry.category || '-'}</span><small className="ika73-club-source">Klub zgłaszający: <b>{entry.club?.name || entry.club?.shortName || 'Nieprzypisany klub'}</b></small></div>
               <StatusBadge status={entry.status} />
