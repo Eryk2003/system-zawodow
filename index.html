@@ -1,6 +1,34 @@
 <!doctype html>
 <html lang="pl">
   <head>
+    <!-- IKA ETAP 81: natychmiastowy ekran startowy -->
+    <style id="ika-startup-css">
+      html { background: #0b0b0e; }
+      body { margin: 0; background: #0b0b0e; }
+      #ika-startup-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        min-height: 100dvh;
+        background: radial-gradient(ellipse at 55% 28%, #2a1214 0%, #101013 44%, #09090b 100%);
+        color: #fff;
+        font: 800 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        text-align: center;
+      }
+      #ika-startup-screen .ika-startup-logo {font-size: clamp(32px, 6vw, 56px); font-weight: 950; letter-spacing: -.045em; }
+      #ika-startup-screen .ika-startup-logo span { color: #e1261c; }
+      #ika-startup-screen .ika-startup-subtitle { font-size: 13px; font-weight: 700; letter-spacing: .16em; color: #bfc0c6; }
+      #ika-startup-screen .ika-startup-progress { width: 178px; height: 4px; overflow: hidden; border-radius: 8px; background: #36363a; margin: 14px 0 0; }
+      #ika-startup-screen .ika-startup-progress::after {content: ''; display: block; width: 42%; height: 100%; border-radius: inherit; background: #e1261c; animation: ika-startup-progress 1.25s ease-in-out infinite alternate; }
+      @keyframes ika-startup-progress {from {transform: translateX(0);} to {transform: translateX(245%);} }
+      #ika-startup-screen .ika-startup-message {font-size: 13px; color: #bfc0c6; font-weight: 600;}
+      @media (prefers-reduced-motion: reduce) {#ika-startup-screen .ika-startup-progress::after {animation: none; width: 100%; transform: none;}}
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0b0b0d" />
@@ -9,7 +37,14 @@
     <title>System Zawodów - IKA Poland</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="ika-startup-screen" role="status" aria-live="polite" aria-label="Ładowanie systemu IKA Poland">
+        <div class="ika-startup-logo">IKA <span>POLAND</span></div>
+        <div class="ika-startup-subtitle">SYSTEM ZAWODÓW</div>
+        <div class="ika-startup-progress" aria-hidden="true"></div>
+        <div class="ika-startup-message">Ładowanie systemu…</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
