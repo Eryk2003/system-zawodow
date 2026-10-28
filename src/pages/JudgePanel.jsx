@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
+import LiveBoutClock from '../components/LiveBoutClock.jsx'
 import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 
@@ -33,7 +34,7 @@ export default function JudgePanel() {
     const handle = () => refresh()
     window.addEventListener('storage', handle)
     window.addEventListener('ika:data', handle)
-    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); refresh() }, 500)
+    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); refresh() }, 1200)
     return () => {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
@@ -219,7 +220,7 @@ export default function JudgePanel() {
 
         <div className="judge-center">
           <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : winnerPresentation ? 'WALKA ZAKOŃCZONA' : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
-          <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : winnerPresentation ? getComputedRemaining(winnerPresentation) : tournament.boutSeconds)}</strong>
+          <LiveBoutClock match={active ? activeRaw : winnerPresentation} fallbackSeconds={tournament.boutSeconds} className="judge-clock" />
           <small>KARY OSOBNO: WYCHODZENIE ZA MATĘ oraz NIESPORTOWE ZACHOWANIE</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (

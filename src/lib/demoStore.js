@@ -1839,10 +1839,11 @@ export function getTatamiPayload(mat) {
     const club = athlete ? clubs.find((c) => c.id === athlete.clubId) : null
     return athlete ? { ...athlete, clubName: club?.shortName || club?.name || '' } : null
   }
-  const podium = buildTournamentPodiums().find((item) => {
+  /* ETAP 91 - podium tylko wtedy gdy jest potrzebne */
+  const podium = state?.mode === 'podium' ? buildTournamentPodiums().find((item) => {
     if (state?.categoryId) return item.categoryId === state.categoryId
     return item.competitionId === state?.competitionId && item.categoryName === state?.category && item.mat === mat
-  }) || null
+  }) || null : null
 
   const kataSession = (state?.kataSessionId ? kataSessions.find((session) => session.id === state.kataSessionId) : null)
     || kataSessions.find((session) => session.mat === mat && (!state?.competitionId || session.competitionId === state.competitionId) && (!state?.category || session.category === state.category))

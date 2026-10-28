@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
+import LiveBoutClock from '../components/LiveBoutClock.jsx'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
 import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
@@ -106,7 +107,7 @@ export default function TatamiDisplay() {
     }
     window.addEventListener('storage', refresh)
     window.addEventListener('ika:data', refresh)
-    const interval = setInterval(refresh, 500)
+    const interval = setInterval(refresh, 1200)
     return () => {
       window.removeEventListener('storage', refresh)
       window.removeEventListener('ika:data', refresh)
@@ -469,7 +470,7 @@ export default function TatamiDisplay() {
           </div>
           <div className="fight-center">
             <span>{isFinished ? 'BOUT FINISHED' : `${tvRound(m.roundName)} • BOUT ${m.matchNo}`}</span>
-            <div className="fight-clock">{fmt(m.remaining)}</div>
+            <LiveBoutClock match={m} className="fight-clock" />
             <small>{isFinished ? 'WINNER' : (m.timerRunning ? 'TIMER RUNNING' : 'TIMER STOPPED')}</small><small>HANSOKU = DEFEAT</small>
           </div>
           <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className} ${isFinished ? (isBlueWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
