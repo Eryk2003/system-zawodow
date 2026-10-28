@@ -45,7 +45,7 @@ export default function KataJudgePanel() {
     const handle = () => refresh()
     window.addEventListener('storage', handle)
     window.addEventListener('ika:data', handle)
-    const interval = setInterval(handle, 500)
+    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); handle() }, 500)
     return () => {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
@@ -53,10 +53,18 @@ export default function KataJudgePanel() {
     }
   }, [])
 
+  const matState = db.getMatState(matName)
+  const autoCountdown = db.getCategoryAutoTransition(matName)
   const sessions = db.getKataSessions()
-  const session = sessions.find((item) => item.id === requestedSessionId)
-    || sessions.find((item) => item.mat === matName)
+  const session = sessions.find((item) => item.id === (matState?.transitionAuto && matState.kataSessionId ? matState.kataSessionId : requestedSessionId))
+    || sessions.find((item) => item.mat === matName && item.status !== 'completed')
     || null
+
+  useEffect(() => {
+    if (matState?.transitionAuto && matState.mode === 'bracket' && matState.competitionId) {
+      window.location.replace(`/organizator/sedzia/${encodeURIComponent(matName)}?competitionId=${encodeURIComponent(matState.competitionId)}&category=${encodeURIComponent(matState.category || '')}`)
+    }
+  }, [matState?.transitionAuto, matState?.mode, matState?.competitionId, matState?.category, matName])
   const athletes = db.getAthletes()
   const clubs = db.getClubs()
   const competition = db.getCompetitions().find((item) => item.id === session?.competitionId) || null
@@ -100,6 +108,7 @@ export default function KataJudgePanel() {
   if (!session) {
     return (
       <main className="judge-screen judge-empty">
+        {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
         <div className="judge-topbar"><div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak listy startowej kata</h1><p>Najpierw utwórz listę startową dla kategorii kata w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
@@ -158,6 +167,7 @@ export default function KataJudgePanel() {
 
   return (
     <main className="judge-screen kata-judge-screen">
+      {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
       <header className="judge-topbar kata-judge-topbar">
         <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>

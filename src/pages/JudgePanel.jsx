@@ -33,7 +33,7 @@ export default function JudgePanel() {
     const handle = () => refresh()
     window.addEventListener('storage', handle)
     window.addEventListener('ika:data', handle)
-    const interval = setInterval(() => refresh(), 500)
+    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); refresh() }, 500)
     return () => {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
@@ -43,8 +43,15 @@ export default function JudgePanel() {
 
   const allMatches = db.getMatches()
   const matState = db.getMatState(matName)
-  const competitionId = params.get('competitionId') || matState?.competitionId || ''
-  const category = params.get('category') || matState?.category || ''
+  const competitionId = (matState?.transitionAuto ? matState.competitionId : null) || params.get('competitionId') || matState?.competitionId || ''
+  const category = (matState?.transitionAuto ? matState.category : null) || params.get('category') || matState?.category || ''
+  const autoCountdown = db.getCategoryAutoTransition(matName)
+
+  useEffect(() => {
+    if (matState?.transitionAuto && matState.mode === 'kata-list' && matState.kataSessionId) {
+      window.location.replace(`/organizator/kata-sedzia/${encodeURIComponent(matName)}?sessionId=${encodeURIComponent(matState.kataSessionId)}`)
+    }
+  }, [matState?.transitionAuto, matState?.mode, matState?.kataSessionId, matName])
   const competition = db.getCompetitions().find((c) => c.id === competitionId) || null
   const tournament = db.getTournament()
   const athletes = db.getAthletes()
@@ -131,6 +138,7 @@ export default function JudgePanel() {
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
+        {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
         <div className="judge-topbar"><div><strong>IKA POLAND</strong><span>Panel sędziego • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak drabinki na tym tatami</h1><p>Najpierw utwórz drabinkę kumite w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
@@ -187,6 +195,7 @@ export default function JudgePanel() {
 
   return (
     <main className={`judge-screen judge-${theme.mode}`}>
+      {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
       <header className="judge-topbar">
         <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>

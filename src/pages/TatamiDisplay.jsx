@@ -100,7 +100,10 @@ export default function TatamiDisplay() {
   const [completedView, setCompletedView] = useState('winner')
 
   useEffect(() => {
-    const refresh = () => setPayload(getTatamiPayload(matName))
+    const refresh = () => {
+      db.processCategoryAutoTransition(matName)
+      setPayload(getTatamiPayload(matName))
+    }
     window.addEventListener('storage', refresh)
     window.addEventListener('ika:data', refresh)
     const interval = setInterval(refresh, 500)
@@ -179,6 +182,22 @@ export default function TatamiDisplay() {
             </div>
           )}
         </section>
+      </main>
+    )
+  }
+
+  if (displayMode === 'next-category' && payload.autoNext?.next) {
+    return (
+      <main className="tatami-screen ika89-next-category-tv">
+        <FullscreenControl />
+        <div className="ika89-next-card">
+          <span>IKA POLAND • {matName}</span>
+          <h2>NEXT CATEGORY</h2>
+          <p>Starting soon</p>
+          <h1>{typeof tvCategory === 'function' ? tvCategory(payload.autoNext.next.category) : payload.autoNext.next.category}</h1>
+          <p>{typeof tvCategory === 'function' ? tvCategory(db.getCompetitions().find((c) => c.id === payload.autoNext.next.competitionId)?.name || '') : (db.getCompetitions().find((c) => c.id === payload.autoNext.next.competitionId)?.name || '')}</p>
+          <small>Get ready • The next category will appear automatically</small>
+        </div>
       </main>
     )
   }

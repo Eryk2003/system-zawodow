@@ -600,6 +600,76 @@ function buildLiveRankings() {
   return { athletes, clubs, podiums, updatedAt: Date.now() }
 }
 
+/* ETAP 89 - bezklikalna zmiana kategorii po zakończeniu konkurencji.
+   Zapisany harmonogram jest źródłem kolejności; żadnych automatycznych losowań. */
+const AUTO_CATEGORY_PODIUM_MS = 26000
+const AUTO_CATEGORY_INTRO_MS = 10000
+
+function sameScheduledCategory(slot, category) {
+  if (!slot || !category) return false
+  if (category.categoryId && slot.categoryId) return slot.categoryId === category.categoryId
+  return slot.competitionId === category.competitionId && slot.category === category.category
+}
+
+function nextPreparedCategoryOnMat(mat, completed) {
+  const timetable = read(KEYS.schedule, [])
+    .filter((slot) => slot.mat === mat)
+    .sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')) || Number(a.order || 0) - Number(b.order || 0))
+  const currentIndex = timetable.findIndex((slot) => sameScheduledCategory(slot, completed))
+  if (currentIndex < 0) return null
+  const matches = read(KEYS.matches, [])
+  const kataSessions = read(KEYS.kataSessions, [])
+  for (const slot of timetable.slice(currentIndex + 1)) {
+    const same = (item) => item.mat === mat && sameScheduledCategory(item, slot)
+    const categoryMatches = matches.filter(same)
+    if (categoryMatches.length) {
+      const finalRound = Math.max(...categoryMatches.map((m) => Number(m.roundIndex || 0)))
+      const finalMatches = categoryMatches.filter((m) => Number(m.roundIndex || 0) === finalRound)
+      if (finalMatches.every((m) => m.status === 'done' && m.winnerId)) continue
+      return {
+        competitionId: slot.competitionId, category: slot.category, categoryId: slot.categoryId || null,
+        mat, kind: 'kumite', mode: 'bracket', kataSessionId: null,
+      }
+    }
+    const kata = kataSessions.find(same)
+    if (kata) {
+      if (kata.status === 'completed') continue
+      return {
+        competitionId: slot.competitionId, category: slot.category, categoryId: slot.categoryId || null,
+        mat, kind: 'kata', mode: 'kata-list', kataSessionId: kata.id,
+      }
+    }
+    // Nie przeskakuj kategorii, której organizator jeszcze nie przygotował.
+    return null
+  }
+  return null
+}
+
+function canPreserveMatSelection(mat, competitionId, category, categoryId) {
+  const previous = read(KEYS.matStates, {})[mat]
+  if (!previous?.competitionId) return false
+  if (sameScheduledCategory(previous, { competitionId, category, categoryId })) return false
+  // Generowanie następnej drabinki/listy nie może przerwać trwającej lub oczekującej kategorii.
+  const matches = read(KEYS.matches, [])
+  const sessions = read(KEYS.kataSessions, [])
+  return matches.some((m) => m.mat === mat && sameScheduledCategory(m, previous)) ||
+    sessions.some((s) => s.mat === mat && sameScheduledCategory(s, previous)) ||
+    Boolean(previous.autoTransition)
+}
+
+function autoTransitionSnapshot(state, now = Date.now()) {
+  const transition = state?.autoTransition
+  if (!transition?.next || state?.breakActive || !['podium', 'kata-final'].includes(state?.mode) || !Number.isFinite(Number(transition.announceAt))) return null
+  const start = Number(transition.announceAt)
+  const end = start + AUTO_CATEGORY_INTRO_MS
+  return {
+    ...transition,
+    secondsLeft: Math.max(0, Math.ceil((end - now) / 1000)),
+    showing: now >= start && now < end,
+    finished: now >= end,
+  }
+}
+
 export const db = {
   getCompetitions: () => read(KEYS.competitions, DEFAULT_COMPETITIONS),
   getOrganizerAccount: () => read(KEYS.accounts, []).find((account) => account.role === 'organizer') || null,
@@ -935,6 +1005,50 @@ export const db = {
   getMatchesForMat: (mat) => read(KEYS.matches, []).filter((m) => m.mat === mat),
   getMatStates: () => read(KEYS.matStates, {}),
   getMatState: (mat) => read(KEYS.matStates, {})[mat] || null,
+  getCategoryAutoTransition: (mat) => autoTransitionSnapshot(read(KEYS.matStates, {})[mat]),
+  processCategoryAutoTransition: (mat) => {
+    const states = read(KEYS.matStates, {})
+    const state = states[mat]
+    const transition = state?.autoTransition
+    if (!transition || state.breakActive || state.mode === 'break') return state || null
+    // Ręczne przełączenie kategorii albo rozpoczęcie walki ma pierwszeństwo.
+    if (!sameScheduledCategory(state, transition.from) ||
+        !['podium', 'kata-final'].includes(state.mode)) return state
+    const next = nextPreparedCategoryOnMat(mat, transition.from)
+    if (!next) {
+      if (!transition.next) return state
+      // Usunięta drabinka/lista: anuluj nieaktualną zapowiedź.
+      const cleared = { ...state, autoTransition: { ...transition, next: null, announceAt: null }, updatedAt: Date.now() }
+      write(KEYS.matStates, { ...states, [mat]: cleared })
+      emit()
+      return cleared
+    }
+    const now = Date.now()
+    if (!transition.next || !sameScheduledCategory(transition.next, next)) {
+      const announceAt = Math.max(now, Number(transition.completedAt || now) + AUTO_CATEGORY_PODIUM_MS)
+      const updated = { ...state, autoTransition: { ...transition, next, announceAt }, updatedAt: now }
+      write(KEYS.matStates, { ...states, [mat]: updated })
+      emit()
+      return updated
+    }
+    const timer = autoTransitionSnapshot(state, now)
+    if (!timer?.finished) return state
+    // Nie przenoś panelu, gdy na tatami trwa inna aktywna walka.
+    if (read(KEYS.matches, []).some((m) => m.mat === mat && m.status === 'active')) return state
+    const destination = timer.next
+    const updated = {
+      ...state,
+      mode: destination.mode, competitionId: destination.competitionId,
+      category: destination.category, categoryId: destination.categoryId,
+      kataSessionId: destination.kataSessionId, currentMatchId: null,
+      lastCompletedMatchId: null, podiumShownAt: null, kataCategoryCompleted: false,
+      kataFinalAthleteId: null, kataFinalShownAt: null,
+      autoTransition: null, transitionAuto: true, updatedAt: now,
+    }
+    write(KEYS.matStates, { ...states, [mat]: updated })
+    emit()
+    return updated
+  },
   setMatState: (mat, patch) => { const next = setMatStateInternal(mat, patch); emit(); return next },
   /* ETAP 86B - przerwa osobno na kazdym tatami */
   setMatBreakMode: (mat, enabled) => {
@@ -951,12 +1065,20 @@ export const db = {
     const isOnBreak = Boolean(before.breakActive || before.mode === 'break')
     if (isOnBreak === Boolean(enabled)) return before
     const previousMode = before.mode === 'break' ? (before.breakPreviousMode || 'bracket') : (before.mode || 'bracket')
+    const pausedFor = !enabled && before.autoTransition?.pausedAt
+      ? Math.max(0, Date.now() - Number(before.autoTransition.pausedAt)) : 0
+    const nextAutoTransition = before.autoTransition ? {
+      ...before.autoTransition,
+      pausedAt: enabled ? Date.now() : null,
+      announceAt: before.autoTransition.announceAt == null ? null : Number(before.autoTransition.announceAt) + pausedFor,
+    } : before.autoTransition
     const next = {
       ...before,
       mat,
       breakActive: Boolean(enabled),
       breakPreviousMode: enabled ? previousMode : null,
       mode: enabled ? 'break' : previousMode,
+      autoTransition: nextAutoTransition,
       updatedAt: Date.now(),
     }
     write(KEYS.matStates, { ...states, [mat]: next })
@@ -991,10 +1113,13 @@ export const db = {
       })),
     }
     write(KEYS.kataSessions, [...sessions, next])
-    setMatStateInternal(mat, {
-      mode: 'kata-list', competitionId, category, categoryId, kataSessionId: next.id,
-      currentMatchId: null, kataFinalShownAt: null, kataFinalAthleteId: null, kataNextAthleteId: athleteIds[0] || null,
-    })
+    if (!canPreserveMatSelection(mat, competitionId, category, categoryId)) {
+      setMatStateInternal(mat, {
+        mode: 'kata-list', competitionId, category, categoryId, kataSessionId: next.id,
+        currentMatchId: null, kataFinalShownAt: null, kataFinalAthleteId: null, kataNextAthleteId: athleteIds[0] || null,
+        autoTransition: null,
+      })
+    }
     emit()
     return next
   },
@@ -1124,6 +1249,10 @@ export const db = {
       mode: 'kata-final', competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null,
       kataSessionId: session.id, kataFinalAthleteId: result.athleteId, kataFinalShownAt: now, kataNextAthleteId: nextAthleteId,
       kataCategoryCompleted: !hasNext,
+      autoTransition: !hasNext ? {
+        from: { competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null },
+        completedAt: now, next: null, announceAt: null,
+      } : null,
     })
     emit()
     return next
@@ -1228,7 +1357,9 @@ export const db = {
 
     write(KEYS.matches, [...allMatches, ...created])
     syncEntriesWithSchedule(read(KEYS.schedule, []))
-    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, categoryId, currentMatchId: null, lastCompletedMatchId: null })
+    if (!canPreserveMatSelection(mat, competitionId, category, categoryId)) {
+      setMatStateInternal(mat, { mode: 'bracket', competitionId, category, categoryId, currentMatchId: null, lastCompletedMatchId: null, autoTransition: null })
+    }
     emit()
     return created
   },
@@ -1262,7 +1393,7 @@ export const db = {
     const idx = matches.findIndex((m) => m.id === next.id)
     matches[idx] = next
     write(KEYS.matches, matches)
-    setMatStateInternal(raw.mat, { mode: 'scoreboard', competitionId: raw.competitionId, category: raw.category, categoryId: raw.categoryId || null, currentMatchId: raw.id })
+    setMatStateInternal(raw.mat, { mode: 'scoreboard', competitionId: raw.competitionId, category: raw.category, categoryId: raw.categoryId || null, currentMatchId: raw.id, autoTransition: null })
     emit()
     return next
   },
@@ -1466,7 +1597,11 @@ export const db = {
       categoryId: match.categoryId || null,
       currentMatchId: null,
       lastCompletedMatchId: match.id,
-      podiumShownAt: categoryFinished ? Date.now() : null,
+      podiumShownAt: categoryFinished ? next.completedAt : null,
+      autoTransition: categoryFinished ? {
+        from: { competitionId: match.competitionId, category: match.category, categoryId: match.categoryId || null },
+        completedAt: next.completedAt, next: null, announceAt: null,
+      } : null,
     })
     emit()
     return next
@@ -1474,7 +1609,7 @@ export const db = {
 
   resetBracket: ({ competitionId, category, mat }) => {
     write(KEYS.matches, read(KEYS.matches, []).filter((m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat)))
-    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null })
+    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null, autoTransition: null })
     emit()
   },
 
@@ -1709,6 +1844,7 @@ export function getTatamiPayload(mat) {
     || null
 
   let displayMode = state?.mode || 'bracket'
+  const autoNext = !state?.breakActive && displayMode !== 'break' ? autoTransitionSnapshot(state) : null
   if (winnerDisplayActive && (displayMode === 'bracket' || displayMode === 'podium')) {
     current = lastCompletedMatch
     displayMode = 'scoreboard'
@@ -1719,6 +1855,8 @@ export function getTatamiPayload(mat) {
     else if (elapsed < 9000) displayMode = 'kata-list'
     else displayMode = state.kataCategoryCompleted ? 'podium' : 'kata-athlete'
   }
+
+  if (autoNext?.showing) displayMode = 'next-category'
 
   const kataResults = kataSession ? (kataSession.results || []).map((result) => ({
     ...result, athlete: hydrate(result.athleteId),
@@ -1733,6 +1871,7 @@ export function getTatamiPayload(mat) {
     mat,
     state,
     displayMode,
+    autoNext,
     tournament: db.getTournament(),
     competition: competitions.find((c) => c.id === state?.competitionId) || null,
     matches: resolved,
