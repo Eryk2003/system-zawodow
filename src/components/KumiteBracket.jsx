@@ -1,20 +1,28 @@
+/* ETAP 76: TV ONLY ENGLISH */
 import React, { useMemo } from 'react'
 import { resolveMatch } from '../lib/demoStore'
+import { tvRound } from '../lib/tvEnglish.js'
 
 const scoreText = (value) => String(Number(value || 0)).replace('.', ',')
 
-function boutCode(roundName, matchNo, queueOrder) {
-  if (roundName === 'Ćwierćfinał') return `ĆF${matchNo}`
-  if (roundName === 'Półfinał') return `PF${matchNo}`
+function boutCode(roundName, matchNo, queueOrder, english = false) {
+  if (roundName === 'Ćwierćfinał') return english ? `QF${matchNo}` : `ĆF${matchNo}`
+  if (roundName === 'Półfinał') return english ? `SF${matchNo}` : `PF${matchNo}`
   if (roundName === 'Finał') return 'F'
   if (roundName === '1/8 finału') return `1/8-${matchNo}`
   if (roundName === '1/16 finału') return `1/16-${matchNo}`
   if (roundName === '1/32 finału') return `1/32-${matchNo}`
   if (roundName === '1/64 finału') return `1/64-${matchNo}`
-  return `W${queueOrder || matchNo}`
+  return `${english ? 'B' : 'W'}${queueOrder || matchNo}`
 }
 
-function statusLabel(match) {
+function statusLabel(match, english = false) {
+  if (english) {
+    if (match.status === 'active') return 'CURRENT'
+    if (match.status === 'done') return 'FINISHED'
+    if (match.redResolvedId && match.blueResolvedId) return 'READY'
+    return 'WAITING'
+  }
   if (match.status === 'active') return 'AKTUALNA'
   if (match.status === 'done') return 'ZAKOŃCZONA'
   if (match.redResolvedId && match.blueResolvedId) return 'GOTOWA'
@@ -68,7 +76,7 @@ export default function KumiteBracket({
 
   const athleteInfo = (id) => {
     const athlete = athletes.find((item) => item.id === id)
-    if (!athlete) return { name: 'Oczekiwanie na zwycięzcę', club: '' }
+    if (!athlete) return { name: variant === 'tv' ? 'Waiting for winner' : 'Oczekiwanie na zwycięzcę', club: '' }
     const club = clubs.find((item) => item.id === athlete.clubId)
     return {
       name: `${athlete.firstName} ${athlete.lastName}`,
@@ -96,8 +104,8 @@ export default function KumiteBracket({
           <section className="academy-bracket-round" key={`${round.index}-${round.name}`}>
             <header className="academy-bracket-round-head">
               <div>
-                <span>{round.name}</span>
-                <strong>{round.name}</strong>
+                <span>{variant === 'tv' ? tvRound(round.name) : round.name}</span>
+                <strong>{variant === 'tv' ? tvRound(round.name) : round.name}</strong>
               </div>
               <em>{completed}/{round.matches.length}</em>
             </header>
@@ -125,8 +133,8 @@ export default function KumiteBracket({
                       data-match-id={match.id}
                     >
                       <div className="academy-bracket-match-head">
-                        <span>{boutCode(round.name, match.matchNo, match.queueOrder)}</span>
-                        <em>{isHighlighted ? 'NASTĘPNA WALKA' : statusLabel(match)}</em>
+                        <span>{boutCode(round.name, match.matchNo, match.queueOrder, variant === 'tv')}</span>
+                        <em>{isHighlighted ? (variant === 'tv' ? 'NEXT BOUT' : 'NASTĘPNA WALKA') : statusLabel(match, variant === 'tv')}</em>
                       </div>
 
                       <div className={`academy-bracket-player academy-bracket-player-aka ${redWinner ? 'winner' : ''}`}>

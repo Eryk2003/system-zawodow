@@ -1,3 +1,4 @@
+/* ETAP 76: TV ONLY ENGLISH */
 import React from 'react'
 
 // The +1 control awards ONE occurrence of the selected technique.
@@ -10,7 +11,7 @@ export const getTechniqueCount = (match, side, technique) => {
 
 export default function TechniqueScoreColumns({ match, side, mode = 'judge', onChange }) {
   return (
-    <div className={`technique-score-grid technique-score-grid-${mode}`} aria-label="Wazari i Ippon">
+    <div className={`technique-score-grid technique-score-grid-${mode}`} aria-label={mode === 'tv' ? 'Wazari and Ippon' : 'Wazari i Ippon'}>
       {[
         ['wazari', 'WAZARI', '1 pkt'],
         ['ippon', 'IPPON', '2 pkt'],
@@ -30,7 +31,7 @@ export default function TechniqueScoreColumns({ match, side, mode = 'judge', onC
                 </button>
               </div>
             )}
-            <small>{points}</small>
+            <small>{mode === 'tv' ? (technique === 'wazari' ? '1 PT' : '2 PTS') : points}</small>
           </div>
         )
       })}
