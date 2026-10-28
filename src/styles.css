@@ -1260,3 +1260,52 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   }
 }
 
+/* ETAP 78B - zegar TV automatycznie miesci sie w srodkowej kolumnie */
+.scoreboard-screen .scoreboard-body {
+  grid-template-columns: minmax(0, 1fr) minmax(325px, .48fr) minmax(0, 1fr);
+}
+.scoreboard-screen .scoreboard-body > .fight-center {
+  min-width: 0;
+  box-sizing: border-box;
+  container-type: inline-size;
+  overflow: hidden;
+}
+.scoreboard-screen .scoreboard-body > .fight-center > .fight-clock {
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 24px 0 14px;
+  font-size: clamp(50px, 5.5vw, 95px) !important;
+  line-height: 1.05;
+  letter-spacing: -.055em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: center;
+}
+@supports (font-size: 1cqw) {
+  .scoreboard-screen .scoreboard-body > .fight-center > .fight-clock {
+    font-size: min(32cqw, 126px) !important;
+  }
+}
+@media (max-width: 1400px) {
+  .scoreboard-screen .scoreboard-body {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, .42fr) minmax(0, 1fr);
+  }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .scoreboard-screen .scoreboard-body {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, .4fr) minmax(0, 1fr);
+  }
+}
+@media (max-width: 760px) {
+  .scoreboard-screen .scoreboard-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  @supports (font-size: 1cqw) {
+    .scoreboard-screen .scoreboard-body > .fight-center > .fight-clock {
+      font-size: min(28cqw, 114px) !important;
+    }
+  }
+}
