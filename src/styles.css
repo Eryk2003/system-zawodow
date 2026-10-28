@@ -1183,3 +1183,80 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .final-results-screen .final-result-person span { font-size: 13px; }
   .final-results-screen .final-result-row em { grid-column: 3; justify-self: start; font-size: 12px; text-align: left; }
 }
+
+/* ETAP 78 - bardziej widoczne nazwiska i wiekszy czas na TV */
+.scoreboard-body {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, .42fr) minmax(0, 1fr);
+}
+.scoreboard-body .fighter {
+  padding: clamp(12px, 2vw, 28px) clamp(18px, 3vw, 42px);
+}
+.scoreboard-body .scoreboard-athlete-photo {
+  width: clamp(132px, 14vw, 220px);
+  margin-bottom: 12px;
+}
+.scoreboard-body .fighter h1 {
+  font-size: clamp(52px, 5.1vw, 92px) !important;
+  line-height: .95;
+  margin: 12px 0 10px;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+}
+.scoreboard-body .fighter p {
+  font-size: clamp(22px, 1.75vw, 30px);
+  line-height: 1.2;
+}
+.scoreboard-body .score-number {
+  margin-top: 20px;
+}
+.fight-center {
+  padding: 20px 16px;
+}
+.fight-center > span {
+  font-size: clamp(15px, 1.1vw, 20px);
+}
+.fight-clock {
+  font-size: clamp(92px, 10vw, 170px) !important;
+  line-height: .86;
+  letter-spacing: -.05em;
+  margin: 24px 0 12px;
+}
+.fight-center small {
+  font-size: clamp(14px, 1vw, 18px);
+  line-height: 1.15;
+  text-align: center;
+}
+@media (max-width: 1400px) {
+  .scoreboard-body {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, .38fr) minmax(0, 1fr);
+  }
+  .scoreboard-body .fighter h1 {
+    font-size: clamp(46px, 4.4vw, 76px) !important;
+  }
+  .fight-clock {
+    font-size: clamp(82px, 8.5vw, 140px) !important;
+  }
+}
+@media (max-width: 1100px) {
+  .scoreboard-body .fighter h1 {
+    font-size: clamp(40px, 4.1vw, 64px) !important;
+  }
+  .scoreboard-body .fighter p {
+    font-size: 20px;
+  }
+  .fight-clock {
+    font-size: clamp(72px, 8vw, 118px) !important;
+  }
+}
+@media (max-width: 760px) {
+  .scoreboard-body .fighter h1 {
+    font-size: clamp(36px, 6vw, 56px) !important;
+  }
+  .scoreboard-body .fighter p {
+    font-size: 18px;
+  }
+  .fight-clock {
+    font-size: clamp(68px, 16vw, 110px) !important;
+  }
+}
+
