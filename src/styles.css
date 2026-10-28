@@ -1333,3 +1333,18 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika86b-tv-break-placeholder{width:min(920px,90vw);min-height:56vh;border-radius:28px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);display:grid;place-items:center;gap:14px;padding:40px;text-align:center}
 .ika86b-tv-break-placeholder strong{font-size:clamp(44px,5vw,86px);font-weight:1000;letter-spacing:.08em;color:#ef3b2d}.ika86b-tv-break-placeholder span{font-size:clamp(20px,2vw,34px);font-weight:800}.ika86b-tv-break-placeholder small{font-size:clamp(15px,1vw,20px);color:#dadade}
 @media(max-width:900px){.ika86b-tv-break-header{grid-template-columns:1fr;text-align:center}.ika86b-tv-break-header>div:last-child{text-align:center}.ika86b-tv-break-poster{max-height:calc(100vh - 240px)}}
+
+
+/* ETAP 87 - oficjalny katalog kategorii Elite 2027 i przydzial tatami */
+.ika87-import-box{display:flex;justify-content:space-between;align-items:center;gap:18px;margin:16px 0;padding:18px;border:1px solid #dfdfe4;border-radius:14px;background:#f9f9fa}
+.ika87-import-box strong{font-size:15px}.ika87-import-box p{font-size:12px;color:#666873;line-height:1.5;margin:5px 0 0}.ika87-import-box>.btn{flex-shrink:0}
+.ika87-preset-select{grid-column:1/-1}.ika87-mat-select{max-width:260px;margin-top:10px;display:grid;gap:5px;font-weight:750;font-size:12px}.ika87-mat-select select{border:1px solid #d8d8de;border-radius:8px;padding:8px 10px;background:#fff;font-size:13px}
+.ika87-category-filter{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:13px 15px;border:1px solid #dfdfe3;border-radius:13px;background:#f8f8f9;flex-wrap:wrap}
+.ika87-category-filter label{display:flex;gap:9px;align-items:center;font-size:12px}.ika87-category-filter select{max-width:250px;padding:9px;background:white;border:1px solid #d8d8dd;border-radius:8px}
+.ika87-center-categories{margin:18px 0;padding:20px;border:1px solid #e1e1e5;border-radius:14px}.ika87-center-categories h3{margin:0 0 12px;font-size:18px}
+.ika87-center-categories-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;max-height:420px;overflow-y:auto}
+.ika87-center-category{display:flex;gap:12px;justify-content:space-between;align-items:center;border:1px solid #e5e5e8;padding:10px 12px;border-radius:10px;background:#fafafa;min-width:0}
+.ika87-center-category span{display:grid;gap:3px;min-width:0}.ika87-center-category strong{font-size:12px;overflow-wrap:anywhere}.ika87-center-category small{font-size:10px;color:#71717a}
+.ika87-center-category select{flex:0 0 140px;max-width:140px;border:1px solid #d8d8de;background:#fff;padding:8px;border-radius:8px;font-weight:700;font-size:12px}
+@media(max-width:900px){.ika87-import-box{flex-direction:column;align-items:stretch}.ika87-center-categories-list{grid-template-columns:1fr}}
+@media(max-width:560px){.ika87-center-category{flex-direction:column;align-items:stretch}.ika87-center-category select{max-width:none;flex-basis:auto}}

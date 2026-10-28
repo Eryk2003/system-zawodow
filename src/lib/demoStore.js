@@ -212,10 +212,12 @@ function normalizeMatName(mat, matCount) {
   return `Tatami ${safe}`
 }
 
-function findEarliestFreeSlot(reservationsByMat, duration, tournamentStart, matCount) {
+/* ETAP 87 - stala mata kategorii ma pierwszenstwo przed automatycznym harmonogramem. */
+function findEarliestFreeSlot(reservationsByMat, duration, tournamentStart, matCount, requiredMat = null) {
   let best = null
   for (let index = 0; index < matCount; index += 1) {
     const mat = `Tatami ${index + 1}`
+    if (requiredMat && mat !== requiredMat) continue
     const reservations = [...(reservationsByMat[mat] || [])].sort((a, b) => a.start - b.start)
     let candidate = tournamentStart
     for (const reservation of reservations) {
@@ -323,7 +325,8 @@ function regenerateScheduleInternal() {
       item.id === group.categoryId || (item.competitionId === group.competitionId && item.name === group.category)
     )
     const timing = estimateScheduleTiming(group.entries.length, competition, tournament, categoryRecord)
-    const mat = normalizeMatName(old.mat, matCount)
+    const assignedMat = categoryRecord?.preferredMat || null
+    const mat = assignedMat ? normalizeMatName(assignedMat, matCount) : normalizeMatName(old.mat, matCount)
     const start = timeToSeconds(old.startTime || tournament.startTime)
     const slot = {
       ...old,
@@ -355,7 +358,9 @@ function regenerateScheduleInternal() {
       item.id === group.categoryId || (item.competitionId === group.competitionId && item.name === group.category)
     )
     const timing = estimateScheduleTiming(group.entries.length, competition, tournament, categoryRecord)
-    const placement = findEarliestFreeSlot(reservationsByMat, timing.durationSeconds, tournamentStart, matCount)
+    const assignedMat = categoryRecord?.preferredMat || null
+    const requiredMat = assignedMat ? normalizeMatName(assignedMat, matCount) : null
+    const placement = findEarliestFreeSlot(reservationsByMat, timing.durationSeconds, tournamentStart, matCount, requiredMat)
     const slot = {
       ...(old || {}),
       id: old?.id || uid('slot'),
@@ -630,7 +635,7 @@ export const db = {
   },
   getTournamentCategories: () => read(KEYS.tournamentCategories, []),
   saveTournamentCategory: (category) => {
-    if (!['K', 'M'].includes(category.gender)) throw new Error('Wybierz płeć kategorii: Kobieta albo Mężczyzna.')
+    if (!['K', 'M', 'X'].includes(category.gender)) throw new Error('Wybierz płeć kategorii: Kobieta, Mężczyzna albo Mieszana.')
     const items = read(KEYS.tournamentCategories, [])
     const next = {
       ...category,
@@ -638,6 +643,7 @@ export const db = {
       name: String(category.name || '').trim(),
       competitionId: category.competitionId || '',
       gender: category.gender,
+      preferredMat: category.preferredMat || null,
       minAge: category.minAge === '' || category.minAge == null ? null : Number(category.minAge),
       maxAge: category.maxAge === '' || category.maxAge == null ? null : Number(category.maxAge),
       boutSeconds: category.boutSeconds === '' || category.boutSeconds == null ? null : Math.max(1, Math.round(Number(category.boutSeconds))),
@@ -652,6 +658,57 @@ export const db = {
     write(KEYS.tournament, { ...tournament, competitionIds })
     emit()
     return next
+  },
+  /* ETAP 87 - bezpieczny import wielu kategorii jednym zapisem danych. */
+  importElite2027Categories: (templates, allowedCompetitionIds = []) => {
+    const allowed = new Set(allowedCompetitionIds)
+    const items = read(KEYS.tournamentCategories, [])
+    const existingKeys = new Set(items.map((item) => `${item.competitionId}|||${item.code || item.name}`.toLocaleLowerCase('pl')))
+    let added = 0
+    let skipped = 0
+    for (const template of templates) {
+      if (!allowed.has(template.competitionId) || !['K', 'M', 'X'].includes(template.gender)) { skipped += 1; continue }
+      const key = `${template.competitionId}|||${template.code || template.name}`.toLocaleLowerCase('pl')
+      const byName = items.some((item) => item.competitionId === template.competitionId && item.name.toLocaleLowerCase('pl') === template.name.toLocaleLowerCase('pl'))
+      if (existingKeys.has(key) || byName) { skipped += 1; continue }
+      existingKeys.add(key)
+      items.push({
+        ...template, id: uid('cat'),
+        minAge: template.minAge ?? null, maxAge: template.maxAge ?? null,
+        boutSeconds: template.boutSeconds ?? null, preferredMat: null,
+        createdAt: Date.now(),
+      })
+      added += 1
+    }
+    if (added) {
+      write(KEYS.tournamentCategories, items)
+      const tournament = db.getTournament()
+      write(KEYS.tournament, { ...tournament, competitionIds: [...new Set([...(tournament.competitionIds || []), ...allowed])] })
+      emit()
+    }
+    return { added, skipped }
+  },
+  /* ETAP 87 - przypisanie tatami do kategorii; blokada po rozpoczeciu rozgrywek. */
+  assignCategoryMat: (categoryId, preferredMat) => {
+    const tournament = db.getTournament()
+    const allowedMats = Array.from({ length: Math.max(1, Number(tournament.matCount) || 1) }, (_, index) => `Tatami ${index + 1}`)
+    if (preferredMat && !allowedMats.includes(preferredMat)) throw new Error('Wybrane tatami nie istnieje w tych zawodach.')
+    const categories = read(KEYS.tournamentCategories, [])
+    const index = categories.findIndex((category) => category.id === categoryId)
+    if (index < 0) throw new Error('Nie znaleziono kategorii.')
+    const category = categories[index]
+    if ((category.preferredMat || null) === (preferredMat || null)) return category
+    const isRelated = (row) => row.categoryId === categoryId || (row.competitionId === category.competitionId && row.category === category.name)
+    if (read(KEYS.matches, []).some(isRelated) || read(KEYS.kataSessions, []).some(isRelated)) {
+      throw new Error('Tatami jest zablokowane po losowaniu drabinki lub utworzeniu listy kata. Nie można przenosić rozpoczętej kategorii.')
+    }
+    categories[index] = { ...category, preferredMat: preferredMat || null }
+    write(KEYS.tournamentCategories, categories)
+    const schedule = read(KEYS.schedule, [])
+    write(KEYS.schedule, schedule.map((slot) => isRelated(slot) ? { ...slot, manual: false } : slot))
+    regenerateScheduleInternal()
+    emit()
+    return categories[index]
   },
   deleteTournamentCategory: (categoryId) => {
     const categories = read(KEYS.tournamentCategories, [])
@@ -803,10 +860,18 @@ export const db = {
     const idx = items.findIndex((slot) => slot.id === id)
     if (idx < 0) return null
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
-    items[idx] = {
-      ...items[idx],
+    const oldSlot = items[idx]
+    if (patch.mat && patch.mat !== oldSlot.mat && oldSlot.categoryId) {
+      db.assignCategoryMat(oldSlot.categoryId, normalizeMatName(patch.mat, tournament.matCount))
+      const updated = read(KEYS.schedule, [])
+      items.splice(0, items.length, ...updated)
+    }
+    const newIdx = items.findIndex((slot) => slot.id === id)
+    if (newIdx < 0) throw new Error('Nie znaleziono pozycji harmonogramu po przypisaniu tatami.')
+    items[newIdx] = {
+      ...items[newIdx],
       ...patch,
-      mat: patch.mat ? normalizeMatName(patch.mat, tournament.matCount) : items[idx].mat,
+      mat: patch.mat ? normalizeMatName(patch.mat, tournament.matCount) : items[newIdx].mat,
       manual: true,
       updatedAt: Date.now(),
     }
@@ -819,6 +884,15 @@ export const db = {
     const items = read(KEYS.schedule, [])
     const idx = items.findIndex((slot) => slot.id === id)
     if (idx < 0) return null
+    const categoryId = items[idx]?.categoryId
+    if (categoryId) {
+      const categories = read(KEYS.tournamentCategories, [])
+      const catIndex = categories.findIndex((category) => category.id === categoryId)
+      if (catIndex >= 0 && categories[catIndex].preferredMat) {
+        db.assignCategoryMat(categoryId, null)
+        return read(KEYS.schedule, []).find((slot) => slot.id === id) || null
+      }
+    }
     items[idx] = { ...items[idx], manual: false, updatedAt: Date.now() }
     write(KEYS.schedule, items)
     const next = regenerateScheduleInternal()

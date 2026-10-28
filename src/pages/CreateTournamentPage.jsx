@@ -5,6 +5,7 @@ import { DashboardLayout, EmptyState } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import { db, resolveMatch } from '../lib/demoStore'
 import { useAuth } from '../lib/AuthContext'
+import { getElite2027Templates } from '../lib/eliteEuropeanCupCategories.js'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -28,7 +29,7 @@ const formatBoutDuration = (seconds) => {
   return rest ? `${minutes}:${String(rest).padStart(2, '0')}` : `${minutes}:00`
 }
 
-const emptyCategory = { competitionId: '', name: '', gender: '', minAge: '', maxAge: '', boutSeconds: '' }
+const emptyCategory = { competitionId: '', name: '', gender: '', minAge: '', maxAge: '', boutSeconds: '', preferredMat: '', code: '', categorySource: '' }
 
 export default function CreateTournamentPage() {
   const navigate = useNavigate()
@@ -43,13 +44,14 @@ export default function CreateTournamentPage() {
     venue: '',
     avgBoutMinutes: '2:00',
     boutSeconds: '120',
-    matCount: '3',
+    matCount: '4', // Elite European Cup 2027: w regulaminie sa 4 tatami.
   })
   const [createdTournament, setCreatedTournament] = useState(null)
   const [categories, setCategories] = useState(() => db.getTournamentCategories())
   const [categoryForm, setCategoryForm] = useState(emptyCategory)
   const [selectedByCategory, setSelectedByCategory] = useState({})
   const [openCategoryId, setOpenCategoryId] = useState(null)
+  const [categoryViewFilter, setCategoryViewFilter] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [posterError, setPosterError] = useState('')
@@ -191,6 +193,41 @@ export default function CreateTournamentPage() {
   const selectedCompetitionIds = createdTournament?.competitionIds || []
   const selectedCompetitionSet = new Set(selectedCompetitionIds)
   const selectedCompetitions = competitions.filter((competition) => selectedCompetitionSet.has(competition.id))
+  const categoryPresets = getElite2027Templates(categoryForm.competitionId ? [categoryForm.competitionId] : [])
+  const availableMats = Array.from({ length: Math.max(1, Number(createdTournament?.matCount || form.matCount) || 1) }, (_, index) => `Tatami ${index + 1}`)
+
+  /* ETAP 87 - oficjalne kategorie z regulaminu Elite European Cup 2027. */
+  const importElite2027 = () => {
+    try {
+      const templates = getElite2027Templates(selectedCompetitionIds)
+      if (!templates.length) throw new Error('Wybierz konkurencje zgodne z regulaminem Elite European Cup 2027.')
+      const result = db.importElite2027Categories(templates, selectedCompetitionIds)
+      setCategories(db.getTournamentCategories())
+      setCreatedTournament(db.getTournament())
+      setError('')
+      setMessage(`Zaimportowano ${result.added} kategorii. Pominięto istniejące: ${result.skipped}. Każdej kategorii możesz przypisać tatami.`)
+    } catch (err) { setMessage(''); setError(err?.message || 'Nie udało się zaimportować kategorii.') }
+  }
+  const selectCategoryPreset = (key) => {
+    const preset = categoryPresets.find((item) => (item.code || item.name) === key)
+    if (!preset) return
+    setCategoryForm((current) => ({
+      ...current, name: preset.name, code: preset.code,
+      gender: preset.gender, minAge: preset.minAge == null ? '' : String(preset.minAge),
+      maxAge: preset.maxAge == null ? '' : String(preset.maxAge),
+      boutSeconds: preset.boutSeconds == null ? '' : String(preset.boutSeconds),
+      categorySource: preset.categorySource,
+    }))
+  }
+  const changeCategoryMat = (categoryId, mat) => {
+    try {
+      db.assignCategoryMat(categoryId, mat)
+      setCategories(db.getTournamentCategories())
+      setError('')
+      setMessage(mat ? `Kategoria przypisana do ${mat}. Harmonogram został przeliczony.` : 'Przywrócono automatyczny wybór tatami.')
+      setRefreshKey((value) => value + 1)
+    } catch (err) { setMessage(''); setError(err?.message || 'Nie udało się przypisać tatami.') }
+  }
   const competitionGroups = [...new Set(competitions.map((competition) => competition.group || 'Pozostałe'))]
 
   const toggleTournamentCompetition = (competition) => {
@@ -234,7 +271,7 @@ export default function CreateTournamentPage() {
     if (!competition) return setError('Wybierz konkurencję dla kategorii.')
     if (!selectedCompetitionSet.has(competition.id)) return setError('Najpierw dodaj tę konkurencję do zawodów.')
     if (!categoryForm.name.trim()) return setError('Wpisz nazwę kategorii.')
-    if (!['K', 'M'].includes(categoryForm.gender)) return setError('Wybierz płeć kategorii: Kobieta albo Mężczyzna.')
+    if (!['K', 'M', 'X'].includes(categoryForm.gender)) return setError('Wybierz płeć kategorii: Kobieta, Mężczyzna albo Mieszana.')
     const duplicate = categories.some((item) => item.competitionId === categoryForm.competitionId && item.name.toLocaleLowerCase('pl') === categoryForm.name.trim().toLocaleLowerCase('pl'))
     if (duplicate) return setError('Taka kategoria w tej konkurencji już istnieje.')
 
@@ -410,8 +447,10 @@ export default function CreateTournamentPage() {
             </div>
             <form className="category-builder" onSubmit={addCategory}>
               <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{selectedCompetitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
-              <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value })} placeholder="np. Chłopcy 10-11 lat, 6-5 kyu" /></label>
-              <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option></select></label>
+              {!!categoryForm.competitionId && <label className="ika87-preset-select">Kategoria z regulaminu<select value="" onChange={(event) => selectCategoryPreset(event.target.value)}><option value="">Wybierz gotową kategorię (opcjonalnie)</option>{categoryPresets.map((preset) => <option key={preset.code || preset.name} value={preset.code || preset.name}>{preset.name}{preset.official ? '' : ' — szablon pomocniczy'}</option>)}</select></label>}
+              <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value, code: '', categorySource: '' })} placeholder="np. K1 · Chłopcy 6–7 lat" /></label>
+              <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option><option value="X">Mieszana / Open</option></select></label>
+              <label>Tatami<select value={categoryForm.preferredMat || ''} onChange={(event) => setCategoryForm({ ...categoryForm, preferredMat: event.target.value })}><option value="">Automatycznie</option>{availableMats.map((mat) => <option key={mat} value={mat}>{mat}</option>)}</select></label>
               <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
               <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
               {categoryCompetition?.group === 'Kumite' && (
@@ -419,6 +458,10 @@ export default function CreateTournamentPage() {
               )}
               <button className="btn btn-primary">+ Dodaj kategorię</button>
             </form>
+            <div className="ika87-import-box">
+              <div><strong>Elite European Cup 2027 — kategorie z regulaminu</strong><p>Importuj oficjalne kategorie K, J, S, IP, KU dla wybranych konkurencji. Dodatkowe szablony Nihon, Kata w parach, Kata drużynowe i Para Karate są oznaczone jako pomocnicze. Duplikaty zostaną pominięte.</p></div>
+              <button type="button" className="btn btn-outline" onClick={importElite2027}>Dodaj kategorie z regulaminu</button>
+            </div>
           </section>
         ) : (
           <div className="alert alert-info">Najpierw zaznacz co najmniej jedną konkurencję. Możesz wybrać ich kilka jednocześnie.</div>
@@ -428,7 +471,8 @@ export default function CreateTournamentPage() {
           <EmptyState title="Nie ma jeszcze kategorii" text="Dodaj pierwszą kategorię. Następnie system pokaże listę zawodników do wyboru i przycisk losowania drabinki." />
         ) : (
           <div className="tournament-category-stack">
-            {categoryCards.map(({ category, competition, slot, categoryMatches }) => {
+            <div className="ika87-category-filter"><strong>Kategorie ({categoryCards.length})</strong><label>Filtruj konkurencję<select value={categoryViewFilter} onChange={(event) => setCategoryViewFilter(event.target.value)}><option value="">Wszystkie konkurencje</option>{selectedCompetitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label></div>
+            {categoryCards.filter(({ category }) => !categoryViewFilter || category.competitionId === categoryViewFilter).map(({ category, competition, slot, categoryMatches }) => {
               const selectedSet = getSelectedSet(category)
               const candidates = eligibleAthletes(category)
               const isOpen = openCategoryId === category.id
@@ -442,6 +486,8 @@ export default function CreateTournamentPage() {
                       <span className="eyebrow">{competition?.name || 'Konkurencja'}</span>
                       <h2>{category.name}</h2>
                       <p>{slot ? `${slot.startTime} • ${slot.mat} • ${slot.athleteCount} zawodników${competition?.group === 'Kumite' ? ` • walka ${formatBoutDuration(slot.boutSeconds || category.boutSeconds || createdTournament?.boutSeconds)}` : ''}` : 'Brak zawodników - harmonogram pojawi się po zapisaniu składu.'}</p>
+                      <label className="ika87-mat-select">Przypisz tatami<select value={category.preferredMat || ''} disabled={categoryMatches.length > 0 || db.getKataSessions().some((session) => session.categoryId === category.id)} onChange={(event) => changeCategoryMat(category.id, event.target.value)}><option value="">Automatycznie</option>{availableMats.map((mat) => <option key={mat} value={mat}>{mat}</option>)}</select></label>
+                      {(categoryMatches.length > 0 || db.getKataSessions().some((session) => session.categoryId === category.id)) && <small>Tatami zablokowane po rozpoczęciu kategorii.</small>}
                     </div>
                     <div className="category-card-actions">
                       <button type="button" className="btn btn-outline" onClick={() => setOpenCategoryId(isOpen ? null : category.id)}>{isOpen ? 'Zwiń zawodników' : 'Wybierz zawodników'}</button>
@@ -470,7 +516,7 @@ export default function CreateTournamentPage() {
                       )}
                       <div className="category-selection-actions">
                         <button type="button" className="btn btn-primary" onClick={() => saveCategoryAthletes(category)}>Zapisz zawodników</button>
-                        <small>Po zapisaniu system automatycznie ustawi kategorię w harmonogramie i przydzieli tatami.</small>
+                        <small>Po zapisaniu system przeliczy harmonogram. Ręcznie wybrane tatami ma pierwszeństwo przed automatem.</small>
                       </div>
                     </div>
                   )}

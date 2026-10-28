@@ -6,6 +6,7 @@ import KumiteBracket from '../components/KumiteBracket'
 import AutoTatamiTv from '../components/AutoTatamiTv'
 import { db } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
+import { getElite2027Templates } from '../lib/eliteEuropeanCupCategories.js'
 
 const emptyEntry = { athleteId: '', categoryId: '', status: 'scheduled' }
 const emptyNews = { title: '', body: '', date: new Date().toISOString().slice(0, 10), important: false }
@@ -239,15 +240,42 @@ export default function TournamentCenter() {
   }
 
   const updateScheduleSlot = (slotId, patch) => {
-    db.updateScheduleSlot(slotId, patch)
-    setMessage('Pozycja harmonogramu została ustawiona ręcznie. Pozostałe automatyczne pozycje zostały przeliczone.')
-    refresh()
+    try {
+      db.updateScheduleSlot(slotId, patch)
+      setMessage('Pozycja harmonogramu została ustawiona ręcznie. Pozostałe automatyczne pozycje zostały przeliczone.')
+      setError('')
+      refresh()
+    } catch (err) { setMessage(''); setError(err?.message || 'Nie można zmienić pozycji harmonogramu.') }
+  }
+
+  /* ETAP 87 - kategorie Elite 2027 i przydzial tatami. */
+  const importElite2027 = () => {
+    try {
+      const competitionIds = tournament.competitionIds || []
+      const templates = getElite2027Templates(competitionIds)
+      if (!templates.length) throw new Error('Najpierw wybierz konkurencje dla tych zawodów.')
+      const result = db.importElite2027Categories(templates, competitionIds)
+      setMessage(`Dodano ${result.added} kategorii z regulaminu. Pominięto istniejące: ${result.skipped}.`)
+      setError('')
+      refresh()
+    } catch (err) { setMessage(''); setError(err?.message || 'Import kategorii nie powiódł się.') }
+  }
+  const assignCategoryMat = (categoryId, mat) => {
+    try {
+      db.assignCategoryMat(categoryId, mat)
+      setMessage(mat ? `Przypisano kategorię do ${mat}. Harmonogram został przeliczony.` : 'Przywrócono automatyczny wybór tatami.')
+      setError('')
+      refresh()
+    } catch (err) { setMessage(''); setError(err?.message || 'Nie można zmienić tatami.') }
   }
 
   const resetScheduleSlot = (slotId) => {
-    db.resetScheduleSlotAuto(slotId)
-    setMessage('Pozycja harmonogramu ponownie jest wyliczana automatycznie.')
-    refresh()
+    try {
+      db.resetScheduleSlotAuto(slotId)
+      setMessage('Pozycja harmonogramu ponownie jest wyliczana automatycznie.')
+      setError('')
+      refresh()
+    } catch (err) { setMessage(''); setError(err?.message || 'Nie można przywrócić automatu.') }
   }
 
   const updateStatus = (entry, status) => {
@@ -406,7 +434,16 @@ export default function TournamentCenter() {
       </section>
 
       <section className="panel-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Nie wpisujesz godziny przy zawodniku. System rozkłada kategorie na dostępne tatami i liczy każdą walkę według czasu ustawionego dla kategorii. Przy 1:30 kolejne walki dostają czasy np. 09:00:00, 09:01:30, 09:03:00. Harmonogram możesz później poprawić ręcznie.</p></div></div>
+        <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Ręcznie przypisane tatami ma pierwszeństwo. Pozostałe kategorie system rozdzieli automatycznie, licząc czas każdej walki.</p></div></div>
+        <div className="ika87-import-box">
+          <div><strong>Elite European Cup 2027 — oficjalne kategorie</strong><p>Możesz zaimportować kategorie K, J, S, IP, KU zgodne z regulaminem oraz dodatkowe szablony dla pozostałych konkurencji. Import nie usuwa wcześniej utworzonych kategorii.</p></div>
+          <button className="btn btn-outline" type="button" onClick={importElite2027}>Importuj kategorie z regulaminu</button>
+        </div>
+        {!!categories.length && <div className="ika87-center-categories"><h3>Przypisz tatami do kategorii ({categories.length})</h3><div className="ika87-center-categories-list">{categories.map((category) => {
+          const competition = competitions.find((item) => item.id === category.competitionId)
+          const locked = matches.some((m) => m.categoryId === category.id || (m.competitionId === category.competitionId && m.category === category.name)) || kataSessions.some((s) => s.categoryId === category.id || (s.competitionId === category.competitionId && s.category === category.name))
+          return <label className="ika87-center-category" key={category.id}><span><strong>{category.name}</strong><small>{competition?.name || 'Konkurencja'}{locked ? ' · po losowaniu — zablokowane' : ''}</small></span><select aria-label={`Tatami dla ${category.name}`} value={category.preferredMat || ''} disabled={locked} onChange={(event) => assignCategoryMat(category.id, event.target.value)}><option value="">Automatycznie</option>{Array.from({length:Math.max(1,Number(tournament.matCount)||1)},(_,index)=>`Tatami ${index+1}`).map((mat)=><option key={mat} value={mat}>{mat}</option>)}</select></label>
+        })}</div></div>}
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}
         <form className="entry-builder auto-entry-builder" onSubmit={addEntry}>
           <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select>{selectedAthlete && <small className="ika73-selected-club">Klub zgłaszający: <b>{clubs.find((c) => c.id === selectedAthlete.clubId)?.name || 'Nieprzypisany klub'}</b></small>}</label>
