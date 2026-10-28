@@ -926,3 +926,61 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika74-winner-badge-tv{font-size:clamp(21px,2.5vw,38px);padding:12px 26px;margin:12px auto 2px}
 @media(max-width:1200px){.ika74-winner-badge{padding:10px 12px;letter-spacing:.05em}}
 @media(prefers-reduced-motion:reduce){.ika74-winner,.ika74-loser{transition:none}}
+
+/* ETAP 75 - kompaktowe logo klubu tylko w tabeli klasyfikacji */
+.ranking-table .ika-ranking-club-cell {
+  display: inline-flex !important;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  vertical-align: middle;
+  gap: 9px;
+  min-width: 0;
+}
+.ranking-table .ika-ranking-club-cell .ika-club-logo {
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  flex: 0 0 32px !important;
+  overflow: hidden;
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1;
+  vertical-align: middle;
+}
+.ranking-table .ika-ranking-club-cell .ika-club-logo > img {
+  box-sizing: border-box;
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain;
+}
+.ranking-table .ika-ranking-club-cell > strong {
+  display: inline-block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+}
+@media (max-width: 620px) {
+  .ranking-table .ika-ranking-club-cell { gap: 6px; }
+  .ranking-table .ika-ranking-club-cell .ika-club-logo {
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    flex-basis: 28px !important;
+  }
+}
