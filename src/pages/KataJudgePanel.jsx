@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db } from '../lib/demoStore'
 import { openTatamiTvWindow } from '../lib/tvWindow'
+import { KATA_GROUPS, KATA_NAME_SET, KATA_CUSTOM_VALUE } from '../lib/kataCatalog'
+/* ETAP 92 - lista kata i gwizdek otwierajacy oceny */
 
 const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
 
@@ -38,6 +40,8 @@ export default function KataJudgePanel() {
   const [error, setError] = useState('')
   const scoreInputRefs = useRef([])
   const finalScoreButtonRef = useRef(null)
+  const whistleFocusPending = useRef(false)
+  const [manualKataMode, setManualKataMode] = useState(false)
 
   const refresh = () => setRefreshKey((value) => value + 1)
 
@@ -105,6 +109,25 @@ export default function KataJudgePanel() {
     })
   }
 
+  // Nowy zawodnik rozpoczyna z automatycznym wyborem kata. Dawne reczne nazwy pozostaja widoczne.
+  useEffect(() => {
+    setManualKataMode(false)
+    whistleFocusPending.current = false
+  }, [session?.id, current?.athleteId])
+
+  // Po gwizdku formularz ocen otwiera sie i od razu ustawia kursor w polu sedziego nr 1.
+  // W razie odswiezania TV lub danych z chmury nie przechwytujemy fokusu ponownie.
+  useEffect(() => {
+    if (!whistleFocusPending.current || session?.phase !== 'scores' || current?.status !== 'active') return undefined
+    whistleFocusPending.current = false
+    const frame = window.requestAnimationFrame(() => {
+      const input = scoreInputRefs.current[0]
+      input?.focus()
+      input?.select?.()
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [session?.id, session?.phase, current?.status, current?.athleteId, refreshKey])
+
   if (!session) {
     return (
       <main className="judge-screen judge-empty">
@@ -157,11 +180,31 @@ export default function KataJudgePanel() {
   }
 
   const updateKataName = (value) => run(() => db.updateKataName(session.id, value))
+  const chooseKata = (value) => {
+    if (value === KATA_CUSTOM_VALUE) {
+      setManualKataMode(true)
+      updateKataName('')
+      return
+    }
+    setManualKataMode(false)
+    updateKataName(value)
+  }
   const showAthlete = () => run(() => db.startKataAthlete(session.id), 'Zawodnik został pokazany na tablicy TV.')
   const showList = () => run(() => db.showKataList(session.id), 'Na tablicy TV wyświetlana jest lista startowa.')
   const blowWhistle = () => {
-    whistle()
-    run(() => db.kataWhistle(session.id), 'Gwizdek - sędziowie pokazują oceny. Wpisz je poniżej.')
+    try {
+      setError('')
+      // Gwizdek dziala od razu, takze gdy zawodnik nie byl jeszcze pokazany na TV.
+      if (current?.status !== 'active') db.startKataAthlete(session.id)
+      db.kataWhistle(session.id)
+      whistleFocusPending.current = true
+      whistle()
+      setMessage('Gwizdek! Możesz od razu wpisywać oceny — pierwsze pole jest gotowe.')
+      refresh()
+    } catch (err) {
+      whistleFocusPending.current = false
+      setError(err.message || 'Nie udało się uruchomić ocen kata.')
+    }
   }
   const saveFinal = () => run(() => db.finalizeKataScore(session.id), 'Końcowa ocena zapisana. TV pokaże wynik, potem listę i następnego zawodnika.')
 
@@ -200,19 +243,35 @@ export default function KataJudgePanel() {
               <p>{currentAthlete.club}</p>
               <label className="kata-name-field">
                 <span>Wykonywane kata</span>
-                <input
-                  type="text"
-                  value={current?.kataName || ''}
+                <select
+                  value={manualKataMode || (current?.kataName && !KATA_NAME_SET.has(current.kataName)) ? KATA_CUSTOM_VALUE : (current?.kataName || '')}
                   disabled={current?.status === 'done'}
-                  onChange={(event) => updateKataName(event.target.value)}
-                  placeholder="np. Bassai Dai"
-                  maxLength={80}
-                />
-                <small>Nazwa pojawi się również na tablicy TV.</small>
+                  onChange={(event) => chooseKata(event.target.value)}
+                >
+                  <option value="">— Wybierz kata z listy —</option>
+                  {KATA_GROUPS.map((group) => (
+                    <optgroup key={group.style} label={group.style}>
+                      {group.names.map((name) => <option key={name} value={name}>{name}</option>)}
+                    </optgroup>
+                  ))}
+                  <option value={KATA_CUSTOM_VALUE}>Inne kata — wpisz ręcznie…</option>
+                </select>
+                {(manualKataMode || (current?.kataName && !KATA_NAME_SET.has(current.kataName))) && (
+                  <input
+                    className="kata92-manual-name"
+                    type="text"
+                    value={current?.kataName || ''}
+                    disabled={current?.status === 'done'}
+                    onChange={(event) => updateKataName(event.target.value)}
+                    placeholder="Wpisz nazwę wykonywanego kata"
+                    maxLength={80}
+                  />
+                )}
+                <small>Kata z różnych stylów. Jeśli nie ma go na liście, wybierz „Inne kata”. Nazwa pojawi się również na TV.</small>
               </label>
               <div className="kata-judge-main-actions">
                 {!started && <button className="btn btn-primary kata-big-action" onClick={showAthlete}>POKAŻ ZAWODNIKA NA TV</button>}
-                {started && !scoresOpen && <button className="kata-whistle-button" onClick={blowWhistle}><span>◉</span> GWIZDEK - POKAŻ OCENY</button>}
+                {!scoresOpen && <button className="kata-whistle-button" type="button" onClick={blowWhistle}><span>◉</span> GWIZDEK — WPISZ OCENY</button>}
                 {scoresOpen && <strong className="kata-score-entry-ready">WPROWADŹ OCENY SĘDZIÓW</strong>}
               </div>
             </div>

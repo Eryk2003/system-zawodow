@@ -1409,3 +1409,31 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
     font-size: clamp(44px, 12vw, 84px) !important;
   }
 }
+
+
+/* ETAP 92 - rozwijana lista kata i aktywne oceny po gwizdku */
+.kata-name-field select {
+  width: 100%;
+  min-height: 48px;
+  border: 2px solid #d9dade;
+  border-radius: 12px;
+  background: #fff;
+  color: #171719;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.kata-name-field select:focus-visible {
+  outline: 2px solid #d72820;
+  outline-offset: 2px;
+  border-color: #d72820;
+}
+.kata-name-field select:disabled { opacity: .7; cursor: not-allowed }
+.kata-name-field .kata92-manual-name { width: 100%; }
+.kata-score-entry.active .kata-judge-score-grid input:focus {
+  outline: 3px solid #e1261c;
+  outline-offset: 2px;
+  border-color: #e1261c;
+}
