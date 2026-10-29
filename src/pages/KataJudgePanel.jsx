@@ -312,7 +312,7 @@ export default function KataJudgePanel() {
               </div>
               <div className="kata-judge-main-actions">
                 {!started && <button className="btn btn-primary kata-big-action" onClick={showAthlete}>POKAŻ ZAWODNIKA NA TV</button>}
-                {!scoresOpen && <button className="kata-whistle-button" type="button" onClick={blowWhistle}><span>◉</span> GWIZDEK — WPISZ OCENY</button>}
+                {!scoresOpen && <button className="kata-whistle-button" type="button" onClick={blowWhistle}><span>◉</span> GWIZDEK - WPISZ OCENY</button>}
                 {scoresOpen && <strong className="kata-score-entry-ready">WPROWADŹ OCENY SĘDZIÓW</strong>}
               </div>
             </div>
