@@ -1183,3 +1183,12 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 @media(max-width:950px){.scoreboard-body .fighter h1{font-size:clamp(32px,4.4vw,52px)!important}.scoreboard-body .score-number{font-size:90px!important}.ika104-tv-penalty-grid{gap:4px}.ika104-tv-penalty strong{font-size:13px}.scoreboard-body .fight-clock{font-size:clamp(48px,5.2vw,70px)!important}}
 @media(max-height:830px) and (min-width:950px){.scoreboard-body .scoreboard-athlete-photo{width:clamp(95px,9vw,155px)}.scoreboard-body .fighter h1{font-size:clamp(38px,4.1vw,66px)!important}.scoreboard-body .score-number{font-size:clamp(76px,8vw,120px)!important}}
 @media print{.ika104-tv-penalty-grid,.technique-score-grid{break-inside:avoid}}
+
+/* ETAP 105 - winner 10 seconds on TV, loser subdued. */
+.scoreboard-body>.fighter.ika105-winner,.scoreboard-body>.fighter.ika105-loser{transition:opacity .4s ease,filter .4s ease,box-shadow .4s ease}
+.scoreboard-body>.fighter.ika105-loser{opacity:.28;filter:grayscale(1) brightness(.66)}
+.scoreboard-body>.fighter.ika105-winner{position:relative;z-index:1;box-shadow:inset 0 0 0 5px #ffd166,0 0 40px rgba(255,209,102,.2)}
+.scoreboard-body>.fighter .ika105-winner-badge{align-self:center;width:max-content;max-width:100%;margin:10px auto -22px;padding:10px 24px;border:2px solid #fff0af;border-radius:12px;background:linear-gradient(135deg,#ffed9e,#ecb744);color:#281900;font-size:clamp(21px,2.2vw,38px);font-weight:1000;letter-spacing:.12em;line-height:1.15;text-align:center;box-shadow:0 10px 28px rgba(0,0,0,.32)}
+.scoreboard-body>.fighter.ika105-winner .score-number{margin-top:clamp(18px,3vw,38px)}
+@media(max-width:1100px){.scoreboard-body>.fighter .ika105-winner-badge{padding:8px 13px;letter-spacing:.05em}}
+@media(prefers-reduced-motion:reduce){.scoreboard-body>.fighter.ika105-winner,.scoreboard-body>.fighter.ika105-loser{transition:none}}

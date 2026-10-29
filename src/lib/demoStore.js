@@ -1757,7 +1757,7 @@ export function getTatamiPayload(mat) {
     ? matches.filter((m) => m.competitionId === state.competitionId && m.category === state.category)
     : matches
   const resolved = relevant.map((m) => resolveMatch(m, allMatches))
-  const current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
+  let current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
   const next = resolved.find((m) => m.status !== 'done' && m.redResolvedId && m.blueResolvedId) || null
   const hydrate = (id) => {
     const athlete = athletes.find((a) => a.id === id)
@@ -1774,6 +1774,20 @@ export function getTatamiPayload(mat) {
     || null
 
   let displayMode = state?.mode || 'bracket'
+  /* ETAP 105 - WINNER 10s na telebimie kumite */
+  const winnerMatch = state?.lastCompletedMatchId
+    ? resolved.find((item) => item.id === state.lastCompletedMatchId && item.status === 'done' && item.winnerId)
+    : null
+  const winnerElapsedMs = Date.now() - Number(winnerMatch?.completedAt || 0)
+  const showWinner = Boolean(winnerMatch &&
+    !(state?.breakActive || state?.mode === 'break') &&
+    ['bracket', 'podium'].includes(displayMode) &&
+    (!current || current.status !== 'active') &&
+    winnerElapsedMs >= 0 && winnerElapsedMs < 10000)
+  if (showWinner) {
+    current = winnerMatch
+    displayMode = 'scoreboard'
+  }
   if (state?.mode === 'kata-final' && kataSession) {
     const elapsed = Math.max(0, Date.now() - Number(state.kataFinalShownAt || Date.now()))
     if (elapsed < 5000) displayMode = 'kata-final'

@@ -434,6 +434,9 @@ export default function TatamiDisplay() {
 
   if (displayMode === 'scoreboard' && payload.currentMatch) {
     const m = payload.currentMatch
+    const isFinished = m.status === 'done' && Boolean(m.winnerId)
+    const redWinner = isFinished && m.winnerId === m.redResolvedId
+    const blueWinner = isFinished && m.winnerId === m.blueResolvedId
     return (
       <main className="tatami-screen scoreboard-screen">
         <FullscreenControl />
@@ -442,7 +445,7 @@ export default function TatamiDisplay() {
           <div><b>{matName}</b><span>{tvCompetition(payload.competition?.name || '')} • {tvCategory(payload.state?.category || '')}</span></div>
         </header>
         <section className="scoreboard-body">
-          <div className={`fighter fighter-red ${sideTheme.red.className}`}>
+          <div className={`fighter fighter-red ${sideTheme.red.className} ${isFinished ? (redWinner ? 'ika105-winner' : 'ika105-loser') : ''}`}>
             <div className="fighter-side">{sideTheme.red.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.redAthlete?.photo ? (
@@ -455,16 +458,17 @@ export default function TatamiDisplay() {
             </div>
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
+            {redWinner && <div className="ika105-winner-badge">WINNER</div>}
             <strong className="score-number">{scoreText(m.redScore)}</strong>
             <TechniqueScoreColumns match={m} side="red" mode="tv" />
             <TvPenaltyColumns match={m} side="red" />
           </div>
           <div className="fight-center">
-            <span>{tvRound(m.roundName)} • BOUT {m.matchNo}</span>
+            <span>{isFinished ? 'BOUT FINISHED' : `${tvRound(m.roundName)} • BOUT ${m.matchNo}`}</span>
             <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{m.timerRunning ? 'TIMER RUNNING' : 'TIMER STOPPED'}</small><small>HANSOKU = DEFEAT</small>
+            <small>{isFinished ? 'WINNER' : (m.timerRunning ? 'TIMER RUNNING' : 'TIMER STOPPED')}</small><small>HANSOKU = DEFEAT</small>
           </div>
-          <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
+          <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className} ${isFinished ? (blueWinner ? 'ika105-winner' : 'ika105-loser') : ''}`}>
             <div className="fighter-side">{sideTheme.blue.code}</div>
             <div className="scoreboard-athlete-photo">
               {m.blueAthlete?.photo ? (
@@ -477,6 +481,7 @@ export default function TatamiDisplay() {
             </div>
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
+            {blueWinner && <div className="ika105-winner-badge">WINNER</div>}
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
             <TechniqueScoreColumns match={m} side="blue" mode="tv" />
             <TvPenaltyColumns match={m} side="blue" />
