@@ -4,6 +4,7 @@ import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
 import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
+import TournamentPodiumTop3 from '../components/TournamentPodiumTop3.jsx'
 /* ika104-tv */
 import { tvRound, tvCategory, tvCompetition, tvStage, tvPenaltyLabel } from '../lib/tvEnglish.js'
 
@@ -117,7 +118,6 @@ export default function TatamiDisplay() {
   const { mat } = useParams()
   const matName = decodeURIComponent(mat || 'Tatami 1')
   const [payload, setPayload] = useState(() => getTatamiPayload(matName))
-  const [completedView, setCompletedView] = useState('winner')
 
   useEffect(() => {
     const refresh = () => setPayload(getTatamiPayload(matName))
@@ -133,19 +133,6 @@ export default function TatamiDisplay() {
 
 
   const displayMode = payload.displayMode || payload.state?.mode
-  const podiumKey = payload.podium?.key || (payload.podium ? `${payload.podium.competitionName || ''}|||${payload.podium.categoryName || ''}` : '')
-
-  useEffect(() => {
-    if (displayMode !== 'podium' || !payload.podium) {
-      setCompletedView('winner')
-      return undefined
-    }
-
-    setCompletedView('winner')
-    const timer = window.setTimeout(() => setCompletedView('results'), 6000)
-    return () => window.clearTimeout(timer)
-  }, [displayMode, podiumKey])
-
   useEffect(() => {
     const nextId = payload.nextMatch?.id
     if (displayMode !== 'bracket' || !nextId) return undefined
@@ -305,131 +292,15 @@ export default function TatamiDisplay() {
     )
   }
 
+  /* ETAP 106 - podium TOP3 after kata and kumite */
   if (displayMode === 'podium' && payload.podium) {
-    const placements = payload.podium.placements || []
-    const first = placements.find((item) => item.place === 1) || null
-    const winnerInfo = first ? athleteInfo(first.athleteId) : null
-    const winnerInitials = first?.athleteName
-      ? first.athleteName.split(' ').map((part) => part[0]).slice(0, 2).join('')
-      : '-'
-
-    const placementByAthlete = new Map(placements.map((item) => [item.athleteId, item]))
-    const entries = db.getEntries().filter((entry) => {
-      if (payload.podium.categoryId && entry.categoryId) return entry.categoryId === payload.podium.categoryId
-      return entry.competitionId === payload.podium.competitionId && entry.category === payload.podium.categoryName
-    })
-    const participantIds = [...new Set([
-      ...placements.map((item) => item.athleteId),
-      ...entries.map((entry) => entry.athleteId),
-    ].filter(Boolean))]
-    const finalList = participantIds.map((athleteId) => {
-      const placement = placementByAthlete.get(athleteId) || null
-      const info = athleteInfo(athleteId)
-      const athlete = athletes.find((item) => item.id === athleteId)
-      const fallbackName = athlete ? `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() : 'Unknown competitor'
-      return {
-        athleteId,
-        place: placement?.place || null,
-        name: placement?.athleteName || info?.name || fallbackName,
-        club: placement?.clubName || info?.club || '',
-        photo: info?.photo || athlete?.photo || '',
-      }
-    }).sort((a, b) => {
-      const pa = a.place == null ? 99 : a.place
-      const pb = b.place == null ? 99 : b.place
-      return pa - pb || a.name.localeCompare(b.name, 'pl')
-    })
-
-    if (completedView === 'winner') {
-      return (
-        <main
-          key={`${podiumKey}-winner`}
-          className="tatami-screen final-winner-screen"
-        >
-          <FullscreenControl />
-          <header className="final-results-header">
-            <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-            <div><b>WINNER</b><span>{tvCompetition(payload.podium.competitionName)} • {tvCategory(payload.podium.categoryName)}</span></div>
-            <div><b>{matName}</b><span>Category completed</span></div>
-          </header>
-
-          <section className="final-winner-stage">
-            <div className="final-winner-label">1ST PLACE</div>
-            <article className="final-winner-card">
-              <div className="final-winner-photo">
-                {winnerInfo?.photo ? (
-                  <img src={winnerInfo.photo} alt={first?.athleteName || 'Zwycięzca'} />
-                ) : (
-                  <div>{winnerInitials}</div>
-                )}
-              </div>
-              <div className="final-winner-copy">
-                <span>CATEGORY WINNER</span>
-                <h1>{first?.athleteName || '-'}</h1>
-                <p>{first?.clubName || winnerInfo?.club || ''}</p>
-                <div className="final-winner-meta">
-                  <strong>{tvCompetition(payload.podium.competitionName)}</strong>
-                  <small>{tvCategory(payload.podium.categoryName)}</small>
-                </div>
-              </div>
-            </article>
-            <small className="final-winner-next">Full results will appear shortly</small>
-          </section>
-        </main>
-      )
-    }
-
-    return (
-      <main
-        key={`${podiumKey}-results`}
-        className="tatami-screen final-results-screen"
-      >
-        <FullscreenControl />
-        <header className="final-results-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>FINAL RESULTS</b><span>{tvCompetition(payload.podium.competitionName)} • {tvCategory(payload.podium.categoryName)}</span></div>
-          <div><b>{matName}</b><span>{finalList.length} competitors</span></div>
-        </header>
-
-        <section className="final-results-stage">
-          <div className="final-results-title">
-            <span>CATEGORY COMPLETED</span>
-            <h1>{tvCategory(payload.podium.categoryName)}</h1>
-            <p>{tvCompetition(payload.podium.competitionName)}</p>
-          </div>
-
-          <div className={`final-results-grid ${finalList.length > 10 ? 'is-dense' : ''}`}>
-            {finalList.map((result, index) => {
-              const initials = result.name.split(' ').map((part) => part[0]).slice(0, 2).join('')
-              const placeText = result.place === 1
-                ? '1ST PLACE'
-                : result.place === 2
-                  ? '2ND PLACE'
-                  : result.place === 3
-                    ? '3RD PLACE'
-                    : 'PARTICIPANT'
-              return (
-                <article
-                  className={`final-result-row place-${result.place || 'other'}`}
-                  key={result.athleteId}
-                  style={{ '--result-delay': `${Math.min(index * 90, 900)}ms` }}
-                >
-                  <div className="final-result-place">{result.place || '-'}</div>
-                  <div className="final-result-photo">
-                    {result.photo ? <img src={result.photo} alt={result.name} /> : <div>{initials}</div>}
-                  </div>
-                  <div className="final-result-person">
-                    <strong>{result.name}</strong>
-                    <span>{result.club}</span>
-                  </div>
-                  <em>{placeText}</em>
-                </article>
-              )
-            })}
-          </div>
-        </section>
-      </main>
-    )
+    return <TournamentPodiumTop3
+      podium={payload.podium}
+      matName={matName}
+      tournamentName={payload.tournament?.name || ''}
+      getAthlete={athleteInfo}
+      fullscreenControl={<FullscreenControl />}
+    />
   }
 
   if (displayMode === 'scoreboard' && payload.currentMatch) {

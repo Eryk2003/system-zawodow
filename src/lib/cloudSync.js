@@ -49,6 +49,20 @@ const pending = new Map()
 const inFlightPublicWrites = new Set()
 const ika95Queue = new Map()
 const ika95LiveKeys = new Set(['ika_kata_sessions_v1','ika_matches_v2','ika_mat_states_v2'])
+/* ETAP 106 - ordered live updates and podium TOP3 */
+const ika106LastVersion = new Map()
+const ika106LocalVersion = new Map()
+const ika106LocalChange = (key) => {
+  if (!ika95LiveKeys.has(key) || currentIdentity.role !== 'organizer') return
+  const next = Math.max(Date.now(), (ika106LastVersion.get(key) || 0) + 1)
+  ika106LastVersion.set(key, next)
+  ika106LocalVersion.set(key, next)
+}
+const ika106ParseTime = (value) => {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : 0
+  const parsed = Date.parse(String(value || ''))
+  return Number.isFinite(parsed) ? parsed : 0
+}
 let ika95LivePollInterval = null
 let ika95LivePolling = false
 let privateWritesInProgress = 0
@@ -76,11 +90,19 @@ const dispatchRefresh = (key = '') => {
   window.dispatchEvent(new CustomEvent('ika:cloud', { detail: { key, at: Date.now() } }))
 }
 
-const applyRemoteValue = (key, value) => {
+const applyRemoteValue = (key, value, updatedAt = null) => {
   if (!CLOUD_KEYS.has(key)) return
-  // Nie pozwalaj starym odpowiedziom z chmury cofnac wprowadzanej oceny.
+  // A delayed broadcast or a slower poll may never replace a newer score.
   if (currentIdentity.role === 'organizer' && (pending.has(key) || inFlightPublicWrites.has(key) || ika95Queue.has(key))) return
   const serialized = JSON.stringify(value)
+  if (ika95LiveKeys.has(key)) {
+    const incoming = ika106ParseTime(updatedAt)
+    const current = ika106LastVersion.get(key) || 0
+    if (!incoming && current) return // Ignore legacy, unversioned broadcast after newer data.
+    if (incoming && incoming < current) return
+    if (incoming && incoming === current && localStorage.getItem(key) !== serialized) return
+    if (incoming) ika106LastVersion.set(key, Math.max(current, incoming))
+  }
   if (localStorage.getItem(key) === serialized) return
   suppressCloudWrite = true
   try { localStorage.setItem(key, serialized) } finally { suppressCloudWrite = false }
@@ -119,26 +141,33 @@ async function resolveIdentity() {
 
 async function upsertPublicNow(key, value) {
   if (!supabase || !PUBLIC_CLOUD_KEYS.has(key) || currentIdentity.role !== 'organizer') return
-  // Zapisy jednej kategorii sa kolejkowane, aby nie doszlo do cofniecia punktow.
-  ika95Queue.set(key, value)
+  // Only the newest local snapshot is queued. Earlier writes are flushed in order.
+  const revision = ika95LiveKeys.has(key)
+    ? Math.max(Date.now(), ika106LocalVersion.get(key) || 0, (ika106LastVersion.get(key) || 0) + 1)
+    : Date.now()
+  if (ika95LiveKeys.has(key)) {
+    ika106LastVersion.set(key, revision)
+    ika106LocalVersion.set(key, revision)
+  }
+  ika95Queue.set(key, { value, revision })
   if (inFlightPublicWrites.has(key)) return
   inFlightPublicWrites.add(key)
   try {
     while (ika95Queue.has(key)) {
       const latest = ika95Queue.get(key)
       ika95Queue.delete(key)
+      const updatedAt = new Date(latest.revision).toISOString()
       try {
         const { error } = await supabase.from('app_shared_state')
-          .upsert({ state_key:key, state_value:latest, updated_at:new Date().toISOString() }, { onConflict:'state_key' })
-        if (error) console.warn('[IKA cloud] zapis publiczny nieudany:',key,error.message)
+          .upsert({ state_key:key, state_value:latest.value, updated_at:updatedAt }, { onConflict:'state_key' })
+        if (error) console.warn('[IKA cloud] zapis publiczny nieudany:', key, error.message)
         else if (ika95LiveKeys.has(key) && publicChannel) {
-          Promise.resolve(publicChannel.send({ type:'broadcast',event:'ika95-live',payload:{key,value:latest} })).catch(()=>{})
+          Promise.resolve(publicChannel.send({type:'broadcast',event:'ika95-live',payload:{key,value:latest.value,updatedAt}})).catch(()=>{})
         }
       } catch (error) { console.warn('[IKA cloud] zapis publiczny nieudany:',key,error?.message||error) }
     }
   } finally { inFlightPublicWrites.delete(key) }
 }
-
 
 async function fetchPrivateRows() {
   if (!supabase) return { rows: [], error: null }
@@ -355,6 +384,7 @@ async function syncPrivateNow() {
 
 export function queueCloudWrite(key, value) {
   if (!cloudSyncConfigured || suppressCloudWrite || !CLOUD_KEYS.has(key)) return
+  ika106LocalChange(key)
   if (pending.has(key)) clearTimeout(pending.get(key))
 
   if (PRIVATE_CLOUD_KEYS.has(key)) {
@@ -387,7 +417,7 @@ async function hydratePublicState(polling = false) {
     const remote = cloudByKey.get(key)
     if (remote) {
       if (polling && localStorage.getItem(key) === JSON.stringify(remote.state_value)) continue
-      applyRemoteValue(key, remote.state_value)
+      applyRemoteValue(key, remote.state_value, remote.updated_at)
       continue
     }
     // No bootstrap writes during periodic read-only refresh.
@@ -421,11 +451,11 @@ function subscribePublicState() {
         const row = payload.new || payload.old
         if (!row?.state_key || !PUBLIC_CLOUD_KEYS.has(row.state_key)) return
         if (payload.eventType === 'DELETE') return
-        applyRemoteValue(row.state_key, row.state_value)
+        applyRemoteValue(row.state_key, row.state_value, row.updated_at)
       },
     )
     .on('broadcast', { event:'ika95-live' }, ({payload}) => {
-      if (ika95LiveKeys.has(payload?.key) && payload.value != null) applyRemoteValue(payload.key,payload.value)
+      if (ika95LiveKeys.has(payload?.key) && payload.value != null) applyRemoteValue(payload.key,payload.value,payload.updatedAt)
     })
     .subscribe()
 }
@@ -505,9 +535,9 @@ async function ika95PollLive() {
   ika95LivePolling = true
   try {
     const { data, error } = await supabase.from('app_shared_state')
-      .select('state_key,state_value').in('state_key',[...ika95LiveKeys])
+      .select('state_key,state_value,updated_at').in('state_key',[...ika95LiveKeys])
     if (error) throw error
-    for (const row of data || []) if (ika95LiveKeys.has(row.state_key)) applyRemoteValue(row.state_key,row.state_value)
+    for (const row of data || []) if (ika95LiveKeys.has(row.state_key)) applyRemoteValue(row.state_key,row.state_value,row.updated_at)
   } catch (e) { console.warn('[IKA cloud] szybki odczyt:',e?.message||e) }
   finally { ika95LivePolling = false }
 }
