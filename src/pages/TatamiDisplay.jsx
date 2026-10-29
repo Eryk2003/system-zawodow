@@ -16,6 +16,7 @@ const fmt = (seconds) => {
 
 
 /* IKA95_FULLSCREEN — przycisk ukrycia paska adresu w trybie pelnoekranowym */
+/* ETAP 103 - SPACE uruchamia pelny ekran TV bez paska adresu */
 function FullscreenControl() {
   const active = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement)
   const [isFullscreen, setIsFullscreen] = useState(active)
@@ -64,8 +65,11 @@ function FullscreenControl() {
 
   useEffect(() => {
     const onKey = (event) => {
-      if (event.key?.toLowerCase() !== 'f' || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
-      if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return
+      // Spacja jest dzialaniem uzytkownika wymaganym przez Fullscreen API.
+      if ((event.code !== 'Space' && event.key !== ' ' && event.key !== 'Spacebar') || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return
+      // Nie przechwytuj pisania ani obslugi przyciskow / linkow.
+      const focused = document.activeElement
+      if (focused?.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A', 'SUMMARY'].includes(focused?.tagName)) return
       event.preventDefault()
       toggle()
     }
@@ -78,11 +82,11 @@ function FullscreenControl() {
       type="button"
       className={`tv-fullscreen-btn ika95-tv-fullscreen ${isFullscreen ? '' : 'ika95-tv-fullscreen-enter'} ${visible ? 'is-visible' : 'is-hidden'}`}
       onClick={toggle}
-      title={isFullscreen ? 'Exit fullscreen (F)' : 'Hide browser address bar — fullscreen (F)'}
-      aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen without browser address bar'}
+      title={isFullscreen ? 'Exit fullscreen (ESC)' : 'Fullscreen TV - press SPACE'}
+      aria-label={isFullscreen ? 'Exit TV fullscreen' : 'Fullscreen TV - press Space'}
     >
       <span aria-hidden="true">{isFullscreen ? '⤢' : '⛶'}</span>
-      <b>{blocked ? 'Fullscreen blocked: use F11' : isFullscreen ? 'Exit fullscreen' : 'HIDE HTTPS BAR · FULLSCREEN (F)'}</b>
+      <b>{blocked ? 'Fullscreen blocked - use F11' : isFullscreen ? 'EXIT FULLSCREEN (ESC)' : 'FULLSCREEN TV (SPACE)'}</b>
     </button>
   )
 }
