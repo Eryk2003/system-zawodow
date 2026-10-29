@@ -45,7 +45,12 @@ export const CLOUD_KEYS = new Set([...PUBLIC_CLOUD_KEYS, ...PRIVATE_CLOUD_KEYS])
 
 const pending = new Map()
 /* ETAP 73: automatyczna synchronizacja co 10 sekund */
+/* ETAP 95: szybkie oceny kata i fullscreen */
 const inFlightPublicWrites = new Set()
+const ika95Queue = new Map()
+const ika95LiveKeys = new Set(['ika_kata_sessions_v1','ika_matches_v2','ika_mat_states_v2'])
+let ika95LivePollInterval = null
+let ika95LivePolling = false
 let privateWritesInProgress = 0
 let pollingInterval = null
 let pollingNow = false
@@ -73,12 +78,12 @@ const dispatchRefresh = (key = '') => {
 
 const applyRemoteValue = (key, value) => {
   if (!CLOUD_KEYS.has(key)) return
+  // Nie pozwalaj starym odpowiedziom z chmury cofnac wprowadzanej oceny.
+  if (currentIdentity.role === 'organizer' && (pending.has(key) || inFlightPublicWrites.has(key) || ika95Queue.has(key))) return
+  const serialized = JSON.stringify(value)
+  if (localStorage.getItem(key) === serialized) return
   suppressCloudWrite = true
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } finally {
-    suppressCloudWrite = false
-  }
+  try { localStorage.setItem(key, serialized) } finally { suppressCloudWrite = false }
   dispatchRefresh(key)
 }
 
@@ -113,20 +118,27 @@ async function resolveIdentity() {
 }
 
 async function upsertPublicNow(key, value) {
-  if (!supabase || !PUBLIC_CLOUD_KEYS.has(key)) return
-  if (currentIdentity.role !== 'organizer') return
+  if (!supabase || !PUBLIC_CLOUD_KEYS.has(key) || currentIdentity.role !== 'organizer') return
+  // Zapisy jednej kategorii sa kolejkowane, aby nie doszlo do cofniecia punktow.
+  ika95Queue.set(key, value)
+  if (inFlightPublicWrites.has(key)) return
   inFlightPublicWrites.add(key)
   try {
-    const { error } = await supabase
-      .from('app_shared_state')
-      .upsert({ state_key: key, state_value: value, updated_at: new Date().toISOString() }, { onConflict: 'state_key' })
-    if (error) console.warn('[IKA cloud] zapis publiczny nieudany:', key, error.message)
-  } catch (error) {
-    console.warn('[IKA cloud] zapis publiczny nieudany:', key, error?.message || error)
-  } finally {
-    inFlightPublicWrites.delete(key)
-  }
+    while (ika95Queue.has(key)) {
+      const latest = ika95Queue.get(key)
+      ika95Queue.delete(key)
+      try {
+        const { error } = await supabase.from('app_shared_state')
+          .upsert({ state_key:key, state_value:latest, updated_at:new Date().toISOString() }, { onConflict:'state_key' })
+        if (error) console.warn('[IKA cloud] zapis publiczny nieudany:',key,error.message)
+        else if (ika95LiveKeys.has(key) && publicChannel) {
+          Promise.resolve(publicChannel.send({ type:'broadcast',event:'ika95-live',payload:{key,value:latest} })).catch(()=>{})
+        }
+      } catch (error) { console.warn('[IKA cloud] zapis publiczny nieudany:',key,error?.message||error) }
+    }
+  } finally { inFlightPublicWrites.delete(key) }
 }
+
 
 async function fetchPrivateRows() {
   if (!supabase) return { rows: [], error: null }
@@ -412,6 +424,9 @@ function subscribePublicState() {
         applyRemoteValue(row.state_key, row.state_value)
       },
     )
+    .on('broadcast', { event:'ika95-live' }, ({payload}) => {
+      if (ika95LiveKeys.has(payload?.key) && payload.value != null) applyRemoteValue(payload.key,payload.value)
+    })
     .subscribe()
 }
 
@@ -484,11 +499,26 @@ async function pollLatestCompetitionData() {
   }
 }
 
+// Rezerwowe odswiezanie tylko trzech kluczy wynikow. Realtime ma pierwszenstwo.
+async function ika95PollLive() {
+  if (!initialized || !supabase || ika95LivePolling) return
+  ika95LivePolling = true
+  try {
+    const { data, error } = await supabase.from('app_shared_state')
+      .select('state_key,state_value').in('state_key',[...ika95LiveKeys])
+    if (error) throw error
+    for (const row of data || []) if (ika95LiveKeys.has(row.state_key)) applyRemoteValue(row.state_key,row.state_value)
+  } catch (e) { console.warn('[IKA cloud] szybki odczyt:',e?.message||e) }
+  finally { ika95LivePolling = false }
+}
 function startTenSecondRefresh() {
   if (pollingInterval) return
   pollingInterval = window.setInterval(() => {
     pollLatestCompetitionData().catch(() => {})
   }, 10000)
+  if (/^\/(tatami\/|organizator\/(kata-sedzia|sedzia)\/|telebim(?:\/|$))/.test(window.location.pathname)) {
+    ika95LivePollInterval = window.setInterval(() => { ika95PollLive().catch(()=>{}) },2000)
+  }
 }
 
 export async function initializeCloudSync() {
@@ -523,6 +553,8 @@ export async function initializeCloudSync() {
 export function disposeCloudSync() {
   if (pollingInterval) window.clearInterval(pollingInterval)
   pollingInterval = null
+  if (ika95LivePollInterval) window.clearInterval(ika95LivePollInterval)
+  ika95LivePollInterval = null
   if (!supabase) return
   if (publicChannel) supabase.removeChannel(publicChannel)
   unsubscribeRoleChannels()

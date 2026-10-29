@@ -1216,7 +1216,11 @@ export const db = {
     const next = { ...session, results, phase: 'scores' }
     sessions[index] = next
     write(KEYS.kataSessions, sessions)
-    setMatStateInternal(session.mat, { mode: 'kata-scores', kataSessionId: session.id, kataCurrentAthleteId: result.athleteId })
+    /* IKA95_DEDUP_MAT_STATE — nie zapisujemy identycznego stanu TV przy kazdym punkcie */
+    const currentMatState = read(KEYS.matStates, {})[session.mat] || {}
+    if (currentMatState.mode !== 'kata-scores' || currentMatState.kataSessionId !== session.id || currentMatState.kataCurrentAthleteId !== result.athleteId) {
+      setMatStateInternal(session.mat, { mode: 'kata-scores', kataSessionId: session.id, kataCurrentAthleteId: result.athleteId })
+    }
     emit()
     return next
   },

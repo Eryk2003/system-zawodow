@@ -38,33 +38,33 @@ const renderTvPenalty = (match, side, type) => {
 }
 
 
+/* IKA95_FULLSCREEN — przycisk ukrycia paska adresu w trybie pelnoekranowym */
 function FullscreenControl() {
-  const [isFullscreen, setIsFullscreen] = useState(() => Boolean(document.fullscreenElement))
+  const active = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement)
+  const [isFullscreen, setIsFullscreen] = useState(active)
   const [visible, setVisible] = useState(true)
+  const [blocked, setBlocked] = useState(false)
 
   useEffect(() => {
-    const onChange = () => {
-      const active = Boolean(document.fullscreenElement)
-      setIsFullscreen(active)
-      setVisible(true)
-    }
+    const onChange = () => { setIsFullscreen(active()); setVisible(true); setBlocked(false) }
     document.addEventListener('fullscreenchange', onChange)
-    return () => document.removeEventListener('fullscreenchange', onChange)
+    document.addEventListener('webkitfullscreenchange', onChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange)
+      document.removeEventListener('webkitfullscreenchange', onChange)
+    }
   }, [])
 
   useEffect(() => {
-    if (!isFullscreen) {
-      setVisible(true)
-      return undefined
-    }
-    let timer = window.setTimeout(() => setVisible(false), 3000)
+    if (!isFullscreen) { setVisible(true); return undefined }
+    let timer = window.setTimeout(() => setVisible(false), 2800)
     const reveal = () => {
       setVisible(true)
       window.clearTimeout(timer)
-      timer = window.setTimeout(() => setVisible(false), 3000)
+      timer = window.setTimeout(() => setVisible(false), 2800)
     }
     window.addEventListener('mousemove', reveal)
-    window.addEventListener('touchstart', reveal, { passive: true })
+    window.addEventListener('touchstart', reveal, { passive:true })
     return () => {
       window.clearTimeout(timer)
       window.removeEventListener('mousemove', reveal)
@@ -74,25 +74,42 @@ function FullscreenControl() {
 
   const toggle = async () => {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen()
-      else await document.documentElement.requestFullscreen()
-    } catch (_) {
-      // Przeglądarka może zablokować pełny ekran, jeśli akcja nie pochodzi bezpośrednio od użytkownika.
-    }
+      if (active()) {
+        const exit = document.exitFullscreen || document.webkitExitFullscreen
+        if (exit) await exit.call(document)
+      } else {
+        const enter = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen
+        if (!enter) { setBlocked(true); return }
+        await enter.call(document.documentElement)
+      }
+    } catch (_) { setBlocked(true) }
   }
+
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key?.toLowerCase() !== 'f' || event.repeat || event.ctrlKey || event.metaKey || event.altKey) return
+      if (['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) return
+      event.preventDefault()
+      toggle()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [isFullscreen])
 
   return (
     <button
       type="button"
-      className={`tv-fullscreen-btn ${visible ? 'is-visible' : 'is-hidden'}`}
+      className={`tv-fullscreen-btn ika95-tv-fullscreen ${isFullscreen ? '' : 'ika95-tv-fullscreen-enter'} ${visible ? 'is-visible' : 'is-hidden'}`}
       onClick={toggle}
-      title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+      title={isFullscreen ? 'Exit fullscreen (F)' : 'Hide browser address bar — fullscreen (F)'}
+      aria-label={isFullscreen ? 'Wyjdz z pelnego ekranu' : 'Pelny ekran bez paska adresu https'}
     >
       <span aria-hidden="true">{isFullscreen ? '⤢' : '⛶'}</span>
-      <b>{isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}</b>
+      <b>{blocked ? 'Fullscreen blocked · use browser shortcut' : isFullscreen ? 'Exit fullscreen' : 'HIDE HTTPS BAR · FULLSCREEN (F)'}</b>
     </button>
   )
 }
+
 
 export default function TatamiDisplay() {
   const { mat } = useParams()

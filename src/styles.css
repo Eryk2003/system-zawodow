@@ -1483,3 +1483,10 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 @media(max-width:980px){.ika94-quickdesk-header{flex-direction:column;gap:12px}.ika94-quickdesk-form{grid-template-columns:minmax(160px,1fr) minmax(230px,2fr)}.ika94-open-judge{grid-column:1/-1}}
 @media(max-width:640px){.ika94-quickdesk-form{grid-template-columns:minmax(0,1fr)}.ika94-quickdesk-form label,.ika94-open-judge{grid-column:1}.ika94-quickdesk-stats{width:100%;gap:6px}.ika94-quickdesk-stats>div{flex:1;min-width:0;padding:8px 5px}.ika94-center-tab{padding:11px 13px}.ika94-mat-grid{grid-template-columns:1fr 1fr}}
 @media print{.ika94-quickdesk,.ika94-center-tabs,.ika94-mat-overview{display:none!important}}
+
+/* ETAP 95 - pelny ekran bez paska adresu */
+.tv-fullscreen-btn.ika95-tv-fullscreen-enter{border-color:#e9be55;background:rgba(15,15,18,.96);box-shadow:0 0 0 2px rgba(233,190,85,.18),0 12px 30px rgba(0,0,0,.4)}
+.tv-fullscreen-btn.ika95-tv-fullscreen-enter>b{font-size:clamp(11px,1.1vw,15px);letter-spacing:.025em}
+.tv-fullscreen-btn.ika95-tv-fullscreen:focus-visible{outline:3px solid #f1cb76;outline-offset:3px}
+@media(max-width:1000px){.tv-fullscreen-btn.ika95-tv-fullscreen-enter>b{display:block;max-width:205px;white-space:normal;font-size:11px;line-height:1.2}}
+@media print{.tv-fullscreen-btn.ika95-tv-fullscreen{display:none!important}}

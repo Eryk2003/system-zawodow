@@ -40,6 +40,8 @@ export default function KataJudgePanel() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  /* ika95-score-drafts: wpisywanie cyfry bez niepotrzebnego zapisu do bazy */
+  const [scoreDrafts,setScoreDrafts] = useState({})
   const scoreInputRefs = useRef([])
   const finalScoreButtonRef = useRef(null)
   const whistleFocusPending = useRef(false)
@@ -55,7 +57,7 @@ export default function KataJudgePanel() {
     const handle = () => refresh()
     window.addEventListener('storage', handle)
     window.addEventListener('ika:data', handle)
-    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); handle() }, 500)
+    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); handle() }, 1200)
     return () => {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
@@ -118,6 +120,7 @@ export default function KataJudgePanel() {
   // Przy zmianie zawodnika podpowiadanie zaczyna od zapisanej nazwy kata.
   // W trakcie pisania nie odswiezamy calego panelu ani nie wysylamy kazdego znaku do Supabase.
   useEffect(() => {
+    setScoreDrafts({})
     setKataQuery(current?.kataName || '')
     setKataMenuOpen(false)
     setKataHighlightedIndex(-1)
@@ -151,42 +154,35 @@ export default function KataJudgePanel() {
   const scoresOpen = session.phase === 'scores' && started
   const isCompleteJudgeScore = (value) => /^\d\.\d$/.test(String(value ?? ''))
   const allScoresEntered = scoresOpen && (current.scores || []).slice(0, session.judgeCount).every(isCompleteJudgeScore)
+    && !Object.values(scoreDrafts).some(value=>value != null && !isCompleteJudgeScore(value))
 
   const handleJudgeScoreChange = (index, rawValue) => {
-    const raw = String(rawValue ?? '').replace(',', '.').replace(/[^0-9.]/g, '')
-    const digits = raw.replace(/\D/g, '')
-    let formatted = ''
-    let complete = false
-
-    if (!digits) {
-      formatted = ''
-    } else if (digits.length === 1) {
-      formatted = `${digits[0]}.`
-    } else {
-      formatted = `${digits[0]}.${digits[1]}`
-      complete = true
+    const digits = String(rawValue ?? '').replace(/\D/g,'')
+    const complete = digits.length >= 2
+    const formatted = digits.length === 0 ? '' : digits.length === 1 ? digits[0]+'.' : digits[0]+'.'+digits[1]
+    if (!complete) {
+      setScoreDrafts(prev=>({ ...prev,[index]:formatted }))
+      if (!digits && current?.scores?.[index] != null) run(()=>db.updateKataJudgeScore(session.id,index,''))
+      return
     }
-
-    run(() => db.updateKataJudgeScore(session.id, index, formatted))
-
-    if (complete) {
-      window.requestAnimationFrame(() => {
-        if (index + 1 < session.judgeCount) {
-          scoreInputRefs.current[index + 1]?.focus()
-          scoreInputRefs.current[index + 1]?.select?.()
-        } else {
-          finalScoreButtonRef.current?.focus()
-        }
-      })
-    }
+    setScoreDrafts(prev=>{ const next={...prev}; delete next[index]; return next })
+    run(()=>db.updateKataJudgeScore(session.id,index,formatted))
+    window.requestAnimationFrame(()=>{
+      if (index+1 < session.judgeCount) {
+        scoreInputRefs.current[index+1]?.focus()
+        scoreInputRefs.current[index+1]?.select?.()
+      } else finalScoreButtonRef.current?.focus()
+    })
   }
-
-  const handleJudgeScoreKeyDown = (index, event) => {
-    if (event.key === 'Backspace' && String(current?.scores?.[index] ?? '').endsWith('.')) {
+  const handleJudgeScoreKeyDown = (index,event) => {
+    const displayed = scoreDrafts[index] ?? current?.scores?.[index] ?? ''
+    if (event.key==='Backspace' && String(displayed).endsWith('.')) {
       event.preventDefault()
-      run(() => db.updateKataJudgeScore(session.id, index, ''))
+      setScoreDrafts(prev=>({...prev,[index]:''}))
+      if (current?.scores?.[index] != null) run(()=>db.updateKataJudgeScore(session.id,index,''))
     }
   }
+
 
   const updateKataName = (value) => run(() => db.updateKataName(session.id, value))
 
@@ -351,7 +347,7 @@ export default function KataJudgePanel() {
             <div className="kata-score-entry-head"><div><span className="eyebrow">Oceny</span><h2>{session.judgeCount} sędziów</h2></div><span>Każda wpisana ocena pojawia się od razu na tablicy TV.</span></div>
             <div className="kata-judge-score-grid">
               {Array.from({ length: session.judgeCount }, (_, index) => (
-                <label key={index}>Sędzia {index + 1}<input ref={(element) => { scoreInputRefs.current[index] = element }} className="numeric-input" inputMode="decimal" disabled={!scoresOpen} value={current?.scores?.[index] ?? ''} onChange={(event) => handleJudgeScoreChange(index, event.target.value)} onKeyDown={(event) => handleJudgeScoreKeyDown(index, event)} maxLength={3} placeholder="-" /></label>
+                <label key={index}>Sędzia {index + 1}<input ref={(element) => { scoreInputRefs.current[index] = element }} className="numeric-input" inputMode="decimal" disabled={!scoresOpen} value={scoreDrafts[index] ?? current?.scores?.[index] ?? ''} onChange={(event) => handleJudgeScoreChange(index, event.target.value)} onKeyDown={(event) => handleJudgeScoreKeyDown(index, event)} maxLength={3} placeholder="-" /></label>
               ))}
             </div>
             <div className="kata-score-save-row">
