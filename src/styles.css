@@ -1131,3 +1131,55 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika102-break-placeholder small{font-size:clamp(14px,1.4vw,22px);color:#aaa}
 @media(max-width:800px){.ika102-break-control{justify-content:flex-start}.ika102-break-button{font-size:11px}}
 @media print{.ika102-break-control{display:none!important}}
+
+
+/* ETAP 104 — wyrazny kumite: WAZARI, IPPON, ATTENAI 1/2, CHUI, HANSOKU */
+.technique-score-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;width:min(600px,100%);margin:12px auto 0}
+.technique-score-column{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;border:1px solid rgba(255,255,255,.28);border-radius:12px;padding:10px 7px;background:rgba(0,0,0,.14)}
+.technique-score-label{font-size:clamp(15px,1.2vw,19px);font-weight:1000;letter-spacing:.08em}
+.technique-score-count{font-size:clamp(28px,3vw,48px);font-weight:1000;line-height:1;font-variant-numeric:tabular-nums}
+.technique-score-column>small{font-weight:850;font-size:11px;opacity:.85}
+.technique-score-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%}
+.technique-score-actions button{border:1px solid rgba(255,255,255,.38);border-radius:8px;background:rgba(255,255,255,.12);color:inherit;font-size:18px;font-weight:1000;min-height:40px;cursor:pointer}
+.technique-score-actions .technique-score-add{background:#e1261c;border-color:#ff5b4c;color:#fff;font-size:22px}
+.technique-score-actions button:disabled{opacity:.4;cursor:not-allowed}
+.judge-fighter.side-white .technique-score-column,.fighter-white .technique-score-column{background:rgba(255,255,255,.8);border-color:#bfc0c4;color:#111}
+.judge-fighter.side-white .technique-score-actions button{color:#111}
+.judge-fighter.side-white .technique-score-actions .technique-score-add{color:#fff}
+.ika104-penalty-box{width:min(740px,100%);margin-top:12px;padding:10px}
+.ika104-penalty-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ika104-penalty-column{display:grid;gap:7px;min-width:0;padding:10px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.16);border-radius:10px}
+.ika104-penalty-column>small{font-size:11px;font-weight:1000;line-height:1.2;letter-spacing:.03em}
+.ika104-penalty-column>strong{font-size:18px;font-weight:950;padding:9px 4px;border-radius:8px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.15)}
+.ika104-penalty-column>strong.ika104-penalty-active{color:#ffcf69;border-color:rgba(255,207,105,.6)}
+.ika104-penalty-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.ika104-penalty-buttons>button{padding:9px 4px;min-height:36px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(255,255,255,.12);color:inherit;font-size:11px;font-weight:900;cursor:pointer}
+.ika104-penalty-buttons>button.active{background:#9a5800;border-color:#ffd25e;box-shadow:0 0 0 1px #ffd25e inset;color:#fff}
+.ika104-penalty-buttons>button.hansoku{background:#a80000;color:#fff;border-color:#ed4242}
+.ika104-penalty-buttons>button.ika104-undo{grid-column:1/-1;background:rgba(0,0,0,.14)}
+.ika104-penalty-buttons>button:disabled{opacity:.4;cursor:not-allowed}
+.judge-fighter.side-white .ika104-penalty-column{background:#fff;border-color:#bcbec4}
+.judge-fighter.side-white .ika104-penalty-column>strong{background:#ececef;border-color:#bcbec4}
+.judge-fighter.side-white .ika104-penalty-buttons>button:not(.active):not(.hansoku){background:#eee;color:#111;border-color:#bcbec4}
+.ika104-tv-penalty-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;margin-top:8px}
+.ika104-tv-penalty{display:grid;align-content:center;justify-items:center;gap:4px;padding:9px 5px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:rgba(0,0,0,.11);min-width:0}
+.ika104-tv-penalty small{font-size:clamp(10px,.75vw,13px);font-weight:950;line-height:1.12;letter-spacing:.025em}
+.ika104-tv-penalty strong{font-size:clamp(13px,1.18vw,22px);font-weight:1000;line-height:1.05}
+.ika104-tv-penalty.active{border-color:#ffc65a;background:rgba(232,180,60,.17)}
+.scoreboard-body{grid-template-columns:minmax(0,1fr) minmax(240px,.38fr) minmax(0,1fr)!important}
+.scoreboard-body .fighter{min-width:0;padding:clamp(10px,1.5vw,24px)!important}
+.scoreboard-body .scoreboard-athlete-photo{width:clamp(126px,11vw,195px);margin-bottom:7px}
+.scoreboard-body .fighter h1{font-size:clamp(40px,4.7vw,86px)!important;line-height:.98!important;letter-spacing:-.05em;overflow-wrap:anywhere;word-break:normal;text-wrap:balance;margin:8px 0 5px!important;max-width:100%}
+.scoreboard-body .fighter p{font-size:clamp(17px,1.4vw,24px);margin:0!important}
+.scoreboard-body .score-number{font-size:clamp(80px,9vw,150px)!important;margin-top:9px!important;margin-bottom:4px}
+.scoreboard-body .technique-score-grid-tv{margin:4px 0 0;width:100%}
+.scoreboard-body .technique-score-grid-tv .technique-score-column{gap:3px;padding:7px 3px;min-height:65px}
+.scoreboard-body .technique-score-grid-tv .technique-score-label{font-size:clamp(13px,1.1vw,18px)}
+.scoreboard-body .technique-score-grid-tv .technique-score-count{font-size:clamp(24px,2.2vw,38px)}
+.scoreboard-body .technique-score-grid-tv .technique-score-column>small{display:none}
+.fight-center{min-width:0;padding:clamp(12px,1.25vw,24px)}
+.scoreboard-body .fight-clock{font-size:clamp(60px,5.3vw,93px)!important;white-space:nowrap;letter-spacing:-.045em}
+@media(max-width:1340px){.scoreboard-body{grid-template-columns:minmax(0,1fr) minmax(220px,.4fr) minmax(0,1fr)!important}.scoreboard-body .fighter h1{font-size:clamp(38px,4vw,68px)!important}.ika104-penalty-columns{grid-template-columns:1fr}}
+@media(max-width:950px){.scoreboard-body .fighter h1{font-size:clamp(32px,4.4vw,52px)!important}.scoreboard-body .score-number{font-size:90px!important}.ika104-tv-penalty-grid{gap:4px}.ika104-tv-penalty strong{font-size:13px}.scoreboard-body .fight-clock{font-size:clamp(48px,5.2vw,70px)!important}}
+@media(max-height:830px) and (min-width:950px){.scoreboard-body .scoreboard-athlete-photo{width:clamp(95px,9vw,155px)}.scoreboard-body .fighter h1{font-size:clamp(38px,4.1vw,66px)!important}.scoreboard-body .score-number{font-size:clamp(76px,8vw,120px)!important}}
+@media print{.ika104-tv-penalty-grid,.technique-score-grid{break-inside:avoid}}

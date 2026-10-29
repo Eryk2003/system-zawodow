@@ -1268,7 +1268,7 @@ export const db = {
           bracketPosition: slot.position, bracketSize,
           redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1293,7 +1293,7 @@ export const db = {
           bracketPosition: i / 2, bracketSize,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1397,34 +1397,76 @@ export const db = {
     return next
   },
 
-  changePenalty: (matchId, side, level) => {
-    const matches = read(KEYS.matches, [])
-    const match = matches.find((m) => m.id === matchId)
+  changePenalty: (matchId, side, type, level) => {
+    if (!['red','blue'].includes(side)) throw new Error('Nieprawidlowy zawodnik.')
+    // Starszy podpis changePenalty(matchId, side, level) nadal jest obslugiwany.
+    const reason = typeof type === 'number' && level === undefined ? 'exit' : type
+    const requestedLevel = typeof type === 'number' && level === undefined ? type : level
+    if (!['exit','behavior'].includes(reason)) throw new Error('Wybierz powod kary.')
+    if (![0,1,2,3,4].includes(Number(requestedLevel))) throw new Error('Nieprawidlowy stopien kary.')
+
+    const match = read(KEYS.matches, []).find((row) => row.id === matchId)
     if (!match) return null
+    if (match.status === 'done' || match.winnerId) throw new Error('Nie mozna zmieniac kar po zakonczeniu walki.')
+    if (match.status !== 'active') throw new Error('Kary mozna zmieniac tylko w aktywnej walce.')
 
-    // Tak samo jak wynik, kary są zamknięte po zakończeniu walki.
-    if (match.status === 'done' || match.winnerId) {
-      throw new Error('Walka została już zakończona. Nie można zmieniać kar.')
+    // Jednorazowa migracja starych wpisow: dawna kara trafia do kolumny wyjsc poza mate.
+    // Dwa powody maja osobne liczniki; zmiana jednego nie cofa drugiego.
+    const old = (s) => Math.max(0,Math.min(4,Number(match[s+'PenaltyLevel']||0)))
+    const prior = (s, why) => {
+      const key = s + (why === 'exit' ? 'ExitPenaltyLevel' : 'BehaviorPenaltyLevel')
+      return match[key] == null ? (why === 'exit' ? old(s) : 0) : Math.max(0,Math.min(4,Number(match[key]||0)))
     }
-    if (match.status !== 'active') {
-      throw new Error('Kary można zmieniać tylko podczas aktywnej walki.')
+    const next = {
+      ...match,
+      redExitPenaltyLevel: prior('red','exit'),
+      redBehaviorPenaltyLevel: prior('red','behavior'),
+      blueExitPenaltyLevel: prior('blue','exit'),
+      blueBehaviorPenaltyLevel: prior('blue','behavior'),
     }
-
-    const nextLevel = Math.max(0, Math.min(4, Number(level || 0)))
-    const key = side === 'red' ? 'redPenaltyLevel' : 'bluePenaltyLevel'
-    const next = { ...match, [key]: nextLevel }
+    const key = side + (reason === 'exit' ? 'ExitPenaltyLevel' : 'BehaviorPenaltyLevel')
+    next[key] = Number(requestedLevel)
+    next.redPenaltyLevel = Math.max(next.redExitPenaltyLevel,next.redBehaviorPenaltyLevel)
+    next.bluePenaltyLevel = Math.max(next.blueExitPenaltyLevel,next.blueBehaviorPenaltyLevel)
     saveMatchInternal(next)
-
-    // HANSOKU automatycznie kończy walkę. Zawodnik ukarany przegrywa,
-    // a przeciwnik zostaje zwycięzcą i przechodzi dalej w drabince.
-    if (nextLevel === 4) {
+    // HANSOKU konczy walke; ukarany przegrywa, wynik zostaje zablokowany.
+    if (next[key] === 4) {
       const resolved = resolveMatch(next, read(KEYS.matches, []))
       const winnerId = side === 'red' ? resolved.blueResolvedId : resolved.redResolvedId
-      if (winnerId) {
-        return db.finishMatch(matchId, winnerId, { automatic: true, reason: 'HANSOKU' })
+      if (winnerId) return db.finishMatch(matchId, winnerId, { automatic:true, reason:'HANSOKU' })
+    }
+    emit()
+    return next
+  },
+
+  /* ETAP 104 — WAZARI, IPPON, ATTENAI, CHUI, HANSOKU */
+  changeTechniqueScore: (matchId, side, technique, delta) => {
+    if (!['red','blue'].includes(side) || !['wazari','ippon'].includes(technique) || ![-1,1].includes(delta)) {
+      throw new Error('Nieprawidlowy rodzaj punktu.')
+    }
+    const match = read(KEYS.matches, []).find((row) => row.id === matchId)
+    if (!match) return null
+    if (match.status === 'done' || match.winnerId) throw new Error('Walka jest zakonczona. Punktacja zablokowana.')
+    if (match.status !== 'active') throw new Error('Punktowac mozna tylko aktywna walke.')
+
+    const countKey = side + (technique === 'wazari' ? 'WazariCount' : 'IpponCount')
+    const totalKey = side + 'Score'
+    const before = Math.max(0,Math.floor(Number(match[countKey]||0)))
+    if (delta < 0 && before === 0) return match
+    const value = technique === 'wazari' ? 1 : 2
+    const newScore = Math.max(0,Number(match[totalKey]||0)+delta*value)
+    const next = { ...match, [countKey]:before+delta, [totalKey]:newScore }
+    saveMatchInternal(next)
+
+    if (delta > 0) {
+      const competition = read(KEYS.competitions, []).find((item) => item.id === match.competitionId) || null
+      const winRule = getKumiteWinRule(competition)
+      if (winRule && newScore >= winRule.targetScore) {
+        const resolved = resolveMatch(next, read(KEYS.matches, []))
+        const winnerId = side === 'red' ? resolved.redResolvedId : resolved.blueResolvedId
+        if (winnerId) return db.finishMatch(matchId, winnerId, { automatic:true, reason:winRule.title })
       }
     }
-
     emit()
     return next
   },

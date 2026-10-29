@@ -3,9 +3,30 @@ import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
+import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
+/* ika104-tv */
 import { tvRound, tvCategory, tvCompetition, tvStage, tvPenaltyLabel } from '../lib/tvEnglish.js'
 
 const scoreText = (value) => value == null ? '-' : String(Number(value))
+
+const tvPenaltyLevel = (match,side,reason) => {
+  const key = side + (reason === 'exit' ? 'ExitPenaltyLevel' : 'BehaviorPenaltyLevel')
+  if (match?.[key] != null) return Number(match[key]||0)
+  return reason === 'exit' ? Number(match?.[side+'PenaltyLevel']||0) : 0
+}
+function TvPenaltyColumns({match,side}) {
+  return <div className="ika104-tv-penalty-grid">
+    {[
+      { key:'exit', name:'EXITING THE MAT' },
+      { key:'behavior', name:'UNSPORTING BEHAVIOUR' },
+    ].map(({key,name}) => {
+      const level = tvPenaltyLevel(match,side,key)
+      return <div key={key} className={'ika104-tv-penalty '+(level?'active':'')}>
+        <small>{name}</small><strong>{getKumitePenaltyLabel(level) === 'BRAK' ? 'NONE' : getKumitePenaltyLabel(level)}</strong>
+      </div>
+    })}
+  </div>
+}
 
 const fmt = (seconds) => {
   const s = Math.max(0, Number(seconds || 0))
@@ -435,7 +456,8 @@ export default function TatamiDisplay() {
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.redScore)}</strong>
-            <div className={`tv-penalty ${Number(m.redPenaltyLevel || 0) ? 'active' : ''}`}>PENALTY: {tvPenaltyLabel(getKumitePenaltyLabel(m.redPenaltyLevel))}</div>
+            <TechniqueScoreColumns match={m} side="red" mode="tv" />
+            <TvPenaltyColumns match={m} side="red" />
           </div>
           <div className="fight-center">
             <span>{tvRound(m.roundName)} • BOUT {m.matchNo}</span>
@@ -456,7 +478,8 @@ export default function TatamiDisplay() {
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
-            <div className={`tv-penalty ${Number(m.bluePenaltyLevel || 0) ? 'active' : ''}`}>PENALTY: {tvPenaltyLabel(getKumitePenaltyLabel(m.bluePenaltyLevel))}</div>
+            <TechniqueScoreColumns match={m} side="blue" mode="tv" />
+            <TvPenaltyColumns match={m} side="blue" />
           </div>
         </section>
       </main>
