@@ -153,27 +153,24 @@ export default function TatamiDisplay() {
     return [...map.values()].sort((a, b) => a.index - b.index)
   }, [payload.matches])
 
-  /* ETAP 86B - ekran przerwy na wybranym tatami */
+  /* ETAP 102: przerwa lokalna dla tatami - plakat zamiast obrazu walki */
   if (payload.state?.breakActive || payload.state?.mode === 'break') {
     return (
-      <main className="tatami-screen ika86b-tv-break-screen">
+      <main className="tatami-screen ika102-break-poster-screen">
         <FullscreenControl />
-        <header className="ika86b-tv-break-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament?.name || ''}</span></div>
-          <div><b>BREAK</b><span>The event will resume soon</span></div>
-          <div><b>{matName}</b><span>Intermission</span></div>
-        </header>
-        <section className="ika86b-tv-break-stage">
-          {payload.tournament?.poster ? (
-            <img className="ika86b-tv-break-poster" src={payload.tournament.poster} alt={`Poster - ${payload.tournament?.name || 'IKA Poland'}`} />
-          ) : (
-            <div className="ika86b-tv-break-placeholder">
-              <strong>BREAK</strong>
-              <span>{payload.tournament?.name || 'IKA POLAND'}</span>
-              <small>Please wait for the next bout.</small>
-            </div>
-          )}
-        </section>
+        {payload.tournament?.poster ? (
+          <img
+            className="ika102-break-poster"
+            src={payload.tournament.poster}
+            alt={`Event poster - ${payload.tournament?.name || 'IKA Poland'}`}
+          />
+        ) : (
+          <section className="ika102-break-placeholder">
+            <strong>BREAK</strong>
+            <span>{payload.tournament?.name || 'IKA POLAND'}</span>
+            <small>Competition will resume soon</small>
+          </section>
+        )}
       </main>
     )
   }

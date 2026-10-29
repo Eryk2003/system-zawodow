@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
+import TatamiBreakControl from '../components/TatamiBreakControl'
 
 const fmt = (seconds) => {
   const value = Math.max(0, Number(seconds || 0))
@@ -110,7 +111,7 @@ export default function JudgePanel() {
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
-        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego • {matName}</span></div><div className="judge-actions"><TatamiBreakControl mat={matName} /></div></div>
         <section className="judge-empty-card"><h1>Brak drabinki na tym tatami</h1><p>Najpierw utwórz drabinkę kumite w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
@@ -125,7 +126,7 @@ export default function JudgePanel() {
       <header className="judge-topbar">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
-        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
+        <div className="judge-actions"><TatamiBreakControl mat={matName} /><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
       </header>
 
       {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}

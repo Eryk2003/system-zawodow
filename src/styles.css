@@ -1113,3 +1113,21 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .kata-judge-screen .kata-current-athlete,
   .kata-judge-screen .kata-score-entry { margin-left: 12px; margin-right: 12px; }
 }
+
+/* ETAP 102 - panel przerwy i pelny plakat */
+.ika102-break-control{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;min-width:0}
+.ika102-break-button{background:#ab2420;border:1px solid #f0665c;color:#fff;font-size:12px;font-weight:950;letter-spacing:.04em;padding:12px 14px;white-space:nowrap}
+.ika102-break-button:hover:not(:disabled){background:#d12b23}
+.ika102-break-button:disabled{opacity:.42;cursor:not-allowed;transform:none}
+.ika102-resume-button{background:#245739;border-color:#66b887}
+.ika102-resume-button:hover:not(:disabled){background:#317448}
+.ika102-break-status{color:#f4d7a6;font-size:10px;font-weight:900;letter-spacing:.06em;white-space:nowrap}
+.ika102-break-error{width:100%;color:#ffb6b6;font-size:11px;font-weight:800}
+.ika102-break-poster-screen{position:relative;width:100vw;height:100vh;height:100dvh;min-height:100vh;overflow:hidden;background:#000;display:flex;align-items:center;justify-content:center}
+.ika102-break-poster{display:block;width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;object-position:center center;background:#000}
+.ika102-break-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;width:100%;height:100%;padding:32px;text-align:center;background:#080809;color:#fff}
+.ika102-break-placeholder strong{font-size:clamp(66px,10vw,160px);font-weight:1000;letter-spacing:.1em;color:#df2b22}
+.ika102-break-placeholder span{font-size:clamp(22px,3vw,46px);font-weight:850}
+.ika102-break-placeholder small{font-size:clamp(14px,1.4vw,22px);color:#aaa}
+@media(max-width:800px){.ika102-break-control{justify-content:flex-start}.ika102-break-button{font-size:11px}}
+@media print{.ika102-break-control{display:none!important}}

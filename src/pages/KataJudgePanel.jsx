@@ -4,6 +4,7 @@ import { db } from '../lib/demoStore'
 import { openTatamiTvWindow } from '../lib/tvWindow'
 import { KATA_GROUPS } from '../lib/kataCatalog'
 import { searchKataCatalog } from '../lib/kataAutocomplete'
+import TatamiBreakControl from '../components/TatamiBreakControl'
 /* ETAP 93 - wyszukiwanie kata z podpowiedziami */
 /* ETAP 92 - lista kata i gwizdek otwierajacy oceny */
 
@@ -128,7 +129,7 @@ export default function KataJudgePanel() {
   if (!session) {
     return (
       <main className="judge-screen judge-empty">
-        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div><div className="judge-actions"><TatamiBreakControl mat={matName} /></div></div>
         <section className="judge-empty-card"><h1>Brak listy startowej kata</h1><p>Najpierw utwórz listę startową dla kategorii kata w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
@@ -237,7 +238,7 @@ export default function KataJudgePanel() {
       <header className="judge-topbar kata-judge-topbar">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
-        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
+        <div className="judge-actions"><TatamiBreakControl mat={matName} /><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
       </header>
 
       {error && <div className="judge-message error">{error}</div>}
