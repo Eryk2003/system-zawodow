@@ -4,6 +4,7 @@ import { DashboardLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import KumiteBracket from '../components/KumiteBracket'
 import AutoTatamiTv from '../components/AutoTatamiTv'
+import CenterQuickNav from '../components/CenterQuickNav'
 import { db } from '../lib/demoStore'
 import { getKumiteSideTheme } from '../lib/kumiteRules'
 import { getElite2027Templates } from '../lib/eliteEuropeanCupCategories.js'
@@ -99,6 +100,8 @@ const ageOnDate = (birthDate, eventDate) => {
 
 export default function TournamentCenter() {
   const [refreshKey, setRefreshKey] = useState(0)
+  /* ETAP 94 - Centrum Zawodow w zakladkach */
+  const [centerView, setCenterView] = useState('judges')
   const [entryForm, setEntryForm] = useState(emptyEntry)
   const [newCompetition, setNewCompetition] = useState({ name: '', group: 'Pozostałe' })
   const [newsForm, setNewsForm] = useState(emptyNews)
@@ -137,6 +140,15 @@ export default function TournamentCenter() {
   })
 
   const refresh = () => setRefreshKey((v) => v + 1)
+  const prepareCategoryFromQuick = (kind, categoryId) => {
+    if (kind === 'kata') {
+      setKataForm((current) => ({ ...current, categoryId }))
+      setCenterView('kata')
+    } else {
+      setBracketForm({ categoryId })
+      setCenterView('kumite')
+    }
+  }
 
   /* ETAP 86B - przerwa osobno na tatami */
   const toggleBreakForMat = (mat, enabled) => {
@@ -351,14 +363,30 @@ export default function TournamentCenter() {
 
   return (
     <DashboardLayout title="Centrum zawodów" organizer>
-      <OrganizerRoleManager />
       <div className="organizer-banner">
         <div><span className="eyebrow">Turniej</span><h2>{tournament.name}</h2><p>{tournament.date}{tournament.startTime ? ` • ${tournament.startTime}` : ''} • {tournament.venue}</p></div>
         <div className="live-control"><span className={liveId ? 'live-dot active' : 'live-dot'} />{liveId ? 'Telebim pokazuje zawodnika' : 'Telebim oczekuje'}</div>
       </div>
 
-      <AutoTatamiTv matCount={tournament.matCount || 1} />
+      <CenterQuickNav
+        tournament={tournament}
+        competitions={competitions}
+        categories={categories}
+        schedule={schedule}
+        matches={matches}
+        kataSessions={kataSessions}
+        matStates={matStates}
+        matNames={matNames}
+        activeTab={centerView}
+        onTabChange={setCenterView}
+        onPrepareCategory={prepareCategoryFromQuick}
+      />
+      {centerView === 'settings' && <OrganizerRoleManager />}
+      <div className="ika94-tv-mounted" hidden={centerView !== 'tv'}>
+        <AutoTatamiTv matCount={tournament.matCount || 1} />
+      </div>
 
+      {centerView === 'tv' && (
       <section className="panel-section break-display-panel ika86b-break-panel">
         <div className="panel-section-head">
           <div>
@@ -387,10 +415,12 @@ export default function TournamentCenter() {
           })}
         </div>
       </section>
+      )}
 
       {message && <div className="alert alert-success">{message}</div>}
       {error && <div className="alert alert-error">{error}</div>}
 
+      {centerView === 'settings' && (
       <section className="panel-section">
         <div className="panel-section-head"><div><span className="eyebrow">Ustawienia</span><h2>Dane zawodów</h2></div></div>
         <div className="form-grid compact-form">
@@ -402,7 +432,9 @@ export default function TournamentCenter() {
           <label>Domyślny czas walki (sek.)<input className="numeric-input" inputMode="numeric" value={tournament.boutSeconds ?? ''} onChange={(e) => saveTournamentBoutSeconds(e.target.value)} /><small className="field-hint">Minuty i sekundy są zsynchronizowane. Kategoria może mieć własny czas 1:00, 1:30, 2:00 lub 3:00.</small></label>
         </div>
       </section>
+      )}
 
+      {centerView === 'settings' && (
       <section className="panel-section registration-deadline-admin">
         <div className="panel-section-head">
           <div><span className="eyebrow">Zgłoszenia klubów</span><h2>Termin zgłoszeń</h2><p>Ustaw dokładną datę i godzinę zakończenia zapisów. Kluby zobaczą licznik pozostałego czasu, a po terminie formularz zgłoszeń zostanie automatycznie zablokowany.</p></div>
@@ -413,7 +445,9 @@ export default function TournamentCenter() {
           <div className="registration-deadline-preview"><small>Kluby zobaczą</small><strong>{formatRegistrationDeadline(tournament.registrationDeadline)}</strong><span>{registrationStatus.text}</span></div>
         </div>
       </section>
+      )}
 
+      {centerView === 'settings' && (
       <section className="panel-section athlete-identifiers-access">
         <div className="panel-section-head">
           <div>
@@ -432,7 +466,9 @@ export default function TournamentCenter() {
           <div className="alert alert-info">Identyfikatory zostaną odblokowane automatycznie po upływie terminu zgłoszeń. Do tego czasu nie można ich generować ani drukować.</div>
         )}
       </section>
+      )}
 
+      {centerView === 'schedule' && (
       <section className="panel-section">
         <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Ręcznie przypisane tatami ma pierwszeństwo. Pozostałe kategorie system rozdzieli automatycznie, licząc czas każdej walki.</p></div></div>
         <div className="ika87-import-box">
@@ -490,7 +526,9 @@ export default function TournamentCenter() {
         )}
         {liveId && <div className="telebim-stop"><button className="btn btn-outline" onClick={() => { db.clearLive(); refresh() }}>Wyczyść telebim</button></div>}
       </section>
+      )}
 
+      {centerView === 'kata' && (
       <section className="panel-section kata-admin-section">
         <div className="panel-section-head"><div><span className="eyebrow">Kata</span><h2>Lista startowa + punktacja sędziów</h2><p>W kata nie ma drabinki. Losujesz kolejność zawodników, wybierasz 3 albo 5 sędziów i prowadzisz występy jeden po drugim.</p></div></div>
         <form className="bracket-builder kata-list-builder" onSubmit={createKataList}>
@@ -536,7 +574,9 @@ export default function TournamentCenter() {
           </>
         ) : <EmptyState title="Brak listy startowej kata" text="Wybierz kategorię kata i wylosuj kolejność. Następnie otwórz panel sędziego." />}
       </section>
+      )}
 
+      {centerView === 'kumite' && (
       <section className="panel-section bracket-admin-section">
         <div className="panel-section-head"><div><span className="eyebrow">Kumite</span><h2>Drabinka + automatyczna tablica przy tatami</h2><p>Utwórz drabinkę z zawodników przypisanych do tej samej konkurencji, kategorii i tatami.</p></div></div>
         <form className="bracket-builder" onSubmit={createBracket}>
@@ -594,6 +634,7 @@ export default function TournamentCenter() {
           </>
         ) : <EmptyState title="Brak drabinki" text="Po utworzeniu drabinki zobaczysz ją tutaj. Sterowanie walką odbywa się wyłącznie w Panelu sędziego." />}
       </section>
+      )}
 
       
 
