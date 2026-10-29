@@ -3,8 +3,9 @@ import { useParams } from 'react-router-dom'
 import { db, getTatamiPayload } from '../lib/demoStore'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
+import { tvRound, tvCategory, tvCompetition, tvStage, tvPenaltyLabel } from '../lib/tvEnglish.js'
 
-const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
+const scoreText = (value) => value == null ? '-' : String(Number(value))
 
 const fmt = (seconds) => {
   const s = Math.max(0, Number(seconds || 0))
@@ -78,7 +79,7 @@ function FullscreenControl() {
       className={`tv-fullscreen-btn ika95-tv-fullscreen ${isFullscreen ? '' : 'ika95-tv-fullscreen-enter'} ${visible ? 'is-visible' : 'is-hidden'}`}
       onClick={toggle}
       title={isFullscreen ? 'Exit fullscreen (F)' : 'Hide browser address bar — fullscreen (F)'}
-      aria-label={isFullscreen ? 'Wyjdz z pelnego ekranu' : 'Pelny ekran bez paska adresu https'}
+      aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen without browser address bar'}
     >
       <span aria-hidden="true">{isFullscreen ? '⤢' : '⛶'}</span>
       <b>{blocked ? 'Fullscreen blocked: use F11' : isFullscreen ? 'Exit fullscreen' : 'HIDE HTTPS BAR · FULLSCREEN (F)'}</b>
@@ -183,7 +184,7 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <div className="tatami-brand ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></div>
         <h1>{matName}</h1>
-        <p>Oczekiwanie na uruchomienie drabinki.</p>
+        <p>Waiting for the bracket to start.</p>
       </main>
     )
   }
@@ -195,15 +196,15 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="kata-tv-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>LISTA UCZESTNIKÓW</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category} • {payload.kata.stageName || 'KATA'}</span></div>
-          <div><b>{matName}</b><span>{payload.kata.judgeCount} sędziów • runda {payload.kata.roundNumber || 1}/{payload.kata.totalRounds || 1}</span></div>
+          <div><b>COMPETITOR LIST</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || payload.kata.session.category)} • {tvStage(payload.kata.stageName || 'KATA')}</span></div>
+          <div><b>{matName}</b><span>{payload.kata.judgeCount} judges • round {payload.kata.roundNumber || 1}/{payload.kata.totalRounds || 1}</span></div>
         </header>
         <section className="kata-tv-list">
           {payload.kata.results.map((result) => (
             <article key={result.athleteId} className={`kata-tv-list-row ${result.athleteId === nextId && result.status !== 'done' ? 'next' : ''} ${result.status}`}>
               <b>{result.order}</b>
               <div><strong>{result.athlete ? `${result.athlete.firstName} ${result.athlete.lastName}` : '-'}</strong><span>{result.athlete?.clubName || ''}</span>{result.kataName && <small className="kata-tv-kata-name-inline">Kata: {result.kataName}</small>}</div>
-              <em>{result.status === 'done' ? scoreText(result.finalScore) : result.athleteId === nextId ? 'NASTĘPNY' : 'OCZEKUJE'}</em>
+              <em>{result.status === 'done' ? scoreText(result.finalScore) : result.athleteId === nextId ? 'NEXT' : 'WAITING'}</em>
             </article>
           ))}
         </section>
@@ -219,16 +220,16 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="kata-tv-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>{payload.competition?.name || 'Kata'}</b><span>{payload.state?.category || payload.kata.session.category}</span></div>
-          <div><b>{matName}</b><span>Następny zawodnik</span></div>
+          <div><b>{tvCompetition(payload.competition?.name || 'Kata')}</b><span>{tvCategory(payload.state?.category || payload.kata.session.category)}</span></div>
+          <div><b>{matName}</b><span>Next competitor</span></div>
         </header>
         <section className="kata-athlete-stage">
           <div className="kata-athlete-tv-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div>
-          <span>NASTĘPNY ZAWODNIK</span>
+          <span>NEXT COMPETITOR</span>
           <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1>
           <p>{athlete?.clubName || ''}</p>
           {result?.kataName && <div className="kata-tv-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
-          <small>Po wykonaniu kata sędzia główny używa gwizdka, a następnie wprowadzane są oceny.</small>
+          <small>After the performance, the head judge signals and the scores are entered.</small>
         </section>
       </main>
     )
@@ -242,8 +243,8 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="kata-tv-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>OCENY SĘDZIÓW</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category} • {payload.kata.stageName || 'KATA'}</span></div>
-          <div><b>{matName}</b><span>{payload.kata.judgeCount} sędziów • runda {payload.kata.roundNumber || 1}/{payload.kata.totalRounds || 1}</span></div>
+          <div><b>JUDGES' SCORES</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || payload.kata.session.category)} • {tvStage(payload.kata.stageName || 'KATA')}</span></div>
+          <div><b>{matName}</b><span>{payload.kata.judgeCount} judges • round {payload.kata.roundNumber || 1}/{payload.kata.totalRounds || 1}</span></div>
         </header>
         <section className="kata-scoreboard-stage">
           <div className="kata-scoreboard-athlete">
@@ -253,9 +254,9 @@ export default function TatamiDisplay() {
             {result?.kataName && <div className="kata-scoreboard-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
           </div>
           <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>
-            {Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index}><span>SĘDZIA {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong></article>)}
+            {Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index}><span>JUDGE {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong></article>)}
           </div>
-          <div className="kata-waiting-final">OCZEKIWANIE NA KOŃCOWĄ OCENĘ</div>
+          <div className="kata-waiting-final">WAITING FOR FINAL SCORE</div>
         </section>
       </main>
     )
@@ -270,13 +271,13 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="kata-tv-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>KOŃCOWA OCENA</b><span>{payload.competition?.name || 'Kata'} • {payload.state?.category || payload.kata.session.category} • {payload.kata.stageName || 'KATA'}</span></div>
-          <div><b>{matName}</b><span>Wynik zapisany</span></div>
+          <div><b>FINAL SCORE</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || payload.kata.session.category)} • {tvStage(payload.kata.stageName || 'KATA')}</span></div>
+          <div><b>{matName}</b><span>Score saved</span></div>
         </header>
         <section className="kata-final-stage">
           <div className="kata-final-athlete"><div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div><div><h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1><p>{athlete?.clubName || ''}</p>{result?.kataName && <div className="kata-final-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}</div></div>
-          <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>{Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index} className={dropped.has(index) ? 'dropped' : ''}><span>SĘDZIA {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong>{dropped.has(index) && <small>ODRZUCONA</small>}</article>)}</div>
-          <div className="kata-final-total"><span>KOŃCOWA OCENA</span><strong>{scoreText(result?.finalScore)}</strong>{payload.kata.judgeCount === 5 && <small>Najwyższa i najniższa nota nie są liczone.</small>}</div>
+          <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>{Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index} className={dropped.has(index) ? 'dropped' : ''}><span>JUDGE {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong>{dropped.has(index) && <small>EXCLUDED</small>}</article>)}</div>
+          <div className="kata-final-total"><span>FINAL SCORE</span><strong>{scoreText(result?.finalScore)}</strong>{payload.kata.judgeCount === 5 && <small>The highest and lowest scores are excluded.</small>}</div>
         </section>
       </main>
     )
@@ -303,7 +304,7 @@ export default function TatamiDisplay() {
       const placement = placementByAthlete.get(athleteId) || null
       const info = athleteInfo(athleteId)
       const athlete = athletes.find((item) => item.id === athleteId)
-      const fallbackName = athlete ? `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() : 'Nieznany zawodnik'
+      const fallbackName = athlete ? `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim() : 'Unknown competitor'
       return {
         athleteId,
         place: placement?.place || null,
@@ -326,12 +327,12 @@ export default function TatamiDisplay() {
           <FullscreenControl />
           <header className="final-results-header">
             <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-            <div><b>ZWYCIĘZCA</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
-            <div><b>{matName}</b><span>Kategoria zakończona</span></div>
+            <div><b>WINNER</b><span>{tvCompetition(payload.podium.competitionName)} • {tvCategory(payload.podium.categoryName)}</span></div>
+            <div><b>{matName}</b><span>Category completed</span></div>
           </header>
 
           <section className="final-winner-stage">
-            <div className="final-winner-label">1. MIEJSCE</div>
+            <div className="final-winner-label">1ST PLACE</div>
             <article className="final-winner-card">
               <div className="final-winner-photo">
                 {winnerInfo?.photo ? (
@@ -341,16 +342,16 @@ export default function TatamiDisplay() {
                 )}
               </div>
               <div className="final-winner-copy">
-                <span>ZWYCIĘZCA KONKURENCJI</span>
+                <span>CATEGORY WINNER</span>
                 <h1>{first?.athleteName || '-'}</h1>
                 <p>{first?.clubName || winnerInfo?.club || ''}</p>
                 <div className="final-winner-meta">
-                  <strong>{payload.podium.competitionName}</strong>
-                  <small>{payload.podium.categoryName}</small>
+                  <strong>{tvCompetition(payload.podium.competitionName)}</strong>
+                  <small>{tvCategory(payload.podium.categoryName)}</small>
                 </div>
               </div>
             </article>
-            <small className="final-winner-next">Za chwilę pełna lista wyników</small>
+            <small className="final-winner-next">Full results will appear shortly</small>
           </section>
         </main>
       )
@@ -364,27 +365,27 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="final-results-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>WYNIKI KOŃCOWE</b><span>{payload.podium.competitionName} • {payload.podium.categoryName}</span></div>
-          <div><b>{matName}</b><span>{finalList.length} zawodników</span></div>
+          <div><b>FINAL RESULTS</b><span>{tvCompetition(payload.podium.competitionName)} • {tvCategory(payload.podium.categoryName)}</span></div>
+          <div><b>{matName}</b><span>{finalList.length} competitors</span></div>
         </header>
 
         <section className="final-results-stage">
           <div className="final-results-title">
-            <span>KATEGORIA ZAKOŃCZONA</span>
-            <h1>{payload.podium.categoryName}</h1>
-            <p>{payload.podium.competitionName}</p>
+            <span>CATEGORY COMPLETED</span>
+            <h1>{tvCategory(payload.podium.categoryName)}</h1>
+            <p>{tvCompetition(payload.podium.competitionName)}</p>
           </div>
 
           <div className={`final-results-grid ${finalList.length > 10 ? 'is-dense' : ''}`}>
             {finalList.map((result, index) => {
               const initials = result.name.split(' ').map((part) => part[0]).slice(0, 2).join('')
               const placeText = result.place === 1
-                ? '1. MIEJSCE'
+                ? '1ST PLACE'
                 : result.place === 2
-                  ? '2. MIEJSCE'
+                  ? '2ND PLACE'
                   : result.place === 3
-                    ? '3. MIEJSCE'
-                    : 'UCZESTNIK'
+                    ? '3RD PLACE'
+                    : 'PARTICIPANT'
               return (
                 <article
                   className={`final-result-row place-${result.place || 'other'}`}
@@ -416,7 +417,7 @@ export default function TatamiDisplay() {
         <FullscreenControl />
         <header className="scoreboard-header">
           <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
+          <div><b>{matName}</b><span>{tvCompetition(payload.competition?.name || '')} • {tvCategory(payload.state?.category || '')}</span></div>
         </header>
         <section className="scoreboard-body">
           <div className={`fighter fighter-red ${sideTheme.red.className}`}>
@@ -433,12 +434,12 @@ export default function TatamiDisplay() {
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.redScore)}</strong>
-            <div className={`tv-penalty ${Number(m.redPenaltyLevel || 0) ? 'active' : ''}`}>KARA: {getKumitePenaltyLabel(m.redPenaltyLevel)}</div>
+            <div className={`tv-penalty ${Number(m.redPenaltyLevel || 0) ? 'active' : ''}`}>PENALTY: {tvPenaltyLabel(getKumitePenaltyLabel(m.redPenaltyLevel))}</div>
           </div>
           <div className="fight-center">
-            <span>{m.roundName} • WALKA {m.matchNo}</span>
+            <span>{tvRound(m.roundName)} • BOUT {m.matchNo}</span>
             <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{m.timerRunning ? 'CZAS TRWA' : 'CZAS ZATRZYMANY'}</small><small>HANSOKU = PRZEGRANA</small>
+            <small>{m.timerRunning ? 'TIMER RUNNING' : 'TIMER STOPPED'}</small><small>HANSOKU = DEFEAT</small>
           </div>
           <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className}`}>
             <div className="fighter-side">{sideTheme.blue.code}</div>
@@ -454,7 +455,7 @@ export default function TatamiDisplay() {
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             <strong className="score-number">{scoreText(m.blueScore)}</strong>
-            <div className={`tv-penalty ${Number(m.bluePenaltyLevel || 0) ? 'active' : ''}`}>KARA: {getKumitePenaltyLabel(m.bluePenaltyLevel)}</div>
+            <div className={`tv-penalty ${Number(m.bluePenaltyLevel || 0) ? 'active' : ''}`}>PENALTY: {tvPenaltyLabel(getKumitePenaltyLabel(m.bluePenaltyLevel))}</div>
           </div>
         </section>
       </main>
@@ -466,8 +467,8 @@ export default function TatamiDisplay() {
       <FullscreenControl />
       <header className="bracket-header">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-        <div className="bracket-title"><b>{matName}</b><span>{payload.competition?.name || ''} • {payload.state?.category || ''}</span></div>
-        <div className="next-fight-box"><small>NASTĘPNA WALKA</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '-'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '-'}</strong></div>
+        <div className="bracket-title"><b>{matName}</b><span>{tvCompetition(payload.competition?.name || '')} • {tvCategory(payload.state?.category || '')}</span></div>
+        <div className="next-fight-box"><small>NEXT BOUT</small><strong>{payload.nextMatch?.redAthlete ? `${payload.nextMatch.redAthlete.firstName} ${payload.nextMatch.redAthlete.lastName}` : '-'} vs {payload.nextMatch?.blueAthlete ? `${payload.nextMatch.blueAthlete.firstName} ${payload.nextMatch.blueAthlete.lastName}` : '-'}</strong></div>
       </header>
       <section className="bracket-board academy-bracket-tv-wrap">
         <KumiteBracket

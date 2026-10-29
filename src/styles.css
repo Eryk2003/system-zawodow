@@ -944,3 +944,6 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika-brand-inline{display:inline-flex;align-items:center;gap:.28em;flex-wrap:wrap;white-space:nowrap}
 .ika-brand-ika{color:#fff!important}.ika-brand-poland{color:#e1261c!important}
 .kata-round-box{display:grid;gap:8px;padding:18px 20px;border:1px solid #d9d9df;border-radius:14px;background:#fff;min-width:220px;align-content:start}.kata-round-box>span{font-size:11px;font-weight:950;letter-spacing:.06em;text-transform:uppercase;color:#67676f}.kata-round-box>strong{font-size:24px;line-height:1.05;color:#111}.kata-round-box>small{color:#66666e;line-height:1.45}
+
+/* ETAP 98 - ALL TV SCREENS ENGLISH */
+.academy-bracket-tv .academy-bracket-match-next::after{content:'NEXT BOUT'}

@@ -33,7 +33,21 @@ export function tvCategory(value) {
 
   // Only translate standard age/sex group labels; preserve custom category names.
   const sex = /^(chłopcy|chlopcy|dziewczęta|dziewczeta|kobiety|mężczyźni|mezczyzni|dzieci|młodzicy|mlodzicy|młodziczki|mlodziczki)\b\s*[-–:]?\s*(.*)$/iu.exec(trimmed)
-  if (!sex) return source
+  if (!sex) {
+    return source
+      .replace(/\bchłopcy\b/giu, 'Boys')
+      .replace(/\bdziewczęta\b/giu, 'Girls')
+      .replace(/\bmężczyźni\b/giu, 'Men')
+      .replace(/\bkobiety\b/giu, 'Women')
+      .replace(/\bdzieci\b/giu, 'Children')
+      .replace(/\bmieszane\b/giu, 'Mixed')
+      .replace(/\bdrużynowe\b/giu, 'Team')
+      .replace(/\bdorośli\b/giu, 'Adults')
+      .replace(/\bpowyżej\b/giu, 'over')
+      .replace(/\bponiżej\b/giu, 'under')
+      .replace(/\bdo podziału przez organizatora\b/giu, 'to be assigned by the organizer')
+      .replace(/\b(lat|lata)\b/giu, 'years')
+  }
   const names = {
     'chłopcy': 'Boys', 'chlopcy': 'Boys',
     'dziewczęta': 'Girls', 'dziewczeta': 'Girls',
@@ -53,4 +67,33 @@ export function tvCategory(value) {
 export function tvPenaltyLabel(label) {
   const source = String(label ?? '')
   return source.trim().toUpperCase() === 'BRAK' ? 'NONE' : source
+}
+
+// TV-only translations. Competition/category records in Supabase are not modified.
+export function tvCompetition(value) {
+  const source = String(value ?? '')
+  const dictionary = {
+    'kata indywidualne': 'Individual Kata',
+    'kata w parach': 'Pairs Kata',
+    'kata drużynowe': 'Team Kata',
+    'kumite sanbon shobu': 'Kumite Sanbon Shobu',
+    'kumite ippon shobu': 'Kumite Ippon Shobu',
+    'kumite shobu nihon - do 12 lat': 'Kumite Shobu Nihon - Under 12',
+    'kumite shobu nihon do 12 lat': 'Kumite Shobu Nihon - Under 12',
+    'kumite drużynowe': 'Team Kumite',
+    'para karate / people with disabilities': 'Para Karate / People with Disabilities',
+    'juruken / fantom': 'Juruken / Fantom',
+    'tor przeszkód': 'Obstacle Course',
+    'kodachi': 'Kodachi',
+  }
+  return dictionary[source.trim().toLocaleLowerCase('pl')] || source
+}
+
+export function tvStage(value) {
+  const source = String(value ?? '')
+  const key = source.trim().toLocaleLowerCase('pl')
+  if (key === 'runda 1 • eliminacje') return 'ROUND 1 • ELIMINATIONS'
+  if (key === 'eliminacje') return 'ELIMINATIONS'
+  if (key === 'finał' || key === 'final') return 'FINAL'
+  return tvRound(source)
 }
