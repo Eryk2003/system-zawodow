@@ -1209,3 +1209,25 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika106-podium-slot.place-1 .ika106-podium-photo{border-color:#edcc70;box-shadow:0 0 30px rgba(249,196,74,.13)}
 @media(max-width:760px){.ika106-podium-stage{padding:2vh 1vw 0}.ika106-podium-grid{gap:4px}.ika106-podium-photo{height:11vh;width:15vw;border-radius:8px}.ika106-podium-person h2{font-size:clamp(11px,2.6vw,20px)}.ika106-podium-people.has-two{flex-wrap:wrap}.ika106-podium-people.has-two .ika106-podium-photo{width:11vw;height:8vh}.ika106-podium-step strong{font-size:clamp(50px,10vw,110px)}.ika106-podium-step.gold{height:19vh}.ika106-podium-step.silver{height:14vh}.ika106-podium-step.bronze{height:11vh}}
 @media(prefers-reduced-motion:reduce){.ika106-podium-screen *{animation:none!important}}
+
+/* ETAP 107 - lista medalistow TOP 3 jak w poprzednim widoku TV; bez stopni podium. */
+.ika107-medal-list-screen{height:100vh;min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.ika107-medal-list-screen .final-results-header{flex:0 0 auto;min-height:75px;padding:12px 3vw}
+.ika107-medal-stage{flex:1;min-height:0;min-height:unset;padding:clamp(14px,2.3vh,28px) 3vw 2.5vh;display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2.2vh,26px)}
+.ika107-medal-stage .final-results-title{margin:0;flex:0 0 auto}
+.ika107-medal-stage .final-results-title>span{font-size:clamp(12px,1.0vw,17px);letter-spacing:.18em}
+.ika107-medal-stage .final-results-title h1{font-size:clamp(29px,3.8vw,64px);margin:8px 0 5px;line-height:1.05;overflow-wrap:anywhere}
+.ika107-medal-stage .final-results-title p{font-size:clamp(16px,1.4vw,23px)}
+.ika107-medal-list-screen .ika107-medal-list{width:min(1480px,100%);display:flex;flex-direction:column;gap:clamp(8px,1.5vh,20px);max-height:100%;min-height:0}
+.ika107-medal-list-screen .ika107-medal-list .final-result-row{flex:1 1 auto;min-height:0;grid-template-columns:clamp(64px,6vw,110px) clamp(72px,8vh,126px) minmax(0,1fr) auto;gap:clamp(10px,1.6vw,28px);padding:clamp(10px,1.4vh,20px) clamp(14px,1.6vw,30px);border-width:2px;border-radius:18px}
+.ika107-medal-list-screen .ika107-medal-list .final-result-place{width:clamp(58px,5.5vw,96px);height:clamp(58px,5.5vw,96px);font-size:clamp(30px,3vw,52px);border-radius:14px}
+.ika107-medal-list-screen .ika107-medal-list .final-result-photo{width:clamp(72px,8vh,126px);height:clamp(72px,8vh,126px);border-radius:13px;border:1px solid rgba(255,255,255,.13)}
+.ika107-medal-list-screen .ika107-medal-list .final-result-photo>div{font-size:clamp(24px,3vw,46px)}
+.ika107-medal-list-screen .ika107-medal-list .final-result-person strong{font-size:clamp(23px,2.65vw,47px);line-height:1.07;white-space:normal;overflow-wrap:anywhere}
+.ika107-medal-list-screen .ika107-medal-list .final-result-person span{font-size:clamp(15px,1.25vw,24px);margin-top:7px;white-space:normal;overflow-wrap:anywhere}
+.ika107-medal-list-screen .ika107-medal-list .final-result-row em{font-size:clamp(13px,1.25vw,22px);letter-spacing:.035em}
+.ika107-medal-list-screen .ika107-medal-list .final-result-row.place-2 em{color:#c9d0db}
+.ika107-medal-list-screen .ika107-medal-list .final-result-row.place-3 em{color:#d7a47b}
+@media(max-width:800px){.ika107-medal-list-screen .final-results-header{grid-template-columns:1fr 1fr;gap:8px}.ika107-medal-list-screen .final-results-header>div:nth-child(2){display:none}.ika107-medal-stage{justify-content:center}.ika107-medal-list-screen .ika107-medal-list .final-result-row{grid-template-columns:48px 56px minmax(0,1fr);gap:8px;padding:9px}.ika107-medal-list-screen .ika107-medal-list .final-result-row em{grid-column:3;justify-self:start;font-size:12px}.ika107-medal-list-screen .ika107-medal-list .final-result-place{width:44px;height:44px;font-size:26px}.ika107-medal-list-screen .ika107-medal-list .final-result-photo{width:52px;height:52px}.ika107-medal-list-screen .ika107-medal-list .final-result-person strong{font-size:clamp(19px,3vw,30px)}.ika107-medal-list-screen .ika107-medal-list .final-result-person span{font-size:12px;margin-top:2px}}
+@media(max-height:650px){.ika107-medal-stage{gap:8px;padding:8px 3vw}.ika107-medal-stage .final-results-title h1{font-size:clamp(23px,3vw,42px)}.ika107-medal-list-screen .ika107-medal-list{gap:6px}.ika107-medal-list-screen .ika107-medal-list .final-result-row{padding:6px 12px}.ika107-medal-list-screen .ika107-medal-list .final-result-photo{width:clamp(50px,9vh,75px);height:clamp(50px,9vh,75px)}.ika107-medal-list-screen .ika107-medal-list .final-result-person strong{font-size:clamp(18px,2vw,32px)}.ika107-medal-list-screen .ika107-medal-list .final-result-place{width:clamp(46px,8vh,70px);height:clamp(46px,8vh,70px);font-size:clamp(22px,3vh,32px)}}
+@media(prefers-reduced-motion:reduce){.ika107-medal-list-screen .final-result-row{animation:none;opacity:1;transform:none}}

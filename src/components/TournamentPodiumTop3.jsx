@@ -1,58 +1,53 @@
 import React from 'react'
 import { tvCategory, tvCompetition } from '../lib/tvEnglish.js'
 
-const podiumSlots = [
-  { place: 2, title: '2ND PLACE', color: 'silver' },
-  { place: 1, title: '1ST PLACE', color: 'gold' },
-  { place: 3, title: '3RD PLACE', color: 'bronze' },
-]
-
-function MedalPerson({ placement, getAthlete }) {
-  const info = getAthlete(placement.athleteId)
-  const name = placement.athleteName || info?.name || 'Competitor'
-  const club = placement.clubName || info?.club || ''
-  const photo = info?.photo || ''
-  const initials = name.trim().split(/\s+/).slice(0, 2).map((word) => word[0]).join('').toUpperCase()
-  return (
-    <article className="ika106-podium-person">
-      <div className="ika106-podium-photo">
-        {photo ? <img src={photo} alt={name} /> : <span>{initials || '—'}</span>}
-      </div>
-      <h2 title={name}>{name}</h2>
-      <p title={club}>{club}</p>
-      {placement.finalScore != null && <small>{Number(placement.finalScore).toFixed(2)}</small>}
-    </article>
-  )
-}
-
+/* ETAP 107 - lista pierwszych trzech miejsc zamiast podium na stopniach.
+   W kumite dwa trzecie miejsca sa wyswietlane jako dwa osobne wiersze. */
 export default function TournamentPodiumTop3({ podium, matName, tournamentName, getAthlete, fullscreenControl }) {
-  const placements = podium?.placements || []
+  const placements = (podium?.placements || [])
+    .filter((item) => [1, 2, 3].includes(Number(item.place)) && item.athleteId)
+    .sort((a, b) => Number(a.place) - Number(b.place))
+    .filter((item, index, all) => all.findIndex((row) => row.athleteId === item.athleteId) === index)
+
   return (
-    <main className="tatami-screen ika106-podium-screen">
+    <main className="tatami-screen final-results-screen ika107-medal-list-screen">
       {fullscreenControl}
-      <header className="ika106-podium-header">
-        <div><strong><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournamentName || ''}</span></div>
-        <div><b>FINAL PODIUM</b><span>{matName}</span></div>
+      <header className="final-results-header">
+        <div>
+          <strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong>
+          <span>{tournamentName || ''}</span>
+        </div>
+        <div><b>FINAL RESULTS</b><span>{tvCompetition(podium?.competitionName || '')} • {tvCategory(podium?.categoryName || '')}</span></div>
+        <div><b>{matName}</b><span>TOP 3</span></div>
       </header>
-      <section className="ika106-podium-stage">
-        <div className="ika106-podium-heading">
-          <span>TOP 3 • FINAL RESULTS</span>
+
+      <section className="final-results-stage ika107-medal-stage">
+        <div className="final-results-title">
+          <span>CATEGORY COMPLETED</span>
           <h1>{tvCategory(podium?.categoryName || '')}</h1>
           <p>{tvCompetition(podium?.competitionName || '')}</p>
         </div>
-        <div className="ika106-podium-grid">
-          {podiumSlots.map((slot) => {
-            const medalists = placements.filter((item) => item.place === slot.place).slice(0, slot.place === 3 ? 2 : 1)
+        <div className={`final-results-grid ika107-medal-list ${placements.length > 3 ? 'has-two-bronzes' : ''}`}>
+          {placements.map((placement, index) => {
+            const info = getAthlete(placement.athleteId)
+            const athleteName = placement.athleteName || info?.name || 'Competitor'
+            const clubName = placement.clubName || info?.club || ''
+            const photo = info?.photo || ''
+            const initials = athleteName.trim().split(/\s+/).slice(0, 2).map((part) => part.charAt(0)).join('').toUpperCase()
+            const label = Number(placement.place) === 1 ? '1ST PLACE' : Number(placement.place) === 2 ? '2ND PLACE' : '3RD PLACE'
             return (
-              <div className={`ika106-podium-slot place-${slot.place}`} key={slot.place}>
-                <div className="ika106-medal-label"><span>{slot.place === 1 ? '🥇' : slot.place === 2 ? '🥈' : '🥉'}</span>{slot.title}</div>
-                <div className={`ika106-podium-people ${medalists.length > 1 ? 'has-two' : ''}`}>
-                  {medalists.length
-                    ? medalists.map((person) => <MedalPerson key={person.athleteId} placement={person} getAthlete={getAthlete} />)
-                    : <div className="ika106-podium-empty">—</div>}
+              <article key={placement.athleteId} className={`final-result-row place-${placement.place}`}
+                style={{ '--result-delay': `${index * 110}ms` }}>
+                <div className="final-result-place">{placement.place}</div>
+                <div className="final-result-photo">
+                  {photo ? <img src={photo} alt={athleteName} /> : <div>{initials || '—'}</div>}
                 </div>
-                <div className={`ika106-podium-step ${slot.color}`}><strong>{slot.place}</strong></div>
-              </div>
+                <div className="final-result-person">
+                  <strong>{athleteName}</strong>
+                  <span>{clubName}</span>
+                </div>
+                <em>{label}</em>
+              </article>
             )
           })}
         </div>
