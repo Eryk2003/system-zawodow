@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db } from '../lib/demoStore'
 import { openTatamiTvWindow } from '../lib/tvWindow'
-import { KATA_GROUPS, KATA_NAME_SET, KATA_CUSTOM_VALUE } from '../lib/kataCatalog'
+import { KATA_GROUPS } from '../lib/kataCatalog'
+import { searchKataCatalog } from '../lib/kataAutocomplete'
+/* ETAP 93 - wyszukiwanie kata z podpowiedziami */
 /* ETAP 92 - lista kata i gwizdek otwierajacy oceny */
 
 const scoreText = (value) => value == null ? '-' : String(Number(value)).replace('.', ',')
@@ -41,7 +43,11 @@ export default function KataJudgePanel() {
   const scoreInputRefs = useRef([])
   const finalScoreButtonRef = useRef(null)
   const whistleFocusPending = useRef(false)
-  const [manualKataMode, setManualKataMode] = useState(false)
+  const [kataQuery, setKataQuery] = useState('')
+  const [kataMenuOpen, setKataMenuOpen] = useState(false)
+  const [kataHighlightedIndex, setKataHighlightedIndex] = useState(-1)
+  const kataInputRef = useRef(null)
+  const kataMatches = useMemo(() => searchKataCatalog(kataQuery, KATA_GROUPS, 9), [kataQuery])
 
   const refresh = () => setRefreshKey((value) => value + 1)
 
@@ -109,9 +115,12 @@ export default function KataJudgePanel() {
     })
   }
 
-  // Nowy zawodnik rozpoczyna z automatycznym wyborem kata. Dawne reczne nazwy pozostaja widoczne.
+  // Przy zmianie zawodnika podpowiadanie zaczyna od zapisanej nazwy kata.
+  // W trakcie pisania nie odswiezamy calego panelu ani nie wysylamy kazdego znaku do Supabase.
   useEffect(() => {
-    setManualKataMode(false)
+    setKataQuery(current?.kataName || '')
+    setKataMenuOpen(false)
+    setKataHighlightedIndex(-1)
     whistleFocusPending.current = false
   }, [session?.id, current?.athleteId])
 
@@ -180,15 +189,50 @@ export default function KataJudgePanel() {
   }
 
   const updateKataName = (value) => run(() => db.updateKataName(session.id, value))
-  const chooseKata = (value) => {
-    if (value === KATA_CUSTOM_VALUE) {
-      setManualKataMode(true)
-      updateKataName('')
-      return
-    }
-    setManualKataMode(false)
-    updateKataName(value)
+
+  const commitKataName = (value) => {
+    const name = String(value || '').trim().slice(0, 80)
+    setKataQuery(name)
+    setKataMenuOpen(false)
+    setKataHighlightedIndex(-1)
+    if (name !== String(current?.kataName || '')) updateKataName(name)
   }
+
+  const chooseSuggestedKata = (name) => {
+    commitKataName(name)
+    kataInputRef.current?.focus()
+  }
+
+  const onKataTyping = (event) => {
+    const value = event.target.value
+    setKataQuery(value)
+    setKataMenuOpen(Boolean(value.trim()))
+    setKataHighlightedIndex(-1)
+  }
+
+  const onKataKeyDown = (event) => {
+    if (event.key === 'ArrowDown' && kataMatches.length) {
+      event.preventDefault()
+      setKataMenuOpen(true)
+      setKataHighlightedIndex((index) => index >= kataMatches.length - 1 ? 0 : index + 1)
+    } else if (event.key === 'ArrowUp' && kataMatches.length) {
+      event.preventDefault()
+      setKataMenuOpen(true)
+      setKataHighlightedIndex((index) => index <= 0 ? kataMatches.length - 1 : index - 1)
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      if (kataMenuOpen && kataHighlightedIndex >= 0 && kataMatches[kataHighlightedIndex]) {
+        chooseSuggestedKata(kataMatches[kataHighlightedIndex].name)
+      } else {
+        commitKataName(kataQuery)
+      }
+    } else if (event.key === 'Escape') {
+      event.preventDefault()
+      setKataMenuOpen(false)
+      setKataHighlightedIndex(-1)
+    }
+  }
+
   const showAthlete = () => run(() => db.startKataAthlete(session.id), 'Zawodnik został pokazany na tablicy TV.')
   const showList = () => run(() => db.showKataList(session.id), 'Na tablicy TV wyświetlana jest lista startowa.')
   const blowWhistle = () => {
@@ -241,34 +285,53 @@ export default function KataJudgePanel() {
               <span className="eyebrow">Zawodnik {Number(session.currentIndex || 0) + 1} z {session.results.length}</span>
               <h1>{currentAthlete.name}</h1>
               <p>{currentAthlete.club}</p>
-              <label className="kata-name-field">
+              <div className="kata-name-field ika93-kata-field">
                 <span>Wykonywane kata</span>
-                <select
-                  value={manualKataMode || (current?.kataName && !KATA_NAME_SET.has(current.kataName)) ? KATA_CUSTOM_VALUE : (current?.kataName || '')}
-                  disabled={current?.status === 'done'}
-                  onChange={(event) => chooseKata(event.target.value)}
-                >
-                  <option value="">— Wybierz kata z listy —</option>
-                  {KATA_GROUPS.map((group) => (
-                    <optgroup key={group.style} label={group.style}>
-                      {group.names.map((name) => <option key={name} value={name}>{name}</option>)}
-                    </optgroup>
-                  ))}
-                  <option value={KATA_CUSTOM_VALUE}>Inne kata — wpisz ręcznie…</option>
-                </select>
-                {(manualKataMode || (current?.kataName && !KATA_NAME_SET.has(current.kataName))) && (
+                <div className="ika93-kata-combobox">
                   <input
-                    className="kata92-manual-name"
+                    ref={kataInputRef}
                     type="text"
-                    value={current?.kataName || ''}
+                    value={kataQuery}
+                    role="combobox"
+                    aria-label="Wykonywane kata — wpisz lub wybierz podpowiedź"
+                    aria-autocomplete="list"
+                    aria-expanded={kataMenuOpen && kataQuery.trim().length > 0}
+                    aria-controls="ika93-kata-list"
+                    aria-activedescendant={kataMenuOpen && kataHighlightedIndex >= 0 ? `ika93-kata-option-${kataHighlightedIndex}` : undefined}
+                    autoComplete="off"
                     disabled={current?.status === 'done'}
-                    onChange={(event) => updateKataName(event.target.value)}
-                    placeholder="Wpisz nazwę wykonywanego kata"
+                    onFocus={() => setKataMenuOpen(Boolean(kataQuery.trim()))}
+                    onChange={onKataTyping}
+                    onKeyDown={onKataKeyDown}
+                    onBlur={() => commitKataName(kataQuery)}
+                    placeholder="Zacznij pisać, np. Bassai..."
                     maxLength={80}
                   />
-                )}
-                <small>Kata z różnych stylów. Jeśli nie ma go na liście, wybierz „Inne kata”. Nazwa pojawi się również na TV.</small>
-              </label>
+                  {kataMenuOpen && Boolean(kataQuery.trim()) && (
+                    <div className="ika93-kata-dropdown" id="ika93-kata-list" role="listbox" aria-label="Podpowiedzi kata">
+                      {kataMatches.length ? kataMatches.map((suggestion, index) => (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={kataHighlightedIndex === index}
+                          id={`ika93-kata-option-${index}`}
+                          className={kataHighlightedIndex === index ? 'is-selected' : ''}
+                          key={suggestion.name}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onTouchStart={(event) => { event.preventDefault(); chooseSuggestedKata(suggestion.name) }}
+                          onClick={() => chooseSuggestedKata(suggestion.name)}
+                        >
+                          <strong>{suggestion.name}</strong>
+                          <small>{suggestion.styles.join(' · ')}</small>
+                        </button>
+                      )) : (
+                        <div className="ika93-kata-no-results">Brak kata na liście — możesz wpisać własną nazwę i nacisnąć Enter.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <small>Zacznij wpisywać nazwę, wybierz podpowiedź myszką albo strzałkami i Enter. Nazwę spoza listy zatwierdź Enter.</small>
+              </div>
               <div className="kata-judge-main-actions">
                 {!started && <button className="btn btn-primary kata-big-action" onClick={showAthlete}>POKAŻ ZAWODNIKA NA TV</button>}
                 {!scoresOpen && <button className="kata-whistle-button" type="button" onClick={blowWhistle}><span>◉</span> GWIZDEK — WPISZ OCENY</button>}
