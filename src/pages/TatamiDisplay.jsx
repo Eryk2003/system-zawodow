@@ -99,6 +99,9 @@ function FullscreenControl() {
     return () => document.removeEventListener('keydown', onKey)
   }, [isFullscreen])
 
+  /* ETAP 109: bez przycisku EXIT FULLSCREEN na aktywnym pelnym ekranie. */
+  if (isFullscreen) return null;
+
   return (
     <button
       type="button"

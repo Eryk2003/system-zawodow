@@ -1359,3 +1359,14 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   .ika107-medal-list-screen .ika107-medal-list .final-result-person strong{font-size:clamp(19px,2.8vw,44px)}
 }
 @media(prefers-reduced-motion:reduce){.ika107-medal-list-screen .final-result-row{animation:none;opacity:1;transform:none}}
+
+/* ETAP 109: ukrywanie nakladki fullscreen przy przerwie i wznowieniu TV. */
+/* Tryb pelnoekranowy obejmuje caly dokument, nie pojedyncza plansze.
+   Zmiana trybu kata/kumite/plakat nie moze ponownie pokazac przycisku. */
+:fullscreen .tv-fullscreen-btn,
+:-webkit-full-screen .tv-fullscreen-btn {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
