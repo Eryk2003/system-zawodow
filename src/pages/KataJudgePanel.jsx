@@ -65,18 +65,10 @@ export default function KataJudgePanel() {
     }
   }, [])
 
-  const matState = db.getMatState(matName)
-  const autoCountdown = db.getCategoryAutoTransition(matName)
   const sessions = db.getKataSessions()
-  const session = sessions.find((item) => item.id === (matState?.transitionAuto && matState.kataSessionId ? matState.kataSessionId : requestedSessionId))
-    || sessions.find((item) => item.mat === matName && item.status !== 'completed')
+  const session = sessions.find((item) => item.id === requestedSessionId)
+    || sessions.find((item) => item.mat === matName)
     || null
-
-  useEffect(() => {
-    if (matState?.transitionAuto && matState.mode === 'bracket' && matState.competitionId) {
-      window.location.replace(`/organizator/sedzia/${encodeURIComponent(matName)}?competitionId=${encodeURIComponent(matState.competitionId)}&category=${encodeURIComponent(matState.category || '')}`)
-    }
-  }, [matState?.transitionAuto, matState?.mode, matState?.competitionId, matState?.category, matName])
   const athletes = db.getAthletes()
   const clubs = db.getClubs()
   const competition = db.getCompetitions().find((item) => item.id === session?.competitionId) || null
@@ -110,13 +102,6 @@ export default function KataJudgePanel() {
     }
   }
 
-  const openTelebim = () => {
-    openTatamiTvWindow(matName).then(({ ok, message }) => {
-      if (ok) { setError(''); setMessage(message) }
-      else { setError(message) }
-    })
-  }
-
   // Przy zmianie zawodnika podpowiadanie zaczyna od zapisanej nazwy kata.
   // W trakcie pisania nie odswiezamy calego panelu ani nie wysylamy kazdego znaku do Supabase.
   useEffect(() => {
@@ -143,8 +128,7 @@ export default function KataJudgePanel() {
   if (!session) {
     return (
       <main className="judge-screen judge-empty">
-        {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
-        <div className="judge-topbar"><div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego kata • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak listy startowej kata</h1><p>Najpierw utwórz listę startową dla kategorii kata w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
@@ -250,14 +234,13 @@ export default function KataJudgePanel() {
 
   return (
     <main className="judge-screen kata-judge-screen">
-      {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
       <header className="judge-topbar kata-judge-topbar">
-        <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
+        <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
-        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><button className="btn btn-primary" type="button" onClick={openTelebim}>URUCHOM TV</button></div>
+        <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
       </header>
 
-      {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}
+      {error && <div className="judge-message error">{error}</div>}
 
       {session.status === 'completed' ? (
         <section className="kata-judge-completed">
@@ -278,7 +261,7 @@ export default function KataJudgePanel() {
               {currentAthlete.photo ? <img src={currentAthlete.photo} alt={currentAthlete.name} /> : <div>{currentAthlete.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}</div>}
             </div>
             <div className="kata-current-copy">
-              <span className="eyebrow">Zawodnik {Number(session.currentIndex || 0) + 1} z {session.results.length}</span>
+              <span className="eyebrow">{session.stageName || 'KATA'} • Zawodnik {Number(session.currentIndex || 0) + 1} z {session.results.length}</span>
               <h1>{currentAthlete.name}</h1>
               <p>{currentAthlete.club}</p>
               <div className="kata-name-field ika93-kata-field">
@@ -314,7 +297,6 @@ export default function KataJudgePanel() {
                           className={kataHighlightedIndex === index ? 'is-selected' : ''}
                           key={suggestion.name}
                           onMouseDown={(event) => event.preventDefault()}
-                          onTouchStart={(event) => { event.preventDefault(); chooseSuggestedKata(suggestion.name) }}
                           onClick={() => chooseSuggestedKata(suggestion.name)}
                         >
                           <strong>{suggestion.name}</strong>
@@ -341,6 +323,14 @@ export default function KataJudgePanel() {
               </div>
               <small>{session.judgeCount === 5 ? 'Najwyższa i najniższa ocena są odrzucane.' : 'Końcowa ocena to suma 3 ocen.'}</small>
             </div>
+
+            {Number(session.totalRounds || 1) > 1 && (
+              <div className="kata-round-box">
+                <span>System rund</span>
+                <strong>{session.stageName || 'KATA'}</strong>
+                <small>{Number(session.roundNumber || 1) === 1 ? 'Po ocenieniu 10 zawodników system wybierze 5 najlepszych do finału.' : 'To jest runda finałowa dla 5 najlepszych zawodników.'}</small>
+              </div>
+            )}
           </section>
 
           <section className={`kata-score-entry ${scoresOpen ? 'active' : ''}`}>
@@ -359,7 +349,7 @@ export default function KataJudgePanel() {
       )}
 
       <section className="judge-queue kata-queue">
-        <div className="judge-queue-head"><h3>Lista uczestników</h3><span>Po końcowej ocenie TV pokaże tę listę, a następnie kolejnego zawodnika.</span></div>
+        <div className="judge-queue-head"><h3>{Number(session.roundNumber || 1) === 2 ? 'Lista finalistów' : 'Lista uczestników'}</h3><span>Po końcowej ocenie TV pokaże tę listę, a następnie kolejnego zawodnika.</span></div>
         <div className="kata-queue-list">
           {orderedResults.map((result) => {
             const info = athleteInfo(result.athleteId)

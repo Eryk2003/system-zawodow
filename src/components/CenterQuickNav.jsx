@@ -14,6 +14,7 @@ const TABS = [
 function categoryForMat(category, mat, competitions, schedule, matches, kataSessions) {
   const competition = competitions.find((item) => item.id === category.competitionId)
   const kind = competition?.group === 'Kata' ? 'kata' : competition?.group === 'Kumite' ? 'kumite' : null
+  if (!kind) return null
 
   const related = (item) => (item.categoryId && item.categoryId === category.id)
     || (item.competitionId === category.competitionId && item.category === category.name)
@@ -23,7 +24,7 @@ function categoryForMat(category, mat, competitions, schedule, matches, kataSess
   const plannedMat = slot?.mat || category.preferredMat || ''
   if (plannedMat !== mat && !bracket && !session) return null
 
-  const prepared = kind === 'kata' ? Boolean(session) : kind === 'kumite' ? Boolean(bracket) : false
+  const prepared = kind === 'kata' ? Boolean(session) : Boolean(bracket)
   const label = `${competition?.name || 'Konkurencja'} — ${category.name}`
   return {
     ...category,
@@ -139,7 +140,7 @@ export default function CenterQuickNav({
       <section className="ika94-quickdesk" aria-label="Szybkie przejście do panelu sędziego">
         <div className="ika94-quickdesk-header">
           <div>
-            <span className="ika94-eyebrow">IKA POLAND · CENTRUM ZAWODÓW</span>
+            <span className="ika94-eyebrow"><span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span> · CENTRUM ZAWODÓW</span>
             <h2>Wybierz tatami i konkurencję</h2>
             <p>Bez przewijania: wybierz stanowisko i otwórz właściwy panel sędziego.</p>
           </div>
@@ -169,8 +170,8 @@ export default function CenterQuickNav({
         </div>
         {chosen ? (
           <div className={`ika94-quickdesk-status ${chosen.prepared ? 'is-ready' : 'is-unprepared'}`}>
-            <span>{chosen.prepared ? `Gotowe: ${chosen.kind === 'kata' ? 'lista startowa kata' : 'drabinka kumite'}` : chosen.kind ? 'Kategoria wymaga przygotowania' : 'Brak dedykowanego panelu sędziego dla tej konkurencji'}</span>
-            {!chosen.prepared && chosen.kind && <button type="button" onClick={prepare}>Przejdź do {chosen.kind === 'kata' ? 'losowania kata' : 'losowania drabinki'}</button>}
+            <span>{chosen.prepared ? `Gotowe: ${chosen.kind === 'kata' ? 'lista startowa kata' : 'drabinka kumite'}` : 'Kategoria wymaga przygotowania'}</span>
+            {!chosen.prepared && <button type="button" onClick={prepare}>Przejdź do {chosen.kind === 'kata' ? 'losowania kata' : 'losowania drabinki'}</button>}
             <small>{preparedCount} przygotowanych z {options.length} kategorii przypisanych do {mat}</small>
           </div>
         ) : (

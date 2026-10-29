@@ -29,15 +29,6 @@ const boutTimeText = (seconds) => {
   return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`
 }
 
-const formatDisplayTime = (value) => {
-  if (!value) return '-'
-  const text = String(value).trim()
-  if (!text) return '-'
-  const parts = text.split(':')
-  if (parts.length >= 2) return parts[0] + ':' + parts[1]
-  return text
-}
-
 const formatRegistrationDeadline = (value) => {
   if (!value) return 'Nie ustawiono'
   const date = new Date(value)
@@ -174,17 +165,11 @@ export default function TournamentCenter() {
     const interval = setInterval(() => setDeadlineNow(Date.now()), 30000)
     return () => clearInterval(interval)
   }, [])
-  /* ETAP 73: klub zglaszajacy */
-  const decorated = useMemo(() => entries.map((entry) => {
-    const athlete = athletes.find((a) => a.id === entry.athleteId)
-    const club = clubs.find((c) => c.id === athlete?.clubId || c.id === entry.clubId)
-    return {
-      ...entry,
-      athlete,
-      club,
-      competition: competitions.find((c) => c.id === entry.competitionId),
-    }
-  }).sort((a, b) => (a.estimatedStart || '').localeCompare(b.estimatedStart || '')), [entries, athletes, clubs, competitions, refreshKey])
+  const decorated = useMemo(() => entries.map((entry) => ({
+    ...entry,
+    athlete: athletes.find((a) => a.id === entry.athleteId),
+    competition: competitions.find((c) => c.id === entry.competitionId),
+  })).sort((a, b) => (a.estimatedStart || '').localeCompare(b.estimatedStart || '')), [entries, athletes, competitions, refreshKey])
 
   const bracketGroups = useMemo(() => {
     const map = new Map()
@@ -326,7 +311,7 @@ export default function TournamentCenter() {
       db.generateBracket({ competitionId: category.competitionId, category: category.name, categoryId: category.id, mat: slot.mat, shuffle: true })
       const key = bracketKey(category.competitionId, category.name, slot.mat)
       setSelectedBracket(key)
-      setMessage('Drabinka została wylosowana z rozstawieniem klubowym. System ogranicza pojedynki zawodników tego samego klubu, szczególnie we wczesnych rundach.')
+      setMessage('Drabinka została wylosowana. Kolejność zawodników została ustalona losowo.')
       refresh()
     } catch (err) {
       setError(err.message)
@@ -482,7 +467,7 @@ export default function TournamentCenter() {
         })}</div></div>}
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}
         <form className="entry-builder auto-entry-builder" onSubmit={addEntry}>
-          <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select>{selectedAthlete && <small className="ika73-selected-club">Klub zgłaszający: <b>{clubs.find((c) => c.id === selectedAthlete.clubId)?.name || 'Nieprzypisany klub'}</b></small>}</label>
+          <label>Zawodnik<select required value={entryForm.athleteId} onChange={(e) => setEntryForm({ ...entryForm, athleteId: e.target.value, categoryId: '' })}><option value="">Wybierz zawodnika</option>{athletes.map((a) => { const club = clubs.find((c) => c.id === a.clubId); return <option value={a.id} key={a.id}>{a.firstName} {a.lastName} - {club?.shortName || club?.name || 'klub'}</option> })}</select></label>
           <label>Kategoria<select required value={entryForm.categoryId} onChange={(e) => setEntryForm({ ...entryForm, categoryId: e.target.value })}><option value="">Wybierz utworzoną kategorię</option>{entryCategories.map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name || 'Konkurencja'} - {category.name}</option> })}</select>{entryForm.athleteId && <small>{selectedAthleteAge == null ? 'Nie udało się obliczyć wieku zawodnika.' : `Wiek zawodnika w dniu zawodów: ${selectedAthleteAge} lat`}</small>}</label>
           <div className="auto-schedule-note"><strong>Start i tatami: automatycznie</strong><small>Zawodnika można dodać wyłącznie do kategorii utworzonej wcześniej dla tych zawodów.</small></div>
           <button className="btn btn-primary" disabled={!categories.length}>Dodaj zawodnika</button>
@@ -511,9 +496,9 @@ export default function TournamentCenter() {
         {!!decorated.length && (
           <div className="schedule-list athlete-schedule-list">
             {decorated.map((entry) => <article className={`schedule-card ${liveId === entry.id ? 'schedule-live' : ''}`} key={entry.id}>
-              <div className="schedule-time"><strong>{formatDisplayTime(entry.estimatedStart)}</strong><small>{entry.mat || '-'}</small></div>
+              <div className="schedule-time"><strong>{entry.estimatedStart || '-'}</strong><small>{entry.mat || '-'}</small></div>
               <AthleteAvatar athlete={entry.athlete} />
-              <div className="schedule-person"><strong>{entry.athlete ? `${entry.athlete.firstName} ${entry.athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{entry.competition?.name || '-'} • {entry.category || '-'}</span><small className="ika73-club-source">Klub zgłaszający: <b>{entry.club?.name || entry.club?.shortName || 'Nieprzypisany klub'}</b></small></div>
+              <div className="schedule-person"><strong>{entry.athlete ? `${entry.athlete.firstName} ${entry.athlete.lastName}` : 'Nieznany zawodnik'}</strong><span>{entry.competition?.name || '-'} • {entry.category || '-'}</span></div>
               <StatusBadge status={entry.status} />
               <div className="schedule-actions">
                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => updateStatus(entry, 'called')}>Wywołaj</button>
@@ -553,7 +538,7 @@ export default function TournamentCenter() {
             </div>
             <div id="print-kata-category" className="competition-print-section print-kata-sheet">
               <div className="competition-print-header print-only">
-                <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
+                <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
                 <h1>{competitions.find((c) => c.id === selectedKataSession.competitionId)?.name || 'Kata'} - {selectedKataSession.category}</h1>
                 <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selectedKataSession.mat}</span><span>{selectedKataSession.judgeCount} sędziów</span></div>
               </div>
@@ -583,7 +568,6 @@ export default function TournamentCenter() {
           <label>Kategoria kumite<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => competitions.find((c) => c.id === category.competitionId)?.group === 'Kumite').map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); const slot = schedule.find((item) => item.competitionId === category.competitionId && item.category === category.name); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}{slot?.mat ? ` • ${slot.mat}` : ''}</option> })}</select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie drabinkę</button>
         </form>
-        <p className="field-hint">Losowanie klubowe: zawodnicy tego samego klubu są rozstawiani możliwie daleko od siebie. Nie zawsze da się całkowicie uniknąć spotkania klubowiczów.</p>
 
         {!!bracketGroups.length && (
           <div className="bracket-tabs">
@@ -608,7 +592,7 @@ export default function TournamentCenter() {
             </div>
             <div id="print-kumite-bracket" className="academy-bracket-panel-wrap competition-print-section print-kumite-sheet">
               <div className="competition-print-header print-only">
-                <div><strong className="ika-brand-wordmark"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
+                <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
                 <h1>{selectedCompetition?.name || 'Kumite'} - {selected.category}</h1>
                 <div className="competition-print-meta"><span>{tournament.date || '-'}</span><span>{tournament.venue || '-'}</span><span>{selected.mat}</span><span>{selectedSideTheme.red.code} / {selectedSideTheme.blue.code}</span></div>
               </div>
@@ -636,9 +620,29 @@ export default function TournamentCenter() {
       </section>
       )}
 
-      
+      <section className="panel-section">
+        <div className="panel-section-head"><div><span className="eyebrow">Aplikacja</span><h2>Aktualności i komunikaty</h2><p>Publikuj ważne informacje i komunikaty dotyczące zawodów bezpośrednio w systemie.</p></div><a className="btn btn-outline" href="/aktualnosci" target="_blank" rel="noreferrer">Otwórz aktualności</a></div>
+        <form className="form-grid" onSubmit={addNews}>
+          <label className="span-2">Tytuł<input required value={newsForm.title} onChange={(e) => setNewsForm({ ...newsForm, title: e.target.value })} /></label>
+          <label>Data<input type="date" required value={newsForm.date} onChange={(e) => setNewsForm({ ...newsForm, date: e.target.value })} /></label>
+          <label className="checkbox-label"><input type="checkbox" checked={newsForm.important} onChange={(e) => setNewsForm({ ...newsForm, important: e.target.checked })} /> Oznacz jako ważne</label>
+          <label className="span-2">Treść<textarea required rows="4" value={newsForm.body} onChange={(e) => setNewsForm({ ...newsForm, body: e.target.value })} /></label>
+          <button className="btn btn-primary span-2">Opublikuj</button>
+        </form>
+        {!!news.length && <div className="simple-admin-list">{news.map((n) => <div key={n.id}><div><strong>{n.important ? 'WAŻNE • ' : ''}{n.title}</strong><span>{n.date}</span></div><button type="button" className="link-btn danger" onClick={() => { db.deleteNewsItem(n.id); refresh() }}>Usuń</button></div>)}</div>}
+      </section>
 
-      
+      <section className="panel-section">
+        <div className="panel-section-head"><div><span className="eyebrow">Katalog</span><h2>Konkurencje IKA Poland</h2><p>Możesz wyłączyć konkurencję na dany turniej albo dopisać nową.</p></div></div>
+        <div className="catalog-list">
+          {competitions.map((c) => <div className="catalog-row" key={c.id}><div><strong>{c.name}</strong><small>{c.group}</small></div><label className="switch"><input type="checkbox" checked={c.active} onChange={() => toggleCompetition(c.id)} /><span /></label></div>)}
+        </div>
+        <form className="add-competition" onSubmit={addCompetition}>
+          <input value={newCompetition.name} onChange={(e) => setNewCompetition({ ...newCompetition, name: e.target.value })} placeholder="Nazwa nowej konkurencji" />
+          <select value={newCompetition.group} onChange={(e) => setNewCompetition({ ...newCompetition, group: e.target.value })}><option>Kata</option><option>Kumite</option><option>Dzieci</option><option>Para Karate</option><option>Pozostałe</option></select>
+          <button className="btn btn-outline">+ Dodaj konkurencję</button>
+        </form>
+      </section>
     </DashboardLayout>
   )
 }

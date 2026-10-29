@@ -2,7 +2,6 @@ import { DEFAULT_COMPETITIONS, DEFAULT_TOURNAMENT } from './defaults.js'
 import { queueCloudWrite } from './cloudSync.js'
 import { getKumiteWinRule } from './kumiteRules.js'
 import { MAX_BRACKET_ATHLETES, planOpeningRound } from './bracketUtils.js'
-import { seedBracketByClub } from './clubSeeding.js'
 
 const KEYS = {
   accounts: 'ika_accounts_v1',
@@ -419,6 +418,36 @@ function calculateKataFinalScore(scores = [], judgeCount = 3) {
   return { scores: normalized, rawTotal, finalScore, countedIndexes, droppedIndexes }
 }
 
+function sortKataResults(results = []) {
+  return (results || [])
+    .filter((result) => result.status === 'done' && Number.isFinite(Number(result.finalScore)))
+    .slice()
+    .sort((a, b) => Number(b.finalScore || 0) - Number(a.finalScore || 0)
+      || Number(b.rawTotal || 0) - Number(a.rawTotal || 0)
+      || Number(a.completedAt || 0) - Number(b.completedAt || 0)
+      || Number(a.order || 0) - Number(b.order || 0))
+}
+
+function createEmptyKataResult(athleteId, index, judgeCount, extra = {}) {
+  return {
+    athleteId,
+    order: index + 1,
+    status: 'pending',
+    kataName: '',
+    scores: Array(judgeCount).fill(null),
+    finalScore: null,
+    rawTotal: null,
+    countedIndexes: [],
+    droppedIndexes: [],
+    completedAt: null,
+    ...extra,
+  }
+}
+
+function isTwoRoundKataSession(session) {
+  return Number(session?.initialAthleteCount || 0) === 10 && Number(session?.advancingToFinalCount || 0) === 5
+}
+
 function kataAthleteInfo(athleteId, athletes, clubs) {
   const athlete = athletes.find((item) => item.id === athleteId)
   if (!athlete) return null
@@ -599,76 +628,6 @@ function buildLiveRankings() {
   const clubs = [...clubMap.values()].sort(clubSorter).map((row, index) => ({ ...row, place: index + 1 }))
 
   return { athletes, clubs, podiums, updatedAt: Date.now() }
-}
-
-/* ETAP 89 - bezklikalna zmiana kategorii po zakończeniu konkurencji.
-   Zapisany harmonogram jest źródłem kolejności; żadnych automatycznych losowań. */
-const AUTO_CATEGORY_PODIUM_MS = 26000
-const AUTO_CATEGORY_INTRO_MS = 10000
-
-function sameScheduledCategory(slot, category) {
-  if (!slot || !category) return false
-  if (category.categoryId && slot.categoryId) return slot.categoryId === category.categoryId
-  return slot.competitionId === category.competitionId && slot.category === category.category
-}
-
-function nextPreparedCategoryOnMat(mat, completed) {
-  const timetable = read(KEYS.schedule, [])
-    .filter((slot) => slot.mat === mat)
-    .sort((a, b) => String(a.startTime || '').localeCompare(String(b.startTime || '')) || Number(a.order || 0) - Number(b.order || 0))
-  const currentIndex = timetable.findIndex((slot) => sameScheduledCategory(slot, completed))
-  if (currentIndex < 0) return null
-  const matches = read(KEYS.matches, [])
-  const kataSessions = read(KEYS.kataSessions, [])
-  for (const slot of timetable.slice(currentIndex + 1)) {
-    const same = (item) => item.mat === mat && sameScheduledCategory(item, slot)
-    const categoryMatches = matches.filter(same)
-    if (categoryMatches.length) {
-      const finalRound = Math.max(...categoryMatches.map((m) => Number(m.roundIndex || 0)))
-      const finalMatches = categoryMatches.filter((m) => Number(m.roundIndex || 0) === finalRound)
-      if (finalMatches.every((m) => m.status === 'done' && m.winnerId)) continue
-      return {
-        competitionId: slot.competitionId, category: slot.category, categoryId: slot.categoryId || null,
-        mat, kind: 'kumite', mode: 'bracket', kataSessionId: null,
-      }
-    }
-    const kata = kataSessions.find(same)
-    if (kata) {
-      if (kata.status === 'completed') continue
-      return {
-        competitionId: slot.competitionId, category: slot.category, categoryId: slot.categoryId || null,
-        mat, kind: 'kata', mode: 'kata-list', kataSessionId: kata.id,
-      }
-    }
-    // Nie przeskakuj kategorii, której organizator jeszcze nie przygotował.
-    return null
-  }
-  return null
-}
-
-function canPreserveMatSelection(mat, competitionId, category, categoryId) {
-  const previous = read(KEYS.matStates, {})[mat]
-  if (!previous?.competitionId) return false
-  if (sameScheduledCategory(previous, { competitionId, category, categoryId })) return false
-  // Generowanie następnej drabinki/listy nie może przerwać trwającej lub oczekującej kategorii.
-  const matches = read(KEYS.matches, [])
-  const sessions = read(KEYS.kataSessions, [])
-  return matches.some((m) => m.mat === mat && sameScheduledCategory(m, previous)) ||
-    sessions.some((s) => s.mat === mat && sameScheduledCategory(s, previous)) ||
-    Boolean(previous.autoTransition)
-}
-
-function autoTransitionSnapshot(state, now = Date.now()) {
-  const transition = state?.autoTransition
-  if (!transition?.next || state?.breakActive || !['podium', 'kata-final'].includes(state?.mode) || !Number.isFinite(Number(transition.announceAt))) return null
-  const start = Number(transition.announceAt)
-  const end = start + AUTO_CATEGORY_INTRO_MS
-  return {
-    ...transition,
-    secondsLeft: Math.max(0, Math.ceil((end - now) / 1000)),
-    showing: now >= start && now < end,
-    finished: now >= end,
-  }
 }
 
 export const db = {
@@ -1006,50 +965,6 @@ export const db = {
   getMatchesForMat: (mat) => read(KEYS.matches, []).filter((m) => m.mat === mat),
   getMatStates: () => read(KEYS.matStates, {}),
   getMatState: (mat) => read(KEYS.matStates, {})[mat] || null,
-  getCategoryAutoTransition: (mat) => autoTransitionSnapshot(read(KEYS.matStates, {})[mat]),
-  processCategoryAutoTransition: (mat) => {
-    const states = read(KEYS.matStates, {})
-    const state = states[mat]
-    const transition = state?.autoTransition
-    if (!transition || state.breakActive || state.mode === 'break') return state || null
-    // Ręczne przełączenie kategorii albo rozpoczęcie walki ma pierwszeństwo.
-    if (!sameScheduledCategory(state, transition.from) ||
-        !['podium', 'kata-final'].includes(state.mode)) return state
-    const next = nextPreparedCategoryOnMat(mat, transition.from)
-    if (!next) {
-      if (!transition.next) return state
-      // Usunięta drabinka/lista: anuluj nieaktualną zapowiedź.
-      const cleared = { ...state, autoTransition: { ...transition, next: null, announceAt: null }, updatedAt: Date.now() }
-      write(KEYS.matStates, { ...states, [mat]: cleared })
-      emit()
-      return cleared
-    }
-    const now = Date.now()
-    if (!transition.next || !sameScheduledCategory(transition.next, next)) {
-      const announceAt = Math.max(now, Number(transition.completedAt || now) + AUTO_CATEGORY_PODIUM_MS)
-      const updated = { ...state, autoTransition: { ...transition, next, announceAt }, updatedAt: now }
-      write(KEYS.matStates, { ...states, [mat]: updated })
-      emit()
-      return updated
-    }
-    const timer = autoTransitionSnapshot(state, now)
-    if (!timer?.finished) return state
-    // Nie przenoś panelu, gdy na tatami trwa inna aktywna walka.
-    if (read(KEYS.matches, []).some((m) => m.mat === mat && m.status === 'active')) return state
-    const destination = timer.next
-    const updated = {
-      ...state,
-      mode: destination.mode, competitionId: destination.competitionId,
-      category: destination.category, categoryId: destination.categoryId,
-      kataSessionId: destination.kataSessionId, currentMatchId: null,
-      lastCompletedMatchId: null, podiumShownAt: null, kataCategoryCompleted: false,
-      kataFinalAthleteId: null, kataFinalShownAt: null,
-      autoTransition: null, transitionAuto: true, updatedAt: now,
-    }
-    write(KEYS.matStates, { ...states, [mat]: updated })
-    emit()
-    return updated
-  },
   setMatState: (mat, patch) => { const next = setMatStateInternal(mat, patch); emit(); return next },
   /* ETAP 86B - przerwa osobno na kazdym tatami */
   setMatBreakMode: (mat, enabled) => {
@@ -1066,20 +981,12 @@ export const db = {
     const isOnBreak = Boolean(before.breakActive || before.mode === 'break')
     if (isOnBreak === Boolean(enabled)) return before
     const previousMode = before.mode === 'break' ? (before.breakPreviousMode || 'bracket') : (before.mode || 'bracket')
-    const pausedFor = !enabled && before.autoTransition?.pausedAt
-      ? Math.max(0, Date.now() - Number(before.autoTransition.pausedAt)) : 0
-    const nextAutoTransition = before.autoTransition ? {
-      ...before.autoTransition,
-      pausedAt: enabled ? Date.now() : null,
-      announceAt: before.autoTransition.announceAt == null ? null : Number(before.autoTransition.announceAt) + pausedFor,
-    } : before.autoTransition
     const next = {
       ...before,
       mat,
       breakActive: Boolean(enabled),
       breakPreviousMode: enabled ? previousMode : null,
       mode: enabled ? 'break' : previousMode,
-      autoTransition: nextAutoTransition,
       updatedAt: Date.now(),
     }
     write(KEYS.matStates, { ...states, [mat]: next })
@@ -1104,23 +1011,25 @@ export const db = {
     }
     const count = Number(judgeCount) === 5 ? 5 : 3
     const sessions = read(KEYS.kataSessions, []).filter((session) => !(categoryId ? session.categoryId === categoryId : session.competitionId === competitionId && session.category === category && session.mat === mat))
+    const useTwoRounds = athleteIds.length === 10
     const next = {
       id: uid('kata'), competitionId, category, categoryId, mat, judgeCount: count,
       order: athleteIds, currentIndex: 0, currentAthleteId: athleteIds[0] || null, lastAthleteId: null,
       status: 'ready', phase: 'list', createdAt: Date.now(), completedAt: null,
-      results: athleteIds.map((athleteId, index) => ({
-        athleteId, order: index + 1, status: 'pending', kataName: '', scores: Array(count).fill(null), finalScore: null, rawTotal: null,
-        countedIndexes: [], droppedIndexes: [], completedAt: null,
-      })),
+      initialAthleteCount: athleteIds.length,
+      advancingToFinalCount: useTwoRounds ? 5 : 0,
+      roundNumber: 1,
+      totalRounds: useTwoRounds ? 2 : 1,
+      stageName: useTwoRounds ? 'RUNDA 1 • ELIMINACJE' : 'FINAŁ',
+      preliminaryResults: [],
+      finalists: [],
+      results: athleteIds.map((athleteId, index) => createEmptyKataResult(athleteId, index, count, { roundNumber: 1 })),
     }
     write(KEYS.kataSessions, [...sessions, next])
-    if (!canPreserveMatSelection(mat, competitionId, category, categoryId)) {
-      setMatStateInternal(mat, {
-        mode: 'kata-list', competitionId, category, categoryId, kataSessionId: next.id,
-        currentMatchId: null, kataFinalShownAt: null, kataFinalAthleteId: null, kataNextAthleteId: athleteIds[0] || null,
-        autoTransition: null,
-      })
-    }
+    setMatStateInternal(mat, {
+      mode: 'kata-list', competitionId, category, categoryId, kataSessionId: next.id,
+      currentMatchId: null, kataFinalShownAt: null, kataFinalAthleteId: null, kataNextAthleteId: athleteIds[0] || null,
+    })
     emit()
     return next
   },
@@ -1134,6 +1043,7 @@ export const db = {
     const next = {
       ...session, judgeCount: count,
       results: (session.results || []).map((result) => ({ ...result, scores: Array(count).fill(null), countedIndexes: [], droppedIndexes: [] })),
+      preliminaryResults: (session.preliminaryResults || []).map((result) => ({ ...result, scores: Array(count).fill(null), countedIndexes: [], droppedIndexes: [] })),
     }
     sessions[index] = next
     write(KEYS.kataSessions, sessions)
@@ -1216,11 +1126,7 @@ export const db = {
     const next = { ...session, results, phase: 'scores' }
     sessions[index] = next
     write(KEYS.kataSessions, sessions)
-    /* IKA95_DEDUP_MAT_STATE — nie zapisujemy identycznego stanu TV przy kazdym punkcie */
-    const currentMatState = read(KEYS.matStates, {})[session.mat] || {}
-    if (currentMatState.mode !== 'kata-scores' || currentMatState.kataSessionId !== session.id || currentMatState.kataCurrentAthleteId !== result.athleteId) {
-      setMatStateInternal(session.mat, { mode: 'kata-scores', kataSessionId: session.id, kataCurrentAthleteId: result.athleteId })
-    }
+    setMatStateInternal(session.mat, { mode: 'kata-scores', kataSessionId: session.id, kataCurrentAthleteId: result.athleteId })
     emit()
     return next
   },
@@ -1234,14 +1140,55 @@ export const db = {
     if (!result) return null
     const calculation = calculateKataFinalScore(result.scores, session.judgeCount)
     if (!calculation) throw new Error(`Wpisz oceny wszystkich ${session.judgeCount} sędziów.`)
-    const completedResult = { ...result, ...calculation, status: 'done', completedAt: Date.now() }
+    const now = Date.now()
+    const completedResult = { ...result, ...calculation, status: 'done', completedAt: now }
     const results = session.results.map((item, idx) => idx === currentIndex ? completedResult : item)
     const nextIndex = results.findIndex((item, idx) => idx > currentIndex && item.status !== 'done')
     const fallbackIndex = results.findIndex((item) => item.status !== 'done')
     const pendingIndex = nextIndex >= 0 ? nextIndex : fallbackIndex
     const hasNext = pendingIndex >= 0
+
+    if (!hasNext && isTwoRoundKataSession(session) && Number(session.roundNumber || 1) === 1) {
+      const finalists = sortKataResults(results).slice(0, Number(session.advancingToFinalCount || 5))
+      const finalResults = finalists.map((item, finalIndex) => createEmptyKataResult(item.athleteId, finalIndex, session.judgeCount, {
+        roundNumber: 2,
+        seededFromRound1Place: finalIndex + 1,
+        fromRound1Score: item.finalScore,
+      }))
+      const nextAthleteId = finalResults[0]?.athleteId || null
+      const next = {
+        ...session,
+        order: finalResults.map((item) => item.athleteId),
+        results: finalResults,
+        preliminaryResults: results.map((item) => ({ ...item })),
+        finalists: finalists.map((item, finalIndex) => ({
+          athleteId: item.athleteId,
+          place: finalIndex + 1,
+          finalScore: item.finalScore,
+          rawTotal: item.rawTotal,
+          kataName: item.kataName || '',
+        })),
+        lastAthleteId: result.athleteId,
+        currentIndex: 0,
+        currentAthleteId: nextAthleteId,
+        status: nextAthleteId ? 'active' : 'completed',
+        phase: nextAthleteId ? 'transition' : 'completed',
+        roundNumber: 2,
+        stageName: 'FINAŁ',
+        completedAt: null,
+      }
+      sessions[index] = next
+      write(KEYS.kataSessions, sessions)
+      setMatStateInternal(session.mat, {
+        mode: 'kata-final', competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null,
+        kataSessionId: session.id, kataFinalAthleteId: result.athleteId, kataFinalShownAt: now, kataNextAthleteId: nextAthleteId,
+        kataCategoryCompleted: false,
+      })
+      emit()
+      return next
+    }
+
     const nextAthleteId = hasNext ? results[pendingIndex].athleteId : null
-    const now = Date.now()
     const next = {
       ...session, results, lastAthleteId: result.athleteId,
       currentIndex: hasNext ? pendingIndex : currentIndex, currentAthleteId: nextAthleteId,
@@ -1254,10 +1201,6 @@ export const db = {
       mode: 'kata-final', competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null,
       kataSessionId: session.id, kataFinalAthleteId: result.athleteId, kataFinalShownAt: now, kataNextAthleteId: nextAthleteId,
       kataCategoryCompleted: !hasNext,
-      autoTransition: !hasNext ? {
-        from: { competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null },
-        completedAt: now, next: null, announceAt: null,
-      } : null,
     })
     emit()
     return next
@@ -1288,9 +1231,12 @@ export const db = {
     if (athleteIds.length < 2) throw new Error('Do utworzenia drabinki kumite potrzeba co najmniej 2 zawodników.')
     if (athleteIds.length > MAX_BRACKET_ATHLETES) throw new Error(`Jedna drabinka może mieć maksymalnie ${MAX_BRACKET_ATHLETES} zawodników.`)
 
-    /* ETAP 90 - rozstawienie klubowe kumite */
-    const athleteClubs = new Map(read(KEYS.athletes, []).map((athlete) => [athlete.id, athlete.clubId]))
-    const drawingIds = shuffle ? seedBracketByClub(athleteIds, athleteClubs) : athleteIds
+    if (shuffle) {
+      for (let i = athleteIds.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[athleteIds[i], athleteIds[j]] = [athleteIds[j], athleteIds[i]]
+      }
+    }
 
     const tournament = { ...DEFAULT_TOURNAMENT, ...read(KEYS.tournament, DEFAULT_TOURNAMENT) }
     const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
@@ -1298,21 +1244,14 @@ export const db = {
     )
     const categoryBoutSeconds = getCategoryBoutSeconds(categoryRecord, tournament)
 
-    const storedMatches = read(KEYS.matches, [])
-    const currentCategoryMatches = storedMatches.filter(
-      (m) => m.competitionId === competitionId && m.category === category && m.mat === mat,
-    )
-    if (currentCategoryMatches.some((m) => m.status === 'active' || m.status === 'done' || m.winnerId)) {
-      throw new Error('Nie można przelosować drabinki po rozpoczęciu walk. Zachowano zapisane wyniki.')
-    }
-    const allMatches = storedMatches.filter(
+    const allMatches = read(KEYS.matches, []).filter(
       (m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat),
     )
     const created = []
     let queueOrder = 1
     let roundIndex = 0
     let slots = []
-    const openingPlan = planOpeningRound(drawingIds)
+    const openingPlan = planOpeningRound(athleteIds)
     const { bracketSize } = openingPlan
 
     // Dla niepełnej potęgi 2 powstaje wyłącznie tyle REALNYCH walk
@@ -1329,7 +1268,7 @@ export const db = {
           bracketPosition: slot.position, bracketSize,
           redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
-          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
+          redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1337,7 +1276,7 @@ export const db = {
       })
       roundIndex += 1
     } else {
-      slots = drawingIds.map((athleteId) => ({ athleteId }))
+      slots = athleteIds.map((athleteId) => ({ athleteId }))
     }
 
     while (slots.length >= 2) {
@@ -1354,7 +1293,7 @@ export const db = {
           bracketPosition: i / 2, bracketSize,
           redAthleteId: red?.athleteId || null, blueAthleteId: blue?.athleteId || null,
           redSourceMatchId: red?.sourceMatchId || null, blueSourceMatchId: blue?.sourceMatchId || null,
-          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
+          winnerId: null, redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0,
           boutSeconds: categoryBoutSeconds, status: 'scheduled',
         }
         created.push(match)
@@ -1366,9 +1305,7 @@ export const db = {
 
     write(KEYS.matches, [...allMatches, ...created])
     syncEntriesWithSchedule(read(KEYS.schedule, []))
-    if (!canPreserveMatSelection(mat, competitionId, category, categoryId)) {
-      setMatStateInternal(mat, { mode: 'bracket', competitionId, category, categoryId, currentMatchId: null, lastCompletedMatchId: null, autoTransition: null })
-    }
+    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, categoryId, currentMatchId: null, lastCompletedMatchId: null })
     emit()
     return created
   },
@@ -1402,7 +1339,7 @@ export const db = {
     const idx = matches.findIndex((m) => m.id === next.id)
     matches[idx] = next
     write(KEYS.matches, matches)
-    setMatStateInternal(raw.mat, { mode: 'scoreboard', competitionId: raw.competitionId, category: raw.category, categoryId: raw.categoryId || null, currentMatchId: raw.id, autoTransition: null })
+    setMatStateInternal(raw.mat, { mode: 'scoreboard', competitionId: raw.competitionId, category: raw.category, categoryId: raw.categoryId || null, currentMatchId: raw.id })
     emit()
     return next
   },
@@ -1460,11 +1397,12 @@ export const db = {
     return next
   },
 
-  changePenalty: (matchId, side, type, level) => {
+  changePenalty: (matchId, side, level) => {
     const matches = read(KEYS.matches, [])
     const match = matches.find((m) => m.id === matchId)
     if (!match) return null
 
+    // Tak samo jak wynik, kary są zamknięte po zakończeniu walki.
     if (match.status === 'done' || match.winnerId) {
       throw new Error('Walka została już zakończona. Nie można zmieniać kar.')
     }
@@ -1472,64 +1410,18 @@ export const db = {
       throw new Error('Kary można zmieniać tylko podczas aktywnej walki.')
     }
 
-    const penaltyType = typeof type === 'number' && level === undefined ? 'exit' : String(type || 'exit')
-    const requestedLevel = typeof type === 'number' && level === undefined ? type : level
-    const nextLevel = Math.max(0, Math.min(4, Number(requestedLevel || 0)))
-    const key = side === 'red'
-      ? (penaltyType === 'behavior' ? 'redBehaviorPenaltyLevel' : 'redExitPenaltyLevel')
-      : (penaltyType === 'behavior' ? 'blueBehaviorPenaltyLevel' : 'blueExitPenaltyLevel')
-
+    const nextLevel = Math.max(0, Math.min(4, Number(level || 0)))
+    const key = side === 'red' ? 'redPenaltyLevel' : 'bluePenaltyLevel'
     const next = { ...match, [key]: nextLevel }
-    next.redPenaltyLevel = Math.max(Number(next.redPenaltyLevel || 0), Number(next.redExitPenaltyLevel || 0), Number(next.redBehaviorPenaltyLevel || 0))
-    next.bluePenaltyLevel = Math.max(Number(next.bluePenaltyLevel || 0), Number(next.blueExitPenaltyLevel || 0), Number(next.blueBehaviorPenaltyLevel || 0))
     saveMatchInternal(next)
 
+    // HANSOKU automatycznie kończy walkę. Zawodnik ukarany przegrywa,
+    // a przeciwnik zostaje zwycięzcą i przechodzi dalej w drabince.
     if (nextLevel === 4) {
       const resolved = resolveMatch(next, read(KEYS.matches, []))
       const winnerId = side === 'red' ? resolved.blueResolvedId : resolved.redResolvedId
       if (winnerId) {
         return db.finishMatch(matchId, winnerId, { automatic: true, reason: 'HANSOKU' })
-      }
-    }
-
-    emit()
-    return next
-  },
-
-  changeTechniqueScore: (matchId, side, technique, countDelta) => {
-    if (!['red', 'blue'].includes(side) || !['wazari', 'ippon'].includes(technique) || ![-1, 1].includes(countDelta)) {
-      throw new Error('Nieprawidlowa zmiana wyniku technicznego.')
-    }
-    const matches = read(KEYS.matches, [])
-    const match = matches.find((item) => item.id === matchId)
-    if (!match) return null
-    if (match.status === 'done' || match.winnerId) {
-      throw new Error('Walka zostala juz zakonczona. Nie mozna zmieniac punktow.')
-    }
-    if (match.status !== 'active') {
-      throw new Error('Punkty mozna zmieniac tylko podczas aktywnej walki.')
-    }
-
-    const key = side + (technique === 'wazari' ? 'WazariCount' : 'IpponCount')
-    const scoreKey = side === 'red' ? 'redScore' : 'blueScore'
-    const awardedPoints = technique === 'wazari' ? 1 : 2
-    const existingCount = Math.max(0, Math.floor(Number(match[key] || 0)))
-    if (countDelta < 0 && !existingCount) return match
-    const nextScore = Math.max(0, Number(match[scoreKey] || 0) + countDelta * awardedPoints)
-    const next = {
-      ...match,
-      [key]: existingCount + countDelta,
-      [scoreKey]: nextScore,
-    }
-    saveMatchInternal(next)
-
-    if (countDelta > 0) {
-      const competition = read(KEYS.competitions, []).find((item) => item.id === match.competitionId) || null
-      const winRule = getKumiteWinRule(competition)
-      if (winRule && nextScore >= winRule.targetScore) {
-        const resolved = resolveMatch(next, read(KEYS.matches, []))
-        const winnerId = side === 'red' ? resolved.redResolvedId : resolved.blueResolvedId
-        if (winnerId) return db.finishMatch(matchId, winnerId, { automatic: true, reason: winRule.title })
       }
     }
 
@@ -1606,11 +1498,7 @@ export const db = {
       categoryId: match.categoryId || null,
       currentMatchId: null,
       lastCompletedMatchId: match.id,
-      podiumShownAt: categoryFinished ? next.completedAt : null,
-      autoTransition: categoryFinished ? {
-        from: { competitionId: match.competitionId, category: match.category, categoryId: match.categoryId || null },
-        completedAt: next.completedAt, next: null, announceAt: null,
-      } : null,
+      podiumShownAt: categoryFinished ? Date.now() : null,
     })
     emit()
     return next
@@ -1618,7 +1506,7 @@ export const db = {
 
   resetBracket: ({ competitionId, category, mat }) => {
     write(KEYS.matches, read(KEYS.matches, []).filter((m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat)))
-    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null, autoTransition: null })
+    setMatStateInternal(mat, { mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null })
     emit()
   },
 
@@ -1827,46 +1715,29 @@ export function getTatamiPayload(mat) {
     ? matches.filter((m) => m.competitionId === state.competitionId && m.category === state.category)
     : matches
   const resolved = relevant.map((m) => resolveMatch(m, allMatches))
-  let current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
-  /* ETAP 74: prezentacja zwyciezcy ostatniej walki */
-  const lastCompletedMatch = state?.lastCompletedMatchId
-    ? resolved.find((match) => match.id === state.lastCompletedMatchId && match.status === 'done' && match.winnerId)
-    : null
-  const winnerDisplayActive = Boolean(
-    lastCompletedMatch && (!current || current.status !== 'active') &&
-    Date.now() - Number(lastCompletedMatch.completedAt || 0) >= 0 &&
-    Date.now() - Number(lastCompletedMatch.completedAt || 0) < 12000
-  )
+  const current = state?.currentMatchId ? resolved.find((m) => m.id === state.currentMatchId) : resolved.find((m) => m.status === 'active')
   const next = resolved.find((m) => m.status !== 'done' && m.redResolvedId && m.blueResolvedId) || null
   const hydrate = (id) => {
     const athlete = athletes.find((a) => a.id === id)
     const club = athlete ? clubs.find((c) => c.id === athlete.clubId) : null
     return athlete ? { ...athlete, clubName: club?.shortName || club?.name || '' } : null
   }
-  /* ETAP 91 - podium tylko wtedy gdy jest potrzebne */
-  const podium = state?.mode === 'podium' ? buildTournamentPodiums().find((item) => {
+  const podium = buildTournamentPodiums().find((item) => {
     if (state?.categoryId) return item.categoryId === state.categoryId
     return item.competitionId === state?.competitionId && item.categoryName === state?.category && item.mat === mat
-  }) || null : null
+  }) || null
 
   const kataSession = (state?.kataSessionId ? kataSessions.find((session) => session.id === state.kataSessionId) : null)
     || kataSessions.find((session) => session.mat === mat && (!state?.competitionId || session.competitionId === state.competitionId) && (!state?.category || session.category === state.category))
     || null
 
   let displayMode = state?.mode || 'bracket'
-  const autoNext = !state?.breakActive && displayMode !== 'break' ? autoTransitionSnapshot(state) : null
-  if (winnerDisplayActive && (displayMode === 'bracket' || displayMode === 'podium')) {
-    current = lastCompletedMatch
-    displayMode = 'scoreboard'
-  }
   if (state?.mode === 'kata-final' && kataSession) {
     const elapsed = Math.max(0, Date.now() - Number(state.kataFinalShownAt || Date.now()))
     if (elapsed < 5000) displayMode = 'kata-final'
     else if (elapsed < 9000) displayMode = 'kata-list'
     else displayMode = state.kataCategoryCompleted ? 'podium' : 'kata-athlete'
   }
-
-  if (autoNext?.showing) displayMode = 'next-category'
 
   const kataResults = kataSession ? (kataSession.results || []).map((result) => ({
     ...result, athlete: hydrate(result.athleteId),
@@ -1876,12 +1747,17 @@ export function getTatamiPayload(mat) {
     : null
   const finalKataResult = kataSession ? kataResults.find((result) => result.athleteId === state?.kataFinalAthleteId) || null : null
   const nextKataResult = kataSession ? kataResults.find((result) => result.athleteId === (state?.kataNextAthleteId || kataSession.currentAthleteId)) || null : null
+  const activeKataStageName = !kataSession ? 'KATA'
+    : displayMode === 'kata-final' && Number(finalKataResult?.roundNumber || kataSession.roundNumber || 1) === 1
+      ? 'RUNDA 1 • ELIMINACJE'
+      : (displayMode === 'kata-scores' || displayMode === 'kata-athlete') && Number(currentKataResult?.roundNumber || kataSession.roundNumber || 1) === 1
+        ? 'RUNDA 1 • ELIMINACJE'
+        : kataSession.stageName || (Number(kataSession.roundNumber || 1) > 1 ? 'FINAŁ' : 'KATA')
 
   return {
     mat,
     state,
     displayMode,
-    autoNext,
     tournament: db.getTournament(),
     competition: competitions.find((c) => c.id === state?.competitionId) || null,
     matches: resolved,
@@ -1889,10 +1765,15 @@ export function getTatamiPayload(mat) {
     kata: kataSession ? {
       session: kataSession,
       results: kataResults,
+      preliminaryResults: (kataSession.preliminaryResults || []).map((result) => ({ ...result, athlete: hydrate(result.athleteId) })),
+      finalists: kataSession.finalists || [],
       currentResult: currentKataResult,
       finalResult: finalKataResult,
       nextResult: nextKataResult,
       judgeCount: kataSession.judgeCount || 3,
+      roundNumber: Number(kataSession.roundNumber || 1),
+      totalRounds: Number(kataSession.totalRounds || 1),
+      stageName: activeKataStageName,
     } : null,
     currentMatch: current ? { ...current, redAthlete: hydrate(current.redResolvedId), blueAthlete: hydrate(current.blueResolvedId), remaining: getComputedRemaining(current) } : null,
     nextMatch: next ? { ...next, redAthlete: hydrate(next.redResolvedId), blueAthlete: hydrate(next.blueResolvedId) } : null,

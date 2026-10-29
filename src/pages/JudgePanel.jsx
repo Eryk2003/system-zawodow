@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { db, getComputedRemaining, resolveMatch } from '../lib/demoStore'
-import LiveBoutClock from '../components/LiveBoutClock.jsx'
-import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
 import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 
 const fmt = (seconds) => {
@@ -10,15 +8,6 @@ const fmt = (seconds) => {
   return `${String(Math.floor(value / 60)).padStart(2, '0')}:${String(value % 60).padStart(2, '0')}`
 }
 const scoreText = (value) => String(Number(value || 0)).replace('.', ',')
-const penaltyLevelFor = (match, side, type) => {
-  if (!match) return 0
-  const key = side === 'red'
-    ? (type === 'behavior' ? 'redBehaviorPenaltyLevel' : 'redExitPenaltyLevel')
-    : (type === 'behavior' ? 'blueBehaviorPenaltyLevel' : 'blueExitPenaltyLevel')
-  if (match[key] != null) return Number(match[key] || 0)
-  const legacyKey = side === 'red' ? 'redPenaltyLevel' : 'bluePenaltyLevel'
-  return type === 'exit' ? Number(match[legacyKey] || 0) : 0
-}
 
 export default function JudgePanel() {
   const { mat } = useParams()
@@ -34,7 +23,7 @@ export default function JudgePanel() {
     const handle = () => refresh()
     window.addEventListener('storage', handle)
     window.addEventListener('ika:data', handle)
-    const interval = setInterval(() => { db.processCategoryAutoTransition(matName); refresh() }, 1200)
+    const interval = setInterval(() => refresh(), 500)
     return () => {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
@@ -44,15 +33,8 @@ export default function JudgePanel() {
 
   const allMatches = db.getMatches()
   const matState = db.getMatState(matName)
-  const competitionId = (matState?.transitionAuto ? matState.competitionId : null) || params.get('competitionId') || matState?.competitionId || ''
-  const category = (matState?.transitionAuto ? matState.category : null) || params.get('category') || matState?.category || ''
-  const autoCountdown = db.getCategoryAutoTransition(matName)
-
-  useEffect(() => {
-    if (matState?.transitionAuto && matState.mode === 'kata-list' && matState.kataSessionId) {
-      window.location.replace(`/organizator/kata-sedzia/${encodeURIComponent(matName)}?sessionId=${encodeURIComponent(matState.kataSessionId)}`)
-    }
-  }, [matState?.transitionAuto, matState?.mode, matState?.kataSessionId, matName])
+  const competitionId = params.get('competitionId') || matState?.competitionId || ''
+  const category = params.get('category') || matState?.category || ''
   const competition = db.getCompetitions().find((c) => c.id === competitionId) || null
   const tournament = db.getTournament()
   const athletes = db.getAthletes()
@@ -86,7 +68,7 @@ export default function JudgePanel() {
   }
 
   const showBracket = () => run(() => db.setMatState(matName, {
-    mode: 'bracket', competitionId, category, currentMatchId: null, lastCompletedMatchId: null,
+    mode: 'bracket', competitionId, category, currentMatchId: null,
   }), 'Na tablicy TV wyświetlana jest drabinka.')
 
   const start = () => {
@@ -114,21 +96,10 @@ export default function JudgePanel() {
     })
   }
 
-  const changeTechniqueScore = (side, technique, delta) => {
+  const changePenalty = (side, level) => {
     if (!active) return
     run(() => {
-      const result = db.changeTechniqueScore(active.id, side, technique, delta)
-      if (result?.status === 'done') {
-        const winner = athlete(result.winnerId)
-        setMessage(`Walka zakonczona automatycznie - ${winner.name} wygrywa zgodnie z zasadami ${theme.winRule?.title || 'Shobu'}.`)
-      }
-    })
-  }
-
-  const changePenalty = (side, type, level) => {
-    if (!active) return
-    run(() => {
-      const result = db.changePenalty(active.id, side, type, level)
+      const result = db.changePenalty(active.id, side, level)
       if (result?.status === 'done' && result?.finishReason === 'HANSOKU') {
         const winner = athlete(result.winnerId)
         setMessage(`HANSOKU - walka zakończona. ${winner.name} wygrywa, a wynik i kary tej walki zostały zablokowane.`)
@@ -139,66 +110,20 @@ export default function JudgePanel() {
   if (!matches.length) {
     return (
       <main className="judge-screen judge-empty">
-        {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
-        <div className="judge-topbar"><div><strong>IKA POLAND</strong><span>Panel sędziego • {matName}</span></div></div>
+        <div className="judge-topbar"><div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>Panel sędziego • {matName}</span></div></div>
         <section className="judge-empty-card"><h1>Brak drabinki na tym tatami</h1><p>Najpierw utwórz drabinkę kumite w centrum zawodów.</p><a className="btn btn-primary" href="/organizator/zawody">Wróć do zawodów</a></section>
       </main>
     )
   }
 
-  /* ETAP 74: ostatnia zakonczona walka */
-  const lastCompleted = matState?.lastCompletedMatchId
-    ? resolvedMatches.find((match) => match.id === matState.lastCompletedMatchId && match.status === 'done' && match.winnerId)
-    : null
-  const winnerPresentation = !active && lastCompleted &&
-    Date.now() - Number(lastCompleted.completedAt || 0) >= 0 &&
-    Date.now() - Number(lastCompleted.completedAt || 0) < 12000
-    ? lastCompleted : null
-  const shownMatch = active || winnerPresentation || next
   const activeRaw = active ? allMatches.find((m) => m.id === active.id) : null
-  const red = athlete(shownMatch?.redResolvedId)
-  const blue = athlete(shownMatch?.blueResolvedId)
-  const isRedWinner = Boolean(winnerPresentation && winnerPresentation.winnerId === winnerPresentation.redResolvedId)
-  const isBlueWinner = Boolean(winnerPresentation && winnerPresentation.winnerId === winnerPresentation.blueResolvedId)
-
-  const renderPenaltyPanel = (side) => {
-    const exitLevel = penaltyLevelFor(activeRaw, side, 'exit')
-    const behaviorLevel = penaltyLevelFor(activeRaw, side, 'behavior')
-    return (
-      <div className="judge-penalty-box is-split">
-        <div className="judge-penalty-grid">
-          <div className="judge-penalty-column">
-            <small>WYCHODZENIE ZA MATĘ</small>
-            <strong className={`judge-penalty-current ${exitLevel ? 'is-active' : ''}`}>{getKumitePenaltyLabel(exitLevel)}</strong>
-            <div className="judge-penalty-buttons">
-              <button className={exitLevel === 1 ? 'active' : ''} onClick={() => changePenalty(side, 'exit', 1)}>ATTENAI 1</button>
-              <button className={exitLevel === 2 ? 'active' : ''} onClick={() => changePenalty(side, 'exit', 2)}>ATTENAI 2</button>
-              <button className={exitLevel === 3 ? 'active' : ''} onClick={() => changePenalty(side, 'exit', 3)}>CHUI</button>
-              <button className="hansoku" onClick={() => changePenalty(side, 'exit', 4)}>HANSOKU</button>
-              <button className="penalty-undo" disabled={!exitLevel} onClick={() => changePenalty(side, 'exit', Math.max(0, exitLevel - 1))}>COFNIJ</button>
-            </div>
-          </div>
-          <div className="judge-penalty-column">
-            <small>NIESPORTOWE ZACHOWANIE</small>
-            <strong className={`judge-penalty-current ${behaviorLevel ? 'is-active' : ''}`}>{getKumitePenaltyLabel(behaviorLevel)}</strong>
-            <div className="judge-penalty-buttons">
-              <button className={behaviorLevel === 1 ? 'active' : ''} onClick={() => changePenalty(side, 'behavior', 1)}>ATTENAI 1</button>
-              <button className={behaviorLevel === 2 ? 'active' : ''} onClick={() => changePenalty(side, 'behavior', 2)}>ATTENAI 2</button>
-              <button className={behaviorLevel === 3 ? 'active' : ''} onClick={() => changePenalty(side, 'behavior', 3)}>CHUI</button>
-              <button className="hansoku" onClick={() => changePenalty(side, 'behavior', 4)}>HANSOKU</button>
-              <button className="penalty-undo" disabled={!behaviorLevel} onClick={() => changePenalty(side, 'behavior', Math.max(0, behaviorLevel - 1))}>COFNIJ</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const red = athlete((active || next)?.redResolvedId)
+  const blue = athlete((active || next)?.blueResolvedId)
 
   return (
     <main className={`judge-screen judge-${theme.mode}`}>
-      {autoCountdown?.showing && <div className="ika89-judge-announcement">NASTĘPNA KONKURENCJA • {autoCountdown.next?.category}</div>}
       <header className="judge-topbar">
-        <div><strong>IKA POLAND</strong><span>{tournament.name}</span></div>
+        <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
         <div className="judge-actions"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
       </header>
@@ -206,22 +131,38 @@ export default function JudgePanel() {
       {(message || error) && <div className={`judge-message ${error ? 'error' : ''}`}>{error || message}</div>}
 
       <section className="judge-current">
-        <div className={`judge-fighter ${theme.red.className} ${winnerPresentation ? (isRedWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
+        <div className={`judge-fighter ${theme.red.className}`}>
           <span className="judge-side-code">{theme.red.code}</span>
           <h2>{red.name}</h2>
-          {isRedWinner && <div className="ika74-winner-badge">ZWYCIĘZCA</div>}
           <p>{red.club}</p>
-          <strong className="judge-score">{scoreText((active || winnerPresentation)?.redScore || 0)}</strong>
+          <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
           {active && <>
-            <TechniqueScoreColumns match={activeRaw} side="red" onChange={changeTechniqueScore} />
-{renderPenaltyPanel('red')}
+            <div className="judge-score-buttons judge-score-buttons-awards">
+              <button onClick={() => changeScore('red', 1)}><strong>+1</strong></button>
+              <button onClick={() => changeScore('red', 2)}><strong>+2</strong></button>
+            </div>
+            <div className="judge-correction-row">
+              <span>Korekta wyniku</span>
+              <button onClick={() => changeScore('red', -1)}>-1</button>
+              <button onClick={() => changeScore('red', -2)}>-2</button>
+            </div>
+            <div className="judge-penalty-box">
+              <span>KARY - {getKumitePenaltyLabel(activeRaw?.redPenaltyLevel)}</span>
+              <div className="judge-penalty-buttons">
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 1 ? 'active' : ''} onClick={() => changePenalty('red', 1)}>ATTENAI 1</button>
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 2 ? 'active' : ''} onClick={() => changePenalty('red', 2)}>ATTENAI 2</button>
+                <button className={Number(activeRaw?.redPenaltyLevel || 0) === 3 ? 'active' : ''} onClick={() => changePenalty('red', 3)}>CHUI</button>
+                <button className="hansoku" onClick={() => changePenalty('red', 4)}>HANSOKU</button>
+                <button className="penalty-undo" disabled={!Number(activeRaw?.redPenaltyLevel || 0)} onClick={() => changePenalty('red', Math.max(0, Number(activeRaw?.redPenaltyLevel || 0) - 1))}>COFNIJ KARĘ</button>
+              </div>
+            </div>
           </>}
         </div>
 
         <div className="judge-center">
-          <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : winnerPresentation ? 'WALKA ZAKOŃCZONA' : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
-          <LiveBoutClock match={active ? activeRaw : winnerPresentation} fallbackSeconds={tournament.boutSeconds} className="judge-clock" />
-          <small>KARY OSOBNO: WYCHODZENIE ZA MATĘ oraz NIESPORTOWE ZACHOWANIE</small>
+          <span>{active ? `${active.roundName} • WALKA ${active.matchNo}` : next ? `${next.roundName} • WALKA ${next.matchNo}` : 'KONKURENCJA ZAKOŃCZONA'}</span>
+          <strong className="judge-clock">{fmt(active ? getComputedRemaining(activeRaw) : tournament.boutSeconds)}</strong>
+          <small>KARY: ATTENAI 1 → ATTENAI 2 → CHUI → HANSOKU</small>
           {theme.winRule && <small className="judge-win-rule">{theme.winRule.description} Po wygranej wynik jest automatycznie blokowany.</small>}
           {active ? (
             <div className="judge-main-controls judge-timer-controls">
@@ -240,15 +181,31 @@ export default function JudgePanel() {
           ) : <strong className="judge-done">KONIEC DRABINKI</strong>}
         </div>
 
-        <div className={`judge-fighter ${theme.blue.className} ${winnerPresentation ? (isBlueWinner ? 'ika74-winner' : 'ika74-loser') : ''}`}>
+        <div className={`judge-fighter ${theme.blue.className}`}>
           <span className="judge-side-code">{theme.blue.code}</span>
           <h2>{blue.name}</h2>
-          {isBlueWinner && <div className="ika74-winner-badge">ZWYCIĘZCA</div>}
           <p>{blue.club}</p>
-          <strong className="judge-score">{scoreText((active || winnerPresentation)?.blueScore || 0)}</strong>
+          <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
           {active && <>
-            <TechniqueScoreColumns match={activeRaw} side="blue" onChange={changeTechniqueScore} />
-{renderPenaltyPanel('blue')}
+            <div className="judge-score-buttons judge-score-buttons-awards">
+              <button onClick={() => changeScore('blue', 1)}><strong>+1</strong></button>
+              <button onClick={() => changeScore('blue', 2)}><strong>+2</strong></button>
+            </div>
+            <div className="judge-correction-row">
+              <span>Korekta wyniku</span>
+              <button onClick={() => changeScore('blue', -1)}>-1</button>
+              <button onClick={() => changeScore('blue', -2)}>-2</button>
+            </div>
+            <div className="judge-penalty-box">
+              <span>KARY - {getKumitePenaltyLabel(activeRaw?.bluePenaltyLevel)}</span>
+              <div className="judge-penalty-buttons">
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 1 ? 'active' : ''} onClick={() => changePenalty('blue', 1)}>ATTENAI 1</button>
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 2 ? 'active' : ''} onClick={() => changePenalty('blue', 2)}>ATTENAI 2</button>
+                <button className={Number(activeRaw?.bluePenaltyLevel || 0) === 3 ? 'active' : ''} onClick={() => changePenalty('blue', 3)}>CHUI</button>
+                <button className="hansoku" onClick={() => changePenalty('blue', 4)}>HANSOKU</button>
+                <button className="penalty-undo" disabled={!Number(activeRaw?.bluePenaltyLevel || 0)} onClick={() => changePenalty('blue', Math.max(0, Number(activeRaw?.bluePenaltyLevel || 0) - 1))}>COFNIJ KARĘ</button>
+              </div>
+            </div>
           </>}
         </div>
       </section>
