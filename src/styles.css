@@ -1491,3 +1491,10 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ranking-page .ranking-table td {
   vertical-align: middle !important;
 }
+
+/* ETAP 113 - czerwone IKA tylko w malych naglowkach */
+/* W globalnym brandingu IKA pozostaje biale. Jedynie w czerwonych nadtytulach
+   na jasnym tle ma byc tak samo czerwone jak POLAND. */
+.eyebrow .ika-brand-inline .ika-brand-ika {
+  color: #e1261c !important;
+}
