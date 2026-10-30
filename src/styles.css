@@ -1370,3 +1370,45 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+/* ETAP 110B - mniejsze logo klubu */
+.ranking-table .ika-ranking-club-cell {
+  gap: 7px !important;
+}
+.ranking-table .ika-ranking-club-cell .ika-club-logo,
+.ranking-table td .ika-ranking-club-cell .ika-club-logo {
+  width: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  flex: 0 0 22px !important;
+  border-radius: 5px !important;
+}
+.ranking-results-feed .ranking-result-grid .ika-ranking-podium-club {
+  gap: 4px !important;
+}
+.ranking-results-feed .ranking-result-grid .ika-ranking-podium-club .ika-club-logo {
+  width: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  flex: 0 0 22px !important;
+  border-radius: 5px !important;
+}
+@media (max-width: 620px) {
+  .ranking-table .ika-ranking-club-cell .ika-club-logo,
+  .ranking-table td .ika-ranking-club-cell .ika-club-logo,
+  .ranking-results-feed .ranking-result-grid .ika-ranking-podium-club .ika-club-logo {
+    width: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+    flex-basis: 18px !important;
+  }
+}
