@@ -447,7 +447,7 @@ export default function CreateTournamentPage() {
             </div>
             <form className="category-builder" onSubmit={addCategory}>
               <label>Konkurencja<select required value={categoryForm.competitionId} onChange={(event) => setCategoryForm({ ...categoryForm, competitionId: event.target.value })}><option value="">Wybierz konkurencję</option>{selectedCompetitions.map((competition) => <option key={competition.id} value={competition.id}>{competition.name}</option>)}</select></label>
-              {!!categoryForm.competitionId && <label className="ika87-preset-select">Kategoria z regulaminu<select value="" onChange={(event) => selectCategoryPreset(event.target.value)}><option value="">Wybierz gotową kategorię (opcjonalnie)</option>{categoryPresets.map((preset) => <option key={preset.code || preset.name} value={preset.code || preset.name}>{preset.name}{preset.official ? '' : ' — szablon pomocniczy'}</option>)}</select></label>}
+              {!!categoryForm.competitionId && <label className="ika87-preset-select">Kategoria z regulaminu<select value="" onChange={(event) => selectCategoryPreset(event.target.value)}><option value="">Wybierz gotową kategorię (opcjonalnie)</option>{categoryPresets.map((preset) => <option key={preset.code || preset.name} value={preset.code || preset.name}>{preset.name}{preset.official ? '' : ' - szablon pomocniczy'}</option>)}</select></label>}
               <label className="category-name-field">Nazwa kategorii<input required value={categoryForm.name} onChange={(event) => setCategoryForm({ ...categoryForm, name: event.target.value, code: '', categorySource: '' })} placeholder="np. K1 · Chłopcy 6–7 lat" /></label>
               <label>Płeć<select required value={categoryForm.gender} onChange={(event) => setCategoryForm({ ...categoryForm, gender: event.target.value })}><option value="">Wybierz</option><option value="K">Kobieta</option><option value="M">Mężczyzna</option><option value="X">Mieszana / Open</option></select></label>
               <label>Tatami<select value={categoryForm.preferredMat || ''} onChange={(event) => setCategoryForm({ ...categoryForm, preferredMat: event.target.value })}><option value="">Automatycznie</option>{availableMats.map((mat) => <option key={mat} value={mat}>{mat}</option>)}</select></label>
@@ -459,7 +459,7 @@ export default function CreateTournamentPage() {
               <button className="btn btn-primary">+ Dodaj kategorię</button>
             </form>
             <div className="ika87-import-box">
-              <div><strong>Elite European Cup 2027 — kategorie z regulaminu</strong><p>Importuj oficjalne kategorie K, J, S, IP, KU dla wybranych konkurencji. Dodatkowe szablony Nihon, Kata w parach, Kata drużynowe i Para Karate są oznaczone jako pomocnicze. Duplikaty zostaną pominięte.</p></div>
+              <div><strong>Elite European Cup 2027 - kategorie z regulaminu</strong><p>Importuj oficjalne kategorie K, J, S, IP, KU dla wybranych konkurencji. Dodatkowe szablony Nihon, Kata w parach, Kata drużynowe i Para Karate są oznaczone jako pomocnicze. Duplikaty zostaną pominięte.</p></div>
               <button type="button" className="btn btn-outline" onClick={importElite2027}>Dodaj kategorie z regulaminu</button>
             </div>
           </section>

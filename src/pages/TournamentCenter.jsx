@@ -389,7 +389,7 @@ export default function TournamentCenter() {
               <div className={`ika86b-break-row ${paused ? 'is-break' : ''}`} key={mat}>
                 <div className="ika86b-break-info">
                   <strong>{mat}</strong>
-                  <span>{paused ? 'PRZERWA — PLAKAT NA TV' : clockRunning ? 'WALKA TRWA — zatrzymaj zegar przed przerwą' : 'Normalny widok telebimu'}</span>
+                  <span>{paused ? 'PRZERWA - PLAKAT NA TV' : clockRunning ? 'WALKA TRWA - zatrzymaj zegar przed przerwą' : 'Normalny widok telebimu'}</span>
                 </div>
                 <div className="ika86b-break-actions">
                   <button type="button" className="btn btn-primary" disabled={paused || clockRunning} onClick={() => toggleBreakForMat(mat, true)}>Włącz przerwę</button>
@@ -457,13 +457,13 @@ export default function TournamentCenter() {
       <section className="panel-section">
         <div className="panel-section-head"><div><span className="eyebrow">Harmonogram</span><h2>Automatyczny harmonogram zawodów</h2><p>Ręcznie przypisane tatami ma pierwszeństwo. Pozostałe kategorie system rozdzieli automatycznie, licząc czas każdej walki.</p></div></div>
         <div className="ika87-import-box">
-          <div><strong>Elite European Cup 2027 — oficjalne kategorie</strong><p>Możesz zaimportować kategorie K, J, S, IP, KU zgodne z regulaminem oraz dodatkowe szablony dla pozostałych konkurencji. Import nie usuwa wcześniej utworzonych kategorii.</p></div>
+          <div><strong>Elite European Cup 2027 - oficjalne kategorie</strong><p>Możesz zaimportować kategorie K, J, S, IP, KU zgodne z regulaminem oraz dodatkowe szablony dla pozostałych konkurencji. Import nie usuwa wcześniej utworzonych kategorii.</p></div>
           <button className="btn btn-outline" type="button" onClick={importElite2027}>Importuj kategorie z regulaminu</button>
         </div>
         {!!categories.length && <div className="ika87-center-categories"><h3>Przypisz tatami do kategorii ({categories.length})</h3><div className="ika87-center-categories-list">{categories.map((category) => {
           const competition = competitions.find((item) => item.id === category.competitionId)
           const locked = matches.some((m) => m.categoryId === category.id || (m.competitionId === category.competitionId && m.category === category.name)) || kataSessions.some((s) => s.categoryId === category.id || (s.competitionId === category.competitionId && s.category === category.name))
-          return <label className="ika87-center-category" key={category.id}><span><strong>{category.name}</strong><small>{competition?.name || 'Konkurencja'}{locked ? ' · po losowaniu — zablokowane' : ''}</small></span><select aria-label={`Tatami dla ${category.name}`} value={category.preferredMat || ''} disabled={locked} onChange={(event) => assignCategoryMat(category.id, event.target.value)}><option value="">Automatycznie</option>{Array.from({length:Math.max(1,Number(tournament.matCount)||1)},(_,index)=>`Tatami ${index+1}`).map((mat)=><option key={mat} value={mat}>{mat}</option>)}</select></label>
+          return <label className="ika87-center-category" key={category.id}><span><strong>{category.name}</strong><small>{competition?.name || 'Konkurencja'}{locked ? ' · po losowaniu - zablokowane' : ''}</small></span><select aria-label={`Tatami dla ${category.name}`} value={category.preferredMat || ''} disabled={locked} onChange={(event) => assignCategoryMat(category.id, event.target.value)}><option value="">Automatycznie</option>{Array.from({length:Math.max(1,Number(tournament.matCount)||1)},(_,index)=>`Tatami ${index+1}`).map((mat)=><option key={mat} value={mat}>{mat}</option>)}</select></label>
         })}</div></div>}
         {!athletes.length && <div className="alert alert-info">Najpierw co najmniej jeden klub musi dodać zawodnika.</div>}
         <form className="entry-builder auto-entry-builder" onSubmit={addEntry}>
