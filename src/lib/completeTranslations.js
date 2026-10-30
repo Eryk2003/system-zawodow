@@ -486,6 +486,10 @@ export const UI_TRANSLATIONS = Object.freeze({
   "Złote": "Gold",
   "Srebrne": "Silver",
   "Brązowe": "Bronze",
+  // ETAP 112: przetlumaczone naglowki tabeli medalowej z emoji.
+  "🥇 Złote": "🥇 Gold",
+  "🥈 Srebrne": "🥈 Silver",
+  "🥉 Brązowe": "🥉 Bronze",
   "Złoto": "Gold",
   "Srebro": "Silver",
   "Brąz": "Bronze",
