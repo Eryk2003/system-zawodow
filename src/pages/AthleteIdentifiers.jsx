@@ -58,7 +58,7 @@ function AthleteIdentifierCard({ row, onPrintOne }) {
 
         <div className="athlete-id-dynamic-qr">
           <div className="athlete-id-dynamic-qr-code">
-            <img src={qrUrl} alt={`Kod QR – starty zawodnika ${athleteName}`} referrerPolicy="no-referrer" />
+            <img src={qrUrl} alt={`Kod QR - starty zawodnika ${athleteName}`} referrerPolicy="no-referrer" />
           </div>
           <div className="athlete-id-dynamic-qr-caption">
             <span className="athlete-id-dynamic-qr-icon" aria-hidden="true">◷</span>
@@ -107,7 +107,7 @@ export default function AthleteIdentifiers() {
       const athleteEntries = entries.filter((entry) => entry.athleteId === athleteId)
       const categories = [...new Set(athleteEntries.map((entry) => {
         const competition = competitions.find((item) => item.id === entry.competitionId)
-        return `${competition?.name || 'Konkurencja'} – ${entry.category || 'Kategoria'}`
+        return `${competition?.name || 'Konkurencja'} - ${entry.category || 'Kategoria'}`
       }))]
       return {
         athlete,

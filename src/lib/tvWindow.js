@@ -1,5 +1,5 @@
 /**
- * IKA Poland — otwieranie TV na ekranie zewnetrznym (Windows / macOS).
+ * IKA Poland - otwieranie TV na ekranie zewnetrznym (Windows / macOS).
  * Chrome / Edge: Window Management API + request popup fullscreen.
  * W przegladarkach bez tego API NIE udajemy, ze przeniesienie sie udalo.
  * Wymaga trybu rozszerzonego pulpitu (nie klonowania).
@@ -51,7 +51,7 @@ function launch(mat, screen) {
 
 /**
  * Wywolywac WYŁĄCZNIE w reakcji na rzeczywiste klikniecie.
- * Pierwsze klikniecie moze wywolac zgode na zarzadzanie oknami — w takim
+ * Pierwsze klikniecie moze wywolac zgode na zarzadzanie oknami - w takim
  * przypadku druga proba bywa konieczna z powodu blokady okien popup.
  */
 export async function openTatamiTvWindow(matName) {

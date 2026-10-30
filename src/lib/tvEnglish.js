@@ -1,4 +1,4 @@
-// ETAP 76 — visible TV labels in English without changing the stored tournament data.
+// ETAP 76 - visible TV labels in English without changing the stored tournament data.
 // Names of competitors, clubs and user-defined events are intentionally unchanged.
 
 export function tvRound(value) {

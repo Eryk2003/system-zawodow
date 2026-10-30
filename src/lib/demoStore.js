@@ -1439,7 +1439,7 @@ export const db = {
     return next
   },
 
-  /* ETAP 104 — WAZARI, IPPON, ATTENAI, CHUI, HANSOKU */
+  /* ETAP 104 - WAZARI, IPPON, ATTENAI, CHUI, HANSOKU */
   changeTechniqueScore: (matchId, side, technique, delta) => {
     if (!['red','blue'].includes(side) || !['wazari','ippon'].includes(technique) || ![-1,1].includes(delta)) {
       throw new Error('Nieprawidlowy rodzaj punktu.')

@@ -1,4 +1,4 @@
-// IKA Poland Elite European Cup 2027 — zestaw kategorii na podstawie regulaminu.
+// IKA Poland Elite European Cup 2027 - zestaw kategorii na podstawie regulaminu.
 // 78 kodow (K, J, S, IP, KU) przepisanych z tabel regulaminu.
 // Dodatkowe, niekodowane szablony sa wyraznie oznaczone jako pomocnicze.
 const AGE = {
@@ -55,8 +55,8 @@ const supplementary = []
 // NIHON Shobu: osobna konkurencja zachowana zgodnie z ustaleniem uzytkownika.
 // W regulaminie <=12 lat figuruje w zapisach Sanbon, bez osobnych kodow N.
 ;['6-7','8','9','10','11','12'].forEach(age => {
-  supplementary.push(record('nihon-u12','', 'Nihon Shobu – chłopcy', 'M', age, {official:false,boutSeconds:90}))
-  supplementary.push(record('nihon-u12','', 'Nihon Shobu – dziewczęta', 'K', age, {official:false,boutSeconds:90}))
+  supplementary.push(record('nihon-u12','', 'Nihon Shobu - chłopcy', 'M', age, {official:false,boutSeconds:90}))
+  supplementary.push(record('nihon-u12','', 'Nihon Shobu - dziewczęta', 'K', age, {official:false,boutSeconds:90}))
 })
 supplementary.push({code:'',competitionId:'kata-pairs',name:'Kata w parach · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 supplementary.push({code:'',competitionId:'kata-team',name:'Kata drużynowe · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})

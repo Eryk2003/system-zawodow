@@ -224,7 +224,7 @@ export default function KataJudgePanel() {
       db.kataWhistle(session.id)
       whistleFocusPending.current = true
       whistle()
-      setMessage('Gwizdek! Możesz od razu wpisywać oceny — pierwsze pole jest gotowe.')
+      setMessage('Gwizdek! Możesz od razu wpisywać oceny - pierwsze pole jest gotowe.')
       refresh()
     } catch (err) {
       whistleFocusPending.current = false
@@ -273,7 +273,7 @@ export default function KataJudgePanel() {
                     type="text"
                     value={kataQuery}
                     role="combobox"
-                    aria-label="Wykonywane kata — wpisz lub wybierz podpowiedź"
+                    aria-label="Wykonywane kata - wpisz lub wybierz podpowiedź"
                     aria-autocomplete="list"
                     aria-expanded={kataMenuOpen && kataQuery.trim().length > 0}
                     aria-controls="ika93-kata-list"
@@ -304,7 +304,7 @@ export default function KataJudgePanel() {
                           <small>{suggestion.styles.join(' · ')}</small>
                         </button>
                       )) : (
-                        <div className="ika93-kata-no-results">Brak kata na liście — możesz wpisać własną nazwę i nacisnąć Enter.</div>
+                        <div className="ika93-kata-no-results">Brak kata na liście - możesz wpisać własną nazwę i nacisnąć Enter.</div>
                       )}
                     </div>
                   )}

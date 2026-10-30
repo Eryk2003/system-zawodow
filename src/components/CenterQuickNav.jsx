@@ -25,7 +25,7 @@ function categoryForMat(category, mat, competitions, schedule, matches, kataSess
   if (plannedMat !== mat && !bracket && !session) return null
 
   const prepared = kind === 'kata' ? Boolean(session) : Boolean(bracket)
-  const label = `${competition?.name || 'Konkurencja'} — ${category.name}`
+  const label = `${competition?.name || 'Konkurencja'} - ${category.name}`
   return {
     ...category,
     label,

@@ -37,7 +37,7 @@ const fmt = (seconds) => {
 }
 
 
-/* IKA95_FULLSCREEN — przycisk ukrycia paska adresu w trybie pelnoekranowym */
+/* IKA95_FULLSCREEN - przycisk ukrycia paska adresu w trybie pelnoekranowym */
 /* ETAP 103 - SPACE uruchamia pelny ekran TV bez paska adresu */
 function FullscreenControl() {
   const active = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement)

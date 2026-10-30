@@ -187,7 +187,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
     setScreenCount(window.screen?.isExtended ? 2 : 1)
     setStatus({
       kind: 'warning',
-      title: 'TV otwarte — potrzebna zgoda do AUTO HDMI',
+      title: 'TV otwarte - potrzebna zgoda do AUTO HDMI',
       text: window.screen?.isExtended
         ? 'Drugi ekran jest podłączony, ale przeglądarka nie pozwala jeszcze automatycznie przenieść na niego okna. Odblokuj „Zarządzanie oknami” i kliknij „Ponów wykrywanie”.'
         : 'Telebim został otwarty. Odblokuj „Zarządzanie oknami”, podłącz HDMI w trybie rozszerzonym i kliknij „Ponów wykrywanie”.',
@@ -252,7 +252,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
       setEnabled(true)
       setStatus({
         kind: 'warning',
-        title: 'TV otwarte — AUTO HDMI chwilowo niedostępne',
+        title: 'TV otwarte - AUTO HDMI chwilowo niedostępne',
         text: error?.message || 'Okno TV pozostaje otwarte. Możesz użyć go ręcznie i ponowić wykrywanie ekranów.',
       })
     }
@@ -311,7 +311,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
         </div>
 
         <div className="auto-tv-actions">
-          <button className="btn btn-primary" type="button" onClick={launchFullscreenTv}>URUCHOM TV — PEŁNY EKRAN</button>
+          <button className="btn btn-primary" type="button" onClick={launchFullscreenTv}>URUCHOM TV - PEŁNY EKRAN</button>
           {!enabled ? (
             <button className="btn btn-primary" type="button" onClick={enableAutoTv}>Włącz AUTO TV</button>
           ) : (
@@ -334,7 +334,7 @@ export default function AutoTatamiTv({ matCount = 1 }) {
             <li>Przy opcji <b>Zarządzanie oknami / Window management</b> wybierz <b>Zezwalaj</b>.</li>
             <li>Wróć do systemu i kliknij <b>Ponów wykrywanie</b>. Jeśli przeglądarka tego wymaga, odśwież stronę.</li>
           </ol>
-          <small>Telebim pozostaje otwarty podczas tej operacji — nie trzeba przerywać zawodów.</small>
+          <small>Telebim pozostaje otwarty podczas tej operacji - nie trzeba przerywać zawodów.</small>
         </div>
       )}
 
