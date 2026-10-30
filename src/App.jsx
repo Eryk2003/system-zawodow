@@ -11,8 +11,7 @@ import ParentLookup from './pages/ParentLookup'
 import Telebim from './pages/Telebim'
 import NewsPage from './pages/NewsPage'
 import TatamiDisplay from './pages/TatamiDisplay'
-import JudgePanel from './pages/JudgePanel'
-import KataJudgePanel from './pages/KataJudgePanel'
+import UnifiedJudgePanel from './pages/UnifiedJudgePanel'
 import RankingsPage from './pages/RankingsPage'
 import AthleteIdentifiers from './pages/AthleteIdentifiers'
 import { useAuth } from './lib/AuthContext'
@@ -55,9 +54,10 @@ export default function App() {
       <Route path="/organizator/klub" element={<ProtectedRoute role="organizer"><ClubPanel /></ProtectedRoute>} />
       <Route path="/organizator/nowe-zawody" element={<ProtectedRoute role="organizer"><CreateTournamentPage /></ProtectedRoute>} />
       <Route path="/organizator/zawody" element={<ProtectedRoute role="organizer"><TournamentCenter /></ProtectedRoute>} />
+      <Route path="/organizator/panel-sedziego/:mat" element={<ProtectedRoute role="organizer"><UnifiedJudgePanel /></ProtectedRoute>} />
       <Route path="/organizator/identyfikatory" element={<ProtectedRoute role="organizer"><AthleteIdentifiers /></ProtectedRoute>} />
-      <Route path="/organizator/sedzia/:mat" element={<ProtectedRoute role="organizer"><JudgePanel /></ProtectedRoute>} />
-      <Route path="/organizator/kata-sedzia/:mat" element={<ProtectedRoute role="organizer"><KataJudgePanel /></ProtectedRoute>} />
+      <Route path="/organizator/sedzia/:mat" element={<ProtectedRoute role="organizer"><UnifiedJudgePanel /></ProtectedRoute>} />
+      <Route path="/organizator/kata-sedzia/:mat" element={<ProtectedRoute role="organizer"><UnifiedJudgePanel /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

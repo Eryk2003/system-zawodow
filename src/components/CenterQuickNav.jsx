@@ -119,7 +119,7 @@ export default function CenterQuickNav({
         })
       }
 
-      const base = `/organizator/${chosen.kind === 'kata' ? 'kata-sedzia' : 'sedzia'}/${encodeURIComponent(mat)}`
+      const base = `/organizator/panel-sedziego/${encodeURIComponent(mat)}`
       const query = chosen.kind === 'kata'
         ? `?sessionId=${encodeURIComponent(chosen.session.id)}`
         : `?competitionId=${encodeURIComponent(chosen.competitionId)}&category=${encodeURIComponent(chosen.name)}`
