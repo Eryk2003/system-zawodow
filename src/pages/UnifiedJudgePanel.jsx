@@ -1,114 +1,118 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { db } from '../lib/demoStore'
 import JudgePanel from './JudgePanel'
 import KataJudgePanel from './KataJudgePanel'
 
-// Wspolny punkt wejsciowy. Same panele oceniania pozostaja bez zmian.
+// Jeden panel sedziego. Konkurencja wynika z aktualnego tatami i harmonogramu.
+// Oryginalne moduly kata/kumite zachowuja cala logike ocen i walk.
 export default function UnifiedJudgePanel() {
   const { mat } = useParams()
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const matName = decodeURIComponent(mat || 'Tatami 1')
-  const [error, setError] = useState('')
   const [revision, setRevision] = useState(0)
-  const tournament = db.getTournament()
-  const matNames = Array.from({ length: Math.max(1, Number(tournament?.matCount) || 1) }, (_, i) => `Tatami ${i + 1}`)
+  const [error, setError] = useState('')
+  const switchedAt = useRef(0)
+
+  useEffect(() => {
+    const refresh = () => setRevision(value => value + 1)
+    window.addEventListener('ika:data', refresh)
+    window.addEventListener('storage', refresh)
+    const interval = setInterval(refresh, 1200)
+    return () => {
+      window.removeEventListener('ika:data', refresh)
+      window.removeEventListener('storage', refresh)
+      clearInterval(interval)
+    }
+  }, [matName])
+
   const competitions = db.getCompetitions()
+  const categories = db.getTournamentCategories()
   const schedule = db.getSchedule()
   const matches = db.getMatches()
   const sessions = db.getKataSessions()
-  const categories = db.getTournamentCategories()
-  const choices = useMemo(() => categories.flatMap(category => {
-    const competition = competitions.find(c => c.id === category.competitionId)
+  const matState = db.getMatState(matName) || {}
+  const items = categories.flatMap(category => {
+    const competition = competitions.find(value => value.id === category.competitionId)
     const kind = competition?.group === 'Kata' ? 'kata' : competition?.group === 'Kumite' ? 'kumite' : null
     if (!kind) return []
-    const related = item => (item.categoryId && item.categoryId === category.id) ||
-      (item.competitionId === category.competitionId && item.category === category.name)
-    const planned = schedule.find(related)?.mat || category.preferredMat || ''
-    const session = sessions.find(item => related(item) && item.mat === matName)
-    const bracket = matches.find(item => related(item) && item.mat === matName)
-    if (planned !== matName && !session && !bracket) return []
-    return [{ category, competition, kind, session, prepared: kind === 'kata' ? !!session : !!bracket,
-      id: `${kind}:${category.id}`, label: `${competition.name} - ${category.name}` }]
-  }).sort((a, b) => Number(b.prepared) - Number(a.prepared) || a.label.localeCompare(b.label, 'pl')),
-  [categories, competitions, schedule, sessions, matches, matName, revision])
+    const related = value => (value.categoryId && value.categoryId === category.id) ||
+      (value.competitionId === category.competitionId && value.category === category.name)
+    const slot = schedule.find(related)
+    const plannedMat = slot?.mat || category.preferredMat || ''
+    const ownMatches = matches.filter(value => related(value) && value.mat === matName)
+    const session = sessions.find(value => related(value) && value.mat === matName)
+    if (plannedMat !== matName && ownMatches.length === 0 && !session) return []
+    const prepared = kind === 'kata' ? Boolean(session) : ownMatches.length > 0
+    const done = kind === 'kata' ? session?.status === 'completed' :
+      prepared && ownMatches.every(value => value.status === 'done')
+    const busy = kind === 'kata' ? Boolean(session && session.status === 'active' && session.phase === 'scores') :
+      ownMatches.some(value => value.status === 'active')
+    return [{ category, kind, session, ownMatches, prepared, done, busy,
+      scheduleIndex: slot ? schedule.indexOf(slot) : Number.MAX_SAFE_INTEGER }]
+  }).sort((a, b) => a.scheduleIndex - b.scheduleIndex)
 
-  const matState = db.getMatState(matName) || {}
-  const sessionId = params.get('sessionId') || ''
-  const selected = choices.find(option => option.kind === 'kata' && option.session?.id === sessionId) ||
-    choices.find(option => option.kind === 'kumite' && option.category.competitionId === params.get('competitionId') && option.category.name === params.get('category')) ||
-    choices.find(option => option.category.competitionId === matState.competitionId && option.category.name === matState.category) || null
-  const chosen = selected || choices.find(option => option.prepared) || null
-  const isKata = chosen?.kind === 'kata'
-  const active = choices.find(option => option.prepared && option.id === chosen?.id)
+  const same = item => item && item.category.competitionId === matState.competitionId && item.category.name === matState.category
+  const current = items.find(same)
+  const ongoing = items.find(item => item.busy)
+  const fromUrl = items.find(item => item.kind === 'kata' && item.session?.id === params.get('sessionId')) ||
+    items.find(item => item.kind === 'kumite' && item.category.competitionId === params.get('competitionId') && item.category.name === params.get('category'))
+  const next = items.find(item => item.prepared && !item.done)
+  // Aktywny pojedynek/ocenianie ma zawsze pierwszenstwo. Nie wracamy do zakonczonych kategorii.
+  const chosen = ongoing || (current?.prepared && !current.done ? current : null) ||
+    (fromUrl?.prepared && !fromUrl.done ? fromUrl : null) || next || null
 
-  const changeMat = nextMat => {
-    setError('')
-    navigate(`/organizator/panel-sedziego/${encodeURIComponent(nextMat)}`)
-  }
-  const changeCategory = id => {
-    setError('')
-    const next = choices.find(option => option.id === id)
-    if (!next || !next.prepared) {
-      setError('Najpierw przygotuj drabinke lub liste startowa tej kategorii w Centrum Zawodow.')
-      return
-    }
-    const current = db.getMatState(matName) || {}
-    if (current.breakActive || current.mode === 'break') {
-      setError('Tatami jest w trybie przerwy. Najpierw wznow wyswietlanie TV.')
-      return
-    }
-    if (matches.some(item => item.mat === matName && item.status === 'active' &&
-      (item.competitionId !== next.category.competitionId || item.category !== next.category.name))) {
-      setError('Trwa walka innej kategorii. Zakoncz ja przed przelaczeniem.')
-      return
-    }
-    if (sessions.some(item => item.mat === matName && item.id !== next.session?.id && item.status === 'active' && item.phase === 'scores')) {
-      setError('Trwa ocenianie kata. Zakoncz je przed przelaczeniem.')
-      return
-    }
+  // Zaznacz moment domkniecia aktualnej kategorii, aby wynik byl widoczny przed zmiana.
+  const previousDone = useRef(false)
+  useEffect(() => {
+    if (current?.done && !previousDone.current) switchedAt.current = Date.now()
+    previousDone.current = Boolean(current?.done)
+  }, [current?.done, current?.category.id])
+
+
+  useEffect(() => {
+    if (!chosen || matState.breakActive || matState.mode === 'break') return
+    if (same(chosen) && (chosen.kind !== 'kata' || matState.kataSessionId === chosen.session?.id)) return
+    // Dodatkowy bezpiecznik - nie przelaczamy stanowiska w trakcie punktowania.
+    if (items.some(item => item.busy && item !== chosen)) return
+    // Pozwalamy poprzedniej kategorii pokazac wynik koncowy na TV.
+    if (current?.done && Date.now() - switchedAt.current < 6000) return
     try {
-      const activeFight = matches.find(item => item.mat === matName && item.status === 'active' &&
-        item.competitionId === next.category.competitionId && item.category === next.category.name)
-      const kataMode = next.session?.phase === 'scores' ? 'kata-scores' :
-        next.session?.phase === 'athlete' ? 'kata-athlete' :
-        next.session?.status === 'completed' ? 'podium' : 'kata-list'
-      db.setMatState(matName, { ...current,
-        competitionId: next.category.competitionId,
-        category: next.category.name, categoryId: next.category.id,
-        mode: next.kind === 'kata' ? kataMode : (activeFight ? 'scoreboard' : 'bracket'),
-        kataSessionId: next.kind === 'kata' ? next.session?.id : null,
-        currentMatchId: next.kind === 'kumite' ? (activeFight?.id || null) : null,
-        lastCompletedMatchId: null, autoTransition: null, transitionAuto: false,
+      const activeFight = chosen.ownMatches.find(item => item.status === 'active')
+      const kataMode = chosen.session?.phase === 'scores' ? 'kata-scores' :
+        chosen.session?.phase === 'athlete' ? 'kata-athlete' : 'kata-list'
+      db.setMatState(matName, {
+        ...matState,
+        competitionId: chosen.category.competitionId,
+        category: chosen.category.name,
+        categoryId: chosen.category.id,
+        kataSessionId: chosen.kind === 'kata' ? chosen.session?.id : null,
+        currentMatchId: chosen.kind === 'kumite' ? activeFight?.id || null : null,
+        mode: chosen.kind === 'kata' ? kataMode : activeFight ? 'scoreboard' : 'bracket',
+        lastCompletedMatchId: null,
+        autoTransition: null,
+        transitionAuto: false,
       })
-      const query = next.kind === 'kata' ? `sessionId=${encodeURIComponent(next.session.id)}` :
-        `competitionId=${encodeURIComponent(next.category.competitionId)}&category=${encodeURIComponent(next.category.name)}`
-      navigate(`/organizator/panel-sedziego/${encodeURIComponent(matName)}?${query}`)
-      setRevision(x => x + 1)
-    } catch (e) { setError(e?.message || 'Nie udalo sie zmienic konkurencji.') }
-  }
+      setError('')
+    } catch (e) { setError(e?.message || 'Nie udalo sie automatycznie przelaczyc kategorii.') }
+  }, [revision, matName, chosen?.category.id, matState.competitionId, matState.category, matState.mode])
 
-  return <>
-    <div style={{padding:'14px 22px',background:'#181818',color:'#fff',display:'flex',flexWrap:'wrap',alignItems:'end',gap:14}}>
-      <label style={{display:'grid',gap:5,fontWeight:700,fontSize:13}}>Tatami
-        <select aria-label="Wybierz tatami" value={matName} onChange={e => changeMat(e.target.value)} style={{minWidth:135,padding:10,borderRadius:8}}>
-          {matNames.map(name => <option key={name} value={name}>{name}</option>)}
-        </select>
-      </label>
-      <label style={{display:'grid',gap:5,fontWeight:700,fontSize:13,flex:'1 1 290px'}}>Kata / Kumite - kategoria
-        <select aria-label="Wybierz konkurencje i kategorie" value={active?.id || ''} onChange={e => changeCategory(e.target.value)} style={{width:'100%',padding:10,borderRadius:8}}>
-          <option value="">Wybierz przygotowana kategorie</option>
-          {choices.map(item => <option key={item.id} value={item.id} disabled={!item.prepared}>
-            {item.kind === 'kata' ? 'KATA' : 'KUMITE'} - {item.label}{!item.prepared ? ' (nieprzygotowana)' : ''}
-          </option>)}
-        </select>
-      </label>
-      <strong style={{paddingBottom:10,color:'#f34b42'}}>IKA POLAND - PANEL SEDZIEGO</strong>
-    </div>
-    {error && <div role="alert" style={{padding:'12px 22px',color:'#ae1d16',fontWeight:700}}>{error}</div>}
-    {!chosen?.prepared ? <div style={{padding:24}}>Brak przygotowanej kategorii na tym tatami. Wroc do Centrum Zawodow i przygotuj drabinke kumite lub liste startowa kata.</div> :
-      isKata ? <KataJudgePanel key={`kata:${matName}:${chosen.session?.id}`} /> :
-        <JudgePanel key={`kumite:${matName}:${chosen.category.id}`} />}
-  </>
+  useEffect(() => {
+    if (!chosen) return
+    // Parametry adresu musza odpowiadac nowej kategorii, bo stare moduly je odczytuja.
+    const query = chosen.kind === 'kata'
+      ? `sessionId=${encodeURIComponent(chosen.session.id)}`
+      : `competitionId=${encodeURIComponent(chosen.category.competitionId)}&category=${encodeURIComponent(chosen.category.name)}`
+    const target = `/organizator/panel-sedziego/${encodeURIComponent(matName)}?${query}`
+    const currentUrl = window.location.pathname + window.location.search
+    if (currentUrl !== target) navigate(target, { replace: true })
+  }, [matName, chosen?.category.id, chosen?.session?.id, chosen?.kind, navigate])
+
+
+  if (error) return <div role="alert" style={{ padding: 24, color: '#ae1d16' }}>{error}</div>
+  if (!chosen) return <div style={{ padding: 24 }}>Na {matName} nie ma kolejnej przygotowanej kategorii. Panel automatycznie wznowi pracę, gdy pojawi się drabinka kumite lub lista kata.</div>
+  return chosen.kind === 'kata'
+    ? <KataJudgePanel key={`kata:${matName}:${chosen.session.id}`} />
+    : <JudgePanel key={`kumite:${matName}:${chosen.category.id}`} />
 }
