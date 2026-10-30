@@ -97,6 +97,8 @@ export default function TournamentCenter() {
   const [newCompetition, setNewCompetition] = useState({ name: '', group: 'Pozostałe' })
   const [newsForm, setNewsForm] = useState(emptyNews)
   const [bracketForm, setBracketForm] = useState({ categoryId: '' })
+  const [kumiteMat, setKumiteMat] = useState('Tatami 1')
+  const [kataMat, setKataMat] = useState('Tatami 1')
   const [selectedBracket, setSelectedBracket] = useState('')
   const [kataForm, setKataForm] = useState({ categoryId: '', judgeCount: 3 })
   const [selectedKataSessionId, setSelectedKataSessionId] = useState('')
@@ -117,6 +119,9 @@ export default function TournamentCenter() {
   const news = db.getNews()
   const matStates = db.getMatStates()
   const matNames = Array.from({ length: Math.max(1, Number(tournament.matCount) || 1) }, (_, index) => `Tatami ${index + 1}`)
+  /* IKA FILTER CATEGORIES BY MAT - 2026-10-30 */
+  const assignedMat = (category) => schedule.find((item) => item.competitionId === category.competitionId && item.category === category.name)?.mat
+  const categoryOnMat = (category, mat, group) => competitions.some((item) => item.id === category.competitionId && item.group === group) && assignedMat(category) === mat
 
   const selectedAthlete = athletes.find((a) => a.id === entryForm.athleteId)
   const selectedAthleteAge = selectedAthlete ? ageOnDate(selectedAthlete.birthDate, tournament.date) : null
@@ -133,9 +138,13 @@ export default function TournamentCenter() {
   const refresh = () => setRefreshKey((v) => v + 1)
   const prepareCategoryFromQuick = (kind, categoryId) => {
     if (kind === 'kata') {
+      const chosen = categories.find((item) => item.id === categoryId)
+      if (chosen && assignedMat(chosen)) setKataMat(assignedMat(chosen))
       setKataForm((current) => ({ ...current, categoryId }))
       setCenterView('kata')
     } else {
+      const chosen = categories.find((item) => item.id === categoryId)
+      if (chosen && assignedMat(chosen)) setKumiteMat(assignedMat(chosen))
       setBracketForm({ categoryId })
       setCenterView('kumite')
     }
@@ -308,6 +317,7 @@ export default function TournamentCenter() {
       if (!category) throw new Error('Wybierz kategorię kumite.')
       const slot = db.getSchedule().find((item) => item.competitionId === category.competitionId && item.category === category.name)
       if (!slot?.mat) throw new Error('Najpierw dodaj zawodników do kategorii, aby otrzymała tatami.')
+      if (slot.mat !== kumiteMat) throw new Error('Kategoria nie jest przypisana do wybranego tatami.')
       db.generateBracket({ competitionId: category.competitionId, category: category.name, categoryId: category.id, mat: slot.mat, shuffle: true })
       const key = bracketKey(category.competitionId, category.name, slot.mat)
       setSelectedBracket(key)
@@ -329,6 +339,7 @@ export default function TournamentCenter() {
       if (competition?.group !== 'Kata') throw new Error('Wybrana kategoria nie jest kategorią kata.')
       const slot = db.getSchedule().find((item) => item.competitionId === category.competitionId && item.category === category.name)
       if (!slot?.mat) throw new Error('Najpierw dodaj zawodników do kategorii, aby otrzymała tatami.')
+      if (slot.mat !== kataMat) throw new Error('Kategoria nie jest przypisana do wybranego tatami.')
       const session = db.generateKataStartList({ competitionId: category.competitionId, category: category.name, categoryId: category.id, mat: slot.mat, judgeCount: Number(kataForm.judgeCount), shuffle: true })
       setSelectedKataSessionId(session.id)
       setMessage('Lista startowa kata została wylosowana. Możesz otworzyć panel sędziego i tablicę TV.')
@@ -517,7 +528,8 @@ export default function TournamentCenter() {
       <section className="panel-section kata-admin-section">
         <div className="panel-section-head"><div><span className="eyebrow">Kata</span><h2>Lista startowa + punktacja sędziów</h2><p>W kata nie ma drabinki. Losujesz kolejność zawodników, wybierasz 3 albo 5 sędziów i prowadzisz występy jeden po drugim.</p></div></div>
         <form className="bracket-builder kata-list-builder" onSubmit={createKataList}>
-          <label>Kategoria kata<select required value={kataForm.categoryId} onChange={(e) => setKataForm({ ...kataForm, categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => competitions.find((c) => c.id === category.competitionId)?.group === 'Kata').map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); const slot = schedule.find((item) => item.competitionId === category.competitionId && item.category === category.name); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}{slot?.mat ? ` • ${slot.mat}` : ''}</option> })}</select></label>
+          <label>Tatami<select value={kataMat} onChange={(e) => { setKataMat(e.target.value); setKataForm((current) => ({ ...current, categoryId: '' })) }}>{matNames.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label>Kategoria kata<select required value={kataForm.categoryId} onChange={(e) => setKataForm({ ...kataForm, categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kataMat, 'Kata')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
           <label>Liczba sędziów<select value={kataForm.judgeCount} onChange={(e) => setKataForm({ ...kataForm, judgeCount: Number(e.target.value) })}><option value={3}>3 sędziów</option><option value={5}>5 sędziów</option></select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie listę startową</button>
         </form>
@@ -565,7 +577,8 @@ export default function TournamentCenter() {
       <section className="panel-section bracket-admin-section">
         <div className="panel-section-head"><div><span className="eyebrow">Kumite</span><h2>Drabinka + automatyczna tablica przy tatami</h2><p>Utwórz drabinkę z zawodników przypisanych do tej samej konkurencji, kategorii i tatami.</p></div></div>
         <form className="bracket-builder" onSubmit={createBracket}>
-          <label>Kategoria kumite<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => competitions.find((c) => c.id === category.competitionId)?.group === 'Kumite').map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); const slot = schedule.find((item) => item.competitionId === category.competitionId && item.category === category.name); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}{slot?.mat ? ` • ${slot.mat}` : ''}</option> })}</select></label>
+          <label>Tatami<select value={kumiteMat} onChange={(e) => { setKumiteMat(e.target.value); setBracketForm({ categoryId: '' }) }}>{matNames.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
+          <label>Kategoria kumite<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kumiteMat, 'Kumite')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie drabinkę</button>
         </form>
 
