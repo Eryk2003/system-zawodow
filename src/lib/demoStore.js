@@ -423,6 +423,7 @@ function sortKataResults(results = []) {
     .filter((result) => result.status === 'done' && Number.isFinite(Number(result.finalScore)))
     .slice()
     .sort((a, b) => Number(b.finalScore || 0) - Number(a.finalScore || 0)
+      || Math.max(...(b.scores || []).map(v => Number(v) || 0), 0) - Math.max(...(a.scores || []).map(v => Number(v) || 0), 0)
       || Number(b.rawTotal || 0) - Number(a.rawTotal || 0)
       || Number(a.completedAt || 0) - Number(b.completedAt || 0)
       || Number(a.order || 0) - Number(b.order || 0))
@@ -1182,7 +1183,7 @@ export const db = {
       setMatStateInternal(session.mat, {
         mode: 'kata-final', competitionId: session.competitionId, category: session.category, categoryId: session.categoryId || null,
         kataSessionId: session.id, kataFinalAthleteId: result.athleteId, kataFinalShownAt: now, kataNextAthleteId: nextAthleteId,
-        kataCategoryCompleted: false,
+        kataCategoryCompleted: false, kataFinalistsShownAt: now,
       })
       emit()
       return next
@@ -1790,7 +1791,8 @@ export function getTatamiPayload(mat) {
   }
   if (state?.mode === 'kata-final' && kataSession) {
     const elapsed = Math.max(0, Date.now() - Number(state.kataFinalShownAt || Date.now()))
-    if (elapsed < 5000) displayMode = 'kata-final'
+    if (state.kataFinalistsShownAt && kataSession.preliminaryResults?.length && Date.now() - Number(state.kataFinalistsShownAt) < 20000) displayMode = 'kata-finalists'
+    else if (elapsed < 5000) displayMode = 'kata-final'
     else if (elapsed < 9000) displayMode = 'kata-list'
     else displayMode = state.kataCategoryCompleted ? 'podium' : 'kata-athlete'
   }

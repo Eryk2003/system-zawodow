@@ -201,6 +201,35 @@ export default function TatamiDisplay() {
     )
   }
 
+  if (displayMode === 'kata-finalists' && payload.kata) {
+    const finalists = (payload.kata.session.finalists || []).slice().sort((a,b) => a.place - b.place)
+    const scores = payload.kata.session.preliminaryResults || []
+    return (
+      <main className="tatami-screen kata-tv-screen ika-kata-finalists-screen">
+        <FullscreenControl />
+        <header className="kata-tv-header">
+          <div><strong>IKA <span style={{color:'#e1261c'}}>POLAND</span></strong><span>{payload.tournament.name}</span></div>
+          <div><b>FINALISTS / ZAKWALIFIKOWANI DO FINAŁU</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || '')}</span></div>
+          <div><b>{matName}</b><span>QUALIFICATION RESULTS</span></div>
+        </header>
+        <section className="ika-kata-finalists-body">
+          <h1>ADVANCED TO THE FINAL</h1>
+          <div className="ika-kata-finalists-list">{finalists.map((entry) => {
+            const person = athletes.find(a => a.id === entry.athleteId)
+            const club = clubs.find(c => c.id === person?.clubId)
+            const result = scores.find(r => r.athleteId === entry.athleteId)
+            return <article key={entry.athleteId}>
+              <b className="ika-kata-finalists-place">{entry.place}</b>
+              <div><strong>{person ? `${person.firstName} ${person.lastName}` : entry.athleteId}</strong><small>{club?.shortName || club?.name || ''}</small></div>
+              <div className="ika-kata-finalists-scores"><strong>{scoreText(entry.finalScore)}</strong><small>JUDGES: {(result?.scores || []).map(scoreText).join(' / ')}</small></div>
+            </article>
+          })}</div>
+          <p>FINAL ROUND STARTS AFTER THE RESULTS PRESENTATION</p>
+        </section>
+      </main>
+    )
+  }
+
   if (displayMode === 'kata-list' && payload.kata) {
     const nextId = payload.kata.nextResult?.athleteId || payload.kata.session.currentAthleteId
     return (

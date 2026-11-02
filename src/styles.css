@@ -1499,3 +1499,16 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika94-eyebrow .ika-brand-inline .ika-brand-ika {
   color: #e1261c !important;
 }
+
+/* IKA KATA FINALISTS TV 2026 */
+.ika-kata-finalists-screen{min-height:100vh;background:#0b0e15;color:#fff}
+.ika-kata-finalists-body{max-width:1420px;margin:0 auto;padding:2vh 4vw 5vh}
+.ika-kata-finalists-body h1{text-align:center;color:#f5f6fa;font-size:clamp(28px,4vw,58px);margin:1vh 0 3vh}
+.ika-kata-finalists-list{display:grid;gap:1.3vh}
+.ika-kata-finalists-list article{display:grid;grid-template-columns:72px 1fr minmax(180px,340px);gap:22px;align-items:center;background:#1d222c;border:1px solid #38404d;border-radius:13px;padding:13px 24px}
+.ika-kata-finalists-place{color:#f8d57e;font-size:36px}
+.ika-kata-finalists-list article strong{display:block;color:#fff;font-size:clamp(17px,1.7vw,28px)}
+.ika-kata-finalists-list article small{display:block;color:#b9c4d4;font-size:clamp(11px,1vw,16px)}
+.ika-kata-finalists-scores{text-align:right}
+.ika-kata-finalists-body p{text-align:center;color:#c6cbd4;font-size:15px}
+@media(max-width:680px){.ika-kata-finalists-list article{grid-template-columns:38px 1fr;gap:8px;padding:10px}.ika-kata-finalists-scores{grid-column:2;text-align:left}}
