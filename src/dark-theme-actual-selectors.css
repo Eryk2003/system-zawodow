@@ -1,0 +1,36 @@
+/* IKA Poland: rzeczywiste selektory komponentow. Importowane na koncu. */
+:root{--ika-a-bg:#0b0e14;--ika-a-surface:#191d26;--ika-a-soft:#252b37;--ika-a-border:#444c5c;--ika-a-text:#f4f6fa;--ika-a-muted:#c1c9d7;--ika-a-red:#e1261c}
+/* Strona klubowa */
+.club-start-section,.club-home-news{background:var(--ika-a-bg)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.club-start-grid article,.club-public-feature{background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.club-start-grid h3,.club-start-grid article h3{color:var(--ika-a-text)!important}.club-start-grid p,.club-landing-help{color:var(--ika-a-muted)!important}
+.club-light-outline{background:var(--ika-a-soft)!important;border-color:var(--ika-a-border)!important;color:var(--ika-a-text)!important}
+/* Podglad zawodnika i tatami */
+.tatami-public-picker,.tatami-public-list,.tatami-public-row,.tatami-public-rows>div{background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.tatami-public-row:nth-child(even),.tatami-public-row.parent-entry-active,.tatami-public-row.parent-entry-called{background:var(--ika-a-soft)!important;border-color:var(--ika-a-border)!important}
+.tatami-public-picker h2,.tatami-public-list h2,.tatami-public-athlete strong,.tatami-public-time strong{color:var(--ika-a-text)!important}
+.tatami-public-picker p,.tatami-public-picker label,.tatami-public-athlete span,.tatami-public-time small,.tatami-public-title span{color:var(--ika-a-muted)!important}
+/* Organizator: tatami, kata, kumite, kluby, prawa */
+.ika94-mat-overview,.ika94-mat-card,.ika94-mat-card.selected,.organizer-club-list article,.ika87-import-box,.ika87-category-filter,.ika87-center-category,.identifier-access-ready,.registration-deadline-preview{background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.ika94-mat-card.selected,.ika87-center-category:nth-child(even){background:var(--ika-a-soft)!important}
+.ika94-mat-card strong,.ika94-mat-overview-head h3,.organizer-club-list strong,.ika87-import-box strong,.ika87-center-category strong,.identifier-access-ready strong,.registration-deadline-preview strong{color:var(--ika-a-text)!important}
+.ika94-mat-overview-head span,.organizer-club-list article span,.organizer-club-list article small,.ika87-import-box p,.ika87-center-category small,.identifier-access-ready span,.registration-deadline-preview small,.ika94-mat-card small{color:var(--ika-a-muted)!important}
+.kata-admin-row,.kata-admin-row.done,.kata-admin-row.active,.kata-admin-row>b,.bracket-toolbar,.bracket-tabs,.academy-bracket-panel-wrap,.academy-bracket-panel-head,.academy-bracket,.academy-bracket-match,.academy-bracket-match-head,.academy-bracket-player{background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.kata-admin-row.done,.academy-bracket-match-done{background:#192b25!important;border-color:#41745e!important}
+.academy-bracket-player-aka,.academy-bracket-player-ao,.academy-bracket-player-shiro{background:transparent!important}
+.academy-bracket-match-head{background:var(--ika-a-soft)!important}.academy-bracket-panel-head strong,.academy-bracket-match strong,.academy-bracket-player strong,.kata-admin-row>div strong{color:var(--ika-a-text)!important}
+.academy-bracket-match-head span,.academy-bracket-match-head em,.academy-bracket-panel-head span,.academy-bracket-panel-head small,.academy-bracket-player small,.kata-admin-row>div span,.bracket-toolbar span{color:var(--ika-a-muted)!important}
+/* AUTO TV */
+.auto-tv-panel,.auto-tv-grid>label,.auto-tv-status,.auto-tv-note,.auto-tv-permission-help,.auto-tv-badge{background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.auto-tv-badge{background:var(--ika-a-soft)!important}.auto-tv-grid>label>span,.auto-tv-grid label small,.auto-tv-status p,.auto-tv-status small{color:var(--ika-a-muted)!important}
+/* Kata – panel lokalny, bez wplywu na TV */
+.kata-judge-screen{background:var(--ika-a-bg)!important;color:var(--ika-a-text)!important}
+.kata-judge-screen :is(.kata-current-athlete,.kata-judge-card,.kata-score-card,.kata-judge-queue,.kata-judge-list){background:var(--ika-a-surface)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+/* Zakladki Centrum zawodow: czerwone aktywne i hover */
+.ika94-center-tabs .ika94-center-tab{background:var(--ika-a-soft)!important;color:var(--ika-a-text)!important;border-color:var(--ika-a-border)!important}
+.ika94-center-tabs .ika94-center-tab:is(:hover,:focus-visible,.active,[aria-current='page']){background:var(--ika-a-red)!important;border-color:var(--ika-a-red)!important;color:#fff!important}
+/* Wyjatki funkcjonalne */
+:is(.btn-primary,.organizer-create-btn,.btn-danger){color:#fff!important}
+.ika-brand-inline .ika-brand-poland{color:#e1261c!important}
+/* Drukowanie pozostaje biale */
+@media print{.academy-bracket-panel-wrap,.academy-bracket,.academy-bracket-panel-head,.academy-bracket-match,.academy-bracket-match-head,.academy-bracket-player,.kata-admin-row{background:#fff!important;color:#111!important;border-color:#bbb!important}}

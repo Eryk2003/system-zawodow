@@ -12,6 +12,7 @@ import './dark-theme-fixes.css'
 import './dark-theme-repair.css'
 import { initializeCloudSync } from './lib/cloudSync.js'
 import { LanguageProvider } from './lib/I18nContext.jsx'
+import './dark-theme-actual-selectors.css'
 
 function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(
