@@ -150,22 +150,36 @@ export default function CenterQuickNav({
             <div><strong>{kataSessions.length + new Set(matches.map((item) => `${item.mat}|${item.competitionId}|${item.category}`)).size}</strong><small>Przygotowanych</small></div>
           </div>
         </div>
-        <div className="ika94-quickdesk-form">
-          <label>
-            <span>1. Tatami</span>
-            <select value={mat} onChange={(event) => switchMat(event.target.value)}>
-              {matNames.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>2. Konkurencja i kategoria</span>
-            <select value={chosen?.id || ''} onChange={(event) => { setSelectedCategoryId(event.target.value); setError('') }} disabled={!options.length}>
-              {!options.length && <option value="">Brak kategorii na tym tatami</option>}
-              {options.map((item) => <option key={item.id} value={item.id}>{item.prepared ? '✓ ' : '○ '}{item.label}</option>)}
-            </select>
-          </label>
-          <button type="button" className="ika94-open-judge" disabled={!chosen?.prepared} onClick={openJudge}>
-            Otwórz panel sędziego
+        <div className="ika-fast-entry" aria-label="Szybki wybór panelu sędziego">
+          <div className="ika-fast-step">
+            <strong>1. Wybierz tatami</strong>
+            <div className="ika-fast-mats">
+              {matNames.map((item) => (
+                <button key={item} type="button" className={`ika-fast-tile ${mat === item ? 'is-selected' : ''}`}
+                  aria-pressed={mat === item} onClick={() => switchMat(item)}>
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="ika-fast-step">
+            <strong>2. Wybierz przygotowaną konkurencję</strong>
+            <div className="ika-fast-categories">
+              {options.map((item) => (
+                <button key={item.id} type="button"
+                  className={`ika-fast-tile ika-fast-category ${chosen?.id === item.id ? 'is-selected' : ''}`}
+                  aria-pressed={chosen?.id === item.id}
+                  onClick={() => { setSelectedCategoryId(item.id); setError('') }}>
+                  <span className="ika-fast-type">{item.kind === 'kata' ? 'KATA' : 'KUMITE'}</span>
+                  <span>{item.label}</span>
+                  <small>{item.prepared ? 'Gotowa do sędziowania' : 'Wymaga przygotowania'}</small>
+                </button>
+              ))}
+              {!options.length && <p>Brak kategorii przypisanych do {mat}. Przypisz je w Harmonogramie.</p>}
+            </div>
+          </div>
+          <button type="button" className="ika94-open-judge ika-fast-open" disabled={!chosen?.prepared} onClick={openJudge}>
+            3. Otwórz panel sędziego - {mat}
           </button>
         </div>
         {chosen ? (

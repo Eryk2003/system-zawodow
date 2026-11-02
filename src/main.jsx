@@ -33,3 +33,4 @@ function renderApp() {
 }
 
 initializeCloudSync().finally(renderApp)
+import './ika-judge-fast-entry.css'
