@@ -1,0 +1,22 @@
+/* IKA Poland - czerwone podswietlenie zakladek Centrum Zawodow.
+   Tylko interakcja z zakladkami. Reszta motywu bez zmian. */
+body #root .dashboard-main nav.ika94-center-tabs button.ika94-center-tab:hover,
+body #root .dashboard-main nav.ika94-center-tabs button.ika94-center-tab:focus-visible,
+body #root .dashboard-main nav.ika94-center-tabs button.ika94-center-tab.active,
+body #root .dashboard-main nav.ika94-center-tabs button.ika94-center-tab[aria-current='page'],
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab:hover,
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab:focus-visible,
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab.active,
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab[aria-current='page'] {
+  background: #e1261c !important;
+  background-color: #e1261c !important;
+  color: #fff !important;
+  border-color: #e1261c !important;
+  box-shadow: 0 0 0 1px rgba(225,38,28,.25) !important;
+}
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab:hover *,
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab.active *,
+body #root .dashboard-main .ika94-center-tabs .ika94-center-tab[aria-current='page'] * {
+  color:#fff !important;
+}
+@media print {body #root .dashboard-main .ika94-center-tabs .ika94-center-tab {box-shadow:none!important}}
