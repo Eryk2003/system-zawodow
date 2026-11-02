@@ -1,0 +1,32 @@
+/* IKA Poland - ekran TV: bez pustego czarnego pasa pod drabinka.
+   Zmiana dotyczy tylko widoku drabinki kumite na TV. */
+.tatami-screen.bracket-screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #191c24;
+}
+.tatami-screen.bracket-screen > .bracket-header {
+  flex: 0 0 auto;
+}
+.tatami-screen.bracket-screen > .bracket-board.academy-bracket-tv-wrap {
+  display: block !important;
+  flex: 1 1 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  width: 100%;
+  overflow: auto !important;
+  background: #191c24;
+}
+.tatami-screen.bracket-screen .academy-bracket-tv {
+  min-height: 100%;
+}
+@media print {
+  .tatami-screen.bracket-screen {height: auto; min-height: 0; overflow: visible;}
+  .tatami-screen.bracket-screen > .bracket-board.academy-bracket-tv-wrap {overflow: visible !important;}
+}
