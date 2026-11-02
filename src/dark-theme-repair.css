@@ -1,0 +1,82 @@
+/* IKA Poland | naprawa kontrastu | importowany OSTATNI po pozostalych arkuszach */
+:root { --ika-repair-bg:#0d1017; --ika-repair-surface:#191d26; --ika-repair-alt:#242a36; --ika-repair-border:#414a5b; --ika-repair-text:#f4f6fa; --ika-repair-muted:#c2cada; --ika-repair-red:#e1261c; }
+
+/* Widoki aplikacji, poza dedykowanymi ekranami TV i obszarami SHIRO */
+:is(.dashboard-main,.public-page,.ranking-page,.auth-page,.section-wrap) :is(
+ .organizer-role-user,.organizer-role-row,.organizer-role-card,.organizer-club-row,.organizer-club-card,
+ .organizer-club-management-card,.club-management-row,.club-management-card,
+ .ika94-mat-overview,.ika94-mat-overview-head,.ika94-quickdesk-stats > div,
+ .auto-tv-panel,.auto-tv-mat-box,.auto-tv-info,.auto-tv-status,.auto-tv-select,
+ .registration-deadline-preview,.registration-deadline-card,.registration-deadline-info,
+ .athlete-identifiers-panel,.identifier-status-card,.identifier-availability,
+ .category-mat-item,.category-mat-row,.category-assignment-row,.category-assignment-item,
+ .kata-admin-row,.kata-admin-list,.kata-toolbar,.kata-list-builder,
+ .ranking-result-grid article,.ranking-results-feed article,
+ .bracket-toolbar,.bracket-actions,.bracket-admin-section,.bracket-shell,.bracket-panel,
+ .bracket-tab-panel,.bracket-controls,.bracket-board,.bracket-container,.bracket-stage,
+ .kumite-bracket,.kumite-bracket-board,.kumite-bracket-wrapper,.kumite-bracket-container,
+ .tournament-info-card,.home-steps,.club-onboarding,.club-step,.club-step-card,
+ .parent-lookup-card,.parent-entry,.parent-athlete-card,
+ .schedule-editor-row,.schedule-card,.match-control,.simple-admin-list > div
+) {
+ background-color:var(--ika-repair-surface)!important;
+ color:var(--ika-repair-text)!important;
+ border-color:var(--ika-repair-border)!important;
+}
+
+/* Elementy ze zrzutow: karty kata, przydzialy tatami, role, kluby, AUTO TV, rejestracja */
+.dashboard-main :is(.kata-admin-row.done,.kata-admin-row.active,.kata-admin-row,
+ .auto-tv-badge,.auto-tv-mat-select,.auto-tv-mat-picker,
+ .registration-deadline-status,.registration-deadline-status.closed,
+ .club-management-row,.club-management-card,.club-card,.role-account-card,
+ .organizer-role-user,.role-user-row,.category-mat-item,.category-mat-row,
+ .category-assignment-row,.category-assignment-item,.category-assign-item,
+ .bracket-toolbar,.bracket-toolbar > div,.bracket-toolbar > section,
+ .kata-toolbar,.kata-toolbar > div,.bracket-actions,
+ .identifier-ready,.identifiers-ready,.identifier-status-card) {
+ background:var(--ika-repair-alt)!important;
+ color:var(--ika-repair-text)!important;
+ border-color:var(--ika-repair-border)!important;
+}
+
+/* Naglowki i nazwy nie moga pozostac biale na bialym */
+:is(.dashboard-main,.public-page,.ranking-page) :is(
+ .kata-admin-row,.club-management-row,.club-management-card,.organizer-role-user,
+ .category-mat-row,.category-assignment-row,.auto-tv-mat-box,.ranking-result-grid article,
+ .registration-deadline-preview,.identifier-status-card,.bracket-toolbar,.bracket-panel
+) :is(h2,h3,h4,strong,b) {color:var(--ika-repair-text)!important}
+:is(.dashboard-main,.public-page,.ranking-page) :is(
+ .kata-admin-row,.club-management-row,.club-management-card,.organizer-role-user,
+ .category-mat-row,.category-assignment-row,.auto-tv-mat-box,.ranking-result-grid article,
+ .registration-deadline-preview,.identifier-status-card,.bracket-toolbar,.bracket-panel
+) :is(small,p,em) {color:var(--ika-repair-muted)!important}
+
+/* Karty w publicznych ekranach (strona klubowa i lista zgloszen) */
+:is(.public-page,.section-wrap) :is(.club-instructions,.club-instructions-card,.club-step,.club-step-card,
+ .steps-grid > div,.registration-steps > div,.how-it-works > div,
+ .tatami-queue-card,.tatami-live-card,.tatami-schedule-card,.tatami-start-card,
+ .start-list-card,.athlete-schedule-card,.next-start-card) {
+ background:var(--ika-repair-surface)!important;color:var(--ika-repair-text)!important;border-color:var(--ika-repair-border)!important;
+}
+
+/* Zaznaczony panel i hover zakladek Centrum zawodow */
+.dashboard-main .ika94-center-tabs .ika94-center-tab:hover,
+.dashboard-main .ika94-center-tabs .ika94-center-tab:focus-visible,
+.dashboard-main .ika94-center-tabs .ika94-center-tab.active,
+.dashboard-main .ika94-center-tabs .ika94-center-tab[aria-current='page'] {
+ background:var(--ika-repair-red)!important;color:#fff!important;border-color:var(--ika-repair-red)!important;
+}
+.dashboard-main .ika94-center-tabs .ika94-center-tab:not(:hover):not(.active):not([aria-current='page']){
+ background:var(--ika-repair-alt)!important;color:var(--ika-repair-text)!important;border-color:var(--ika-repair-border)!important;
+}
+
+/* Wszystkie nieaktywne ciemne kafle bez zmiany kolorow przyciskow glownych */
+:is(.dashboard-main,.public-page,.ranking-page) :is(.ranking-tabs button,.bracket-tabs button,.kata-session-tabs button):hover{
+ background:var(--ika-repair-red)!important;color:#fff!important;border-color:var(--ika-repair-red)!important;
+}
+
+/* Jasne specjalne znaczniki statusu */
+.dashboard-main :is(.auto-tv-badge,.registration-deadline-status,.registration-deadline-status.closed){background:#272d39!important;color:#f6f6f8!important;border-color:#4c5260!important}
+
+/* Druk: czarny tekst na bialym papierze. TV i SHIRO pozostaja nietkniete. */
+@media print { html,body,#root {background:#fff!important;color:#111!important} }
