@@ -137,7 +137,7 @@ export default function CenterQuickNav({
 
   return (
     <>
-      <section className="ika94-quickdesk" aria-label="Szybkie przejście do panelu sędziego">
+      {activeTab === 'judges' && <section className="ika94-quickdesk" aria-label="Szybkie przejście do panelu sędziego">
         <div className="ika94-quickdesk-header">
           <div>
             <span className="ika94-eyebrow"><span className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></span> · CENTRUM ZAWODÓW</span>
@@ -178,7 +178,7 @@ export default function CenterQuickNav({
           <div className="ika94-quickdesk-status is-unprepared">Brak kategorii dla wybranego tatami. Przypisz kategorię w Harmonogramie.</div>
         )}
         {error && <div className="ika94-quick-error" role="alert">{error}</div>}
-      </section>
+      </section>}
 
       <nav className="ika94-center-tabs" aria-label="Zakładki Centrum Zawodów">
         {TABS.map((tab) => (
@@ -190,7 +190,8 @@ export default function CenterQuickNav({
       </nav>
 
       {activeTab === 'judges' && (
-        <section className="ika94-mat-overview">
+        <details className="ika94-mat-overview ika-center-details">
+          <summary>Podgląd wszystkich tatami</summary>
           <div className="ika94-mat-overview-head"><h3>Stan tatami</h3><span>Wybierz stanowisko, aby otworzyć odpowiednią konkurencję</span></div>
           <div className="ika94-mat-grid">
             {matNames.map((item) => {
@@ -208,7 +209,7 @@ export default function CenterQuickNav({
               )
             })}
           </div>
-        </section>
+        </details>
       )}
     </>
   )

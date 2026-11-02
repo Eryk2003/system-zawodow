@@ -1,0 +1,14 @@
+/* IKA Poland — uporządkowane Centrum Zawodów; brak zmian w logice */
+.ika94-center-tabs{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;overflow-x:auto}
+.ika94-center-tabs .ika94-center-tab{min-height:46px;white-space:nowrap;transition:background-color .16s ease,border-color .16s ease}
+.ika94-center-tabs .ika94-center-tab:hover,.ika94-center-tabs .ika94-center-tab:focus-visible,
+.ika94-center-tabs .ika94-center-tab.active{background:#e1261c!important;color:#fff!important;border-color:#e1261c!important}
+.ika-center-details{background:#191c23!important;border:1px solid #424756!important;border-radius:14px!important;padding:12px 16px!important}
+.ika-center-details>summary{cursor:pointer;color:#f2f3f7;font-size:14px;font-weight:800;padding:8px 0;list-style:revert}
+.ika-center-details:not([open]) .ika94-mat-overview-head,.ika-center-details:not([open]) .ika94-mat-grid{display:none}
+.ika-center-details[open]>summary{margin-bottom:16px;border-bottom:1px solid #424756}
+.ika94-quickdesk .ika94-quickdesk-header p{color:#bfc4d0}
+.ika94-quickdesk .ika94-quickdesk-form{align-items:end}
+@media(max-width:970px){.ika94-center-tabs{grid-template-columns:repeat(3,minmax(150px,1fr))}}
+@media(max-width:560px){.ika94-center-tabs{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+@media print{.ika-center-details>summary{display:none}}

@@ -15,6 +15,7 @@ import { LanguageProvider } from './lib/I18nContext.jsx'
 import './dark-theme-actual-selectors.css'
 import './ika-red-tabs.css'
 import './ika-tv-bracket-fullheight.css'
+import './center-clean.css'
 
 function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(
