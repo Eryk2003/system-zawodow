@@ -1,0 +1,54 @@
+/* IKA Poland: uzupelnienie ciemnego motywu. Ladowac po dark-theme.css. */
+:root{--ika-fix-surface:#191b22;--ika-fix-surface-2:#232630;--ika-fix-border:#393e4b;--ika-fix-text:#f4f5f8;--ika-fix-muted:#c2c8d3}
+/* Jasne karty i wyniki - bez ekranu TV, drabinek publicznych i kolorow zawodnikow. */
+:is(.ranking-page,.dashboard-main,.public-page,.auth-page,.section-wrap) :is(
+ .ranking-result-grid article,.ranking-results-feed article,.ranking-points-legend,
+ .ranking-table-wrap,.ranking-tabs button,.ranking-result-card,
+ .training-details,.training-details>div,.training-grid article,
+ .competition-picker-group,.competition-picker-item,.entry-card,.club-card,
+ .news-card,.news-item,.athlete-card,.athlete-entry-card,.parent-athlete-card,
+ .schedule-card,.schedule-editor-row,.schedule-editor-row.manual,
+ .form-card,.form-section,.form-panel,.setup-card,.panel-section,
+ .stat-card,.competition-card,.catalog-row,.organizer-start-card,
+ .create-tournament-section,.create-tournament-actions,.custom-competition-box,
+ .auto-schedule-note,.home-mini-list article,.hero-card,.demo-box,
+ .table-wrap,.simple-admin-list>div,.empty-state
+){background:var(--ika-fix-surface)!important;color:var(--ika-fix-text)!important;border-color:var(--ika-fix-border)!important}
+/* Utrzymanie czytelnosci kompletu tekstow kart podium. */
+.ranking-page .ranking-result-grid article h3,
+.ranking-page .ranking-result-grid article b,
+.ranking-page .ranking-result-grid article strong,
+.ranking-page .ranking-result-grid article>div{
+ color:var(--ika-fix-text)!important;
+}
+.ranking-page .ranking-result-grid article>small{color:#ff6259!important}
+.ranking-page .ranking-result-grid article>div{border-top-color:var(--ika-fix-border)!important}
+.ranking-page .ranking-result-grid article>div span,
+.ranking-page .ranking-result-grid article .ika-ranking-podium-club,
+.ranking-page .ranking-hero p{color:var(--ika-fix-muted)!important}
+.ranking-page .ranking-tabs button{background:var(--ika-fix-surface-2)!important;color:var(--ika-fix-text)!important;border:1px solid var(--ika-fix-border)!important}
+.ranking-page .ranking-tabs button.active{background:#a5221c!important;color:#fff!important;border-color:#e1261c!important}
+/* Karty wynikow wciaz zachowuja rowne odstepy i przydzielone rozmiary logo. */
+.ranking-page .ranking-result-grid .ika-club-logo{flex-shrink:0}
+/* Rozszerzone powierzchnie paneli - bez wymuszania rozmiarow/layoutu. */
+:is(.dashboard-main,.public-page,.auth-page) :is(
+ .schedule-list>article,.schedule-list>div,.club-list>article,
+ .news-list>article,.results-list>article,.category-list>article,
+ .athlete-list>article,.athlete-list>div,.club-management-card,
+ .kata-round-box,.bracket-admin-section,.kata-admin-section,
+ .ranking-results-feed,.competition-picker-item.selected
+){background-color:var(--ika-fix-surface)!important;color:var(--ika-fix-text)!important;border-color:var(--ika-fix-border)!important}
+:is(.dashboard-main,.public-page,.auth-page) :is(
+ .schedule-list>article,.club-list>article,.news-list>article,.results-list>article,
+ .category-list>article,.kata-round-box,.ranking-results-feed
+) :is(h2,h3,h4,p,strong,b,span){color:inherit}
+/* Jasne pola w edytorach organizatora. */
+:is(.dashboard-main,.public-page,.auth-page) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){background:#12141a!important;color:#f4f5f8!important;border-color:#4b5160!important}
+:is(.dashboard-main,.public-page,.auth-page) :is(input,textarea)::placeholder{color:#a9b1be!important}
+/* Wyróżnienia statusu zostaja czytelne. */
+:is(.dashboard-main,.public-page,.auth-page) :is(.status-done,.alert-success){background:#173c2b!important;color:#c5f4d4!important}
+/* Nigdy nie zmieniaj kolorow panelu TV i zawodnikow SHIRO. */
+@media print{
+ .ranking-page .ranking-result-grid article,
+ .ranking-page .ranking-result-grid article :is(h3,b,strong,span){background:#fff!important;color:#111!important;border-color:#bbb!important}
+}
