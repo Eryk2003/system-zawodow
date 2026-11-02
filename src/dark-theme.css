@@ -1,0 +1,47 @@
+/* IKA Poland — global dark theme. Loaded AFTER styles.css. */
+:root{color-scheme:dark;--ika-dark-bg:#0d0e12;--ika-dark-panel:#191b22;--ika-dark-raised:#232630;--ika-dark-border:#373b46;--ika-dark-text:#f3f4f7;--ika-dark-muted:#bcc1cc;--ika-dark-red:#fa4940}
+html,body,#root{background:var(--ika-dark-bg)!important;color:var(--ika-dark-text)}
+body{color-scheme:dark}
+/* Surface components in the application (not the audience's TV layout). */
+:is(.dashboard-main,.public-page,.section-wrap,.create-tournament-shell,.organizer-start-screen,.ranking-page,.auth-page){color:var(--ika-dark-text)}
+:is(.panel-section,.setup-card,.stat-card,.form-card,.auth-card,.competition-card,.hero-card,.training-card,.home-mini-list article,.parent-athlete-card,.parent-entry,.organizer-start-card,.create-tournament-section,.competition-picker-group,.competition-picker-item,.custom-competition-box,.schedule-card,.schedule-editor-row,.catalog-row,.simple-admin-list>div,.match-control,.match-versus>div,.auto-schedule-note,.bracket-builder,.table-wrap,.demo-box,.empty-state,.empty-icon,.current-tournament-card,.ika94-quickdesk,.ika94-center-tabs,.judge-empty-card){background:var(--ika-dark-panel)!important;color:var(--ika-dark-text)!important;border-color:var(--ika-dark-border)!important}
+:is(.form-card,.parent-entry,.competition-picker-item,.custom-competition-box,.auto-schedule-note,.schedule-editor-row.manual,.create-tournament-actions,.match-versus>div,.hero-time,.score-controls-white,.home-mini-list article){background:var(--ika-dark-raised)!important;color:var(--ika-dark-text)!important;border-color:var(--ika-dark-border)!important}
+:is(.dashboard-main,.public-page,.panel-section,.setup-card,.stat-card,.form-card,.auth-card,.organizer-start-card,.create-tournament-section,.parent-athlete-card,.competition-card,.training-card,.hero-card,.home-mini-list article,.schedule-card,.schedule-editor-row,.table-wrap,.catalog-row,.bracket-builder) :is(h1,h2,h3,h4,strong,b){color:inherit}
+:is(.dashboard-main,.public-page,.panel-section,.setup-card,.auth-card,.organizer-start-card,.create-tournament-section,.parent-athlete-card,.competition-card,.training-card,.hero-card,.home-mini-list article,.schedule-card,.schedule-editor-row,.catalog-row,.bracket-builder) :is(p,small,em,.muted-copy,.block-small,.field-hint){color:var(--ika-dark-muted)}
+:is(.section-title p,.panel-section-head p,.setup-card>p,.page-heading p,.auth-card>p,.organizer-start-card p,.create-section-head p,.schedule-editor-info span,.schedule-editor-info small,.auto-schedule-note small,.parent-entry span,.parent-time small,.parent-athlete-head p,.empty-state p,.stat-card span,.stat-card small,.training-summary small,.competition-picker-item small,.form-stack label,.form-grid label,.entry-builder label,.photo-picker,.schedule-editor-row label,.lookup-hero>p,.privacy-note,.catalog-row small,.hero-screen p,.hero-screen small){color:var(--ika-dark-muted)!important}
+/* Tables and structured lists. */
+:is(table,.ranking-table) th{background:#252832!important;color:#e0e2e9!important;border-color:var(--ika-dark-border)!important}
+:is(table,.ranking-table) td{background:#191b22;color:var(--ika-dark-text);border-color:var(--ika-dark-border)!important}
+:is(table,.ranking-table) tr:nth-child(even) td{background:#20222a}
+:is(table,.ranking-table) tr:hover td{background:#2c303b}
+:is(.table-wrap,.training-summary,.parent-athlete-head,.athlete-schedule-list,.match-live-controls,.hero-time){border-color:var(--ika-dark-border)!important}
+/* Form fields: retain contrast for selected/disabled states. */
+:is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){background:#111319!important;color:var(--ika-dark-text)!important;border-color:#4a4f5b!important;color-scheme:dark}
+:is(input,select,textarea)::placeholder{color:#9fa6b5!important;opacity:1}
+:is(input,select,textarea):focus-visible{outline:2px solid #fa4940;outline-offset:1px;border-color:#fa4940!important}
+:is(input,select,textarea):disabled{opacity:.66;cursor:not-allowed}
+select option{background:#16181f;color:#fff}
+input[type=file]{color:var(--ika-dark-muted)}
+input[type=checkbox],input[type=radio]{accent-color:#e1261c}
+/* Buttons: do not recolor red primary actions or AKA/AO score controls. */
+:is(.btn-ghost,.btn-outline,.link-btn,.score-controls button,.training-toggle){background:#30333d!important;color:#f2f3f7!important;border-color:#555966!important}
+:is(.btn-primary,.organizer-create-btn){background:#e1261c!important;color:#fff!important;border-color:#e1261c!important}
+:is(.btn-primary,.organizer-create-btn):hover{background:#c91d15!important}
+:is(button,a):focus-visible{outline:2px solid #ff6960;outline-offset:2px}
+/* Status and utility components. */
+.status-scheduled{background:#343742!important;color:#e0e3eb!important}
+.status-called{background:#453718!important;color:#ffe2a4!important}
+.status-active{background:#532521!important;color:#ffb4ac!important}
+.status-done,.alert-success{background:#173c2b!important;color:#b9f1cc!important;border-color:#346649!important}
+.alert-error{background:#4c1e22!important;color:#ffbfba!important;border-color:#864148!important}
+.alert-info{background:#1c2a49!important;color:#c1d5ff!important;border-color:#3d5586!important}
+.time-warning{background:#43341e!important;color:#f3d39c!important}
+:is(.section-title,.page-heading,.stat-card,.ranking-page,.organizer-start-card) .eyebrow{color:var(--ika-dark-red)!important}
+/* Keep IKA branding legible in compact headings; preserve bright red POLAND. */
+:is(.eyebrow,.ika94-eyebrow) .ika-brand-ika{color:#e1261c!important}
+/* Avoid recoloring spectator TV, kumite side panels and deliberate white (SHIRO) surfaces. */
+:is(.tatami-screen,.telebim,.fighter,.judge-fighter.side-white,.bracket-white-side,.match-side-white){color:inherit}
+:is(.fighter-white,.judge-fighter.side-white,.match-side-white,.bracket-white-side){color:#111!important}
+:is(.fighter-white,.judge-fighter.side-white,.match-side-white,.bracket-white-side) :is(h1,h2,h3,p,strong,span){color:inherit}
+/* Prevent native browser printing from becoming illegible. */
+@media print{html,body,#root{background:#fff!important;color:#111!important} .panel-section,.table-wrap,.stat-card,th,td{background:#fff!important;color:#111!important;border-color:#bbb!important} input,select,textarea{background:#fff!important;color:#111!important}}

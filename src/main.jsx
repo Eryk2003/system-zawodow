@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { AuthProvider } from './lib/AuthContext.jsx'
 import './lib/globalTranslationRuntime.js'
 import './styles.css'
+import './dark-theme.css'
 import { initializeCloudSync } from './lib/cloudSync.js'
 import { LanguageProvider } from './lib/I18nContext.jsx'
 
