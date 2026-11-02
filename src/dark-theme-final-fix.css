@@ -1,0 +1,253 @@
+/* IKA Poland — final dark theme fix
+   Cel: usunąć pozostałe białe motywy i zastąpić je ciemnymi,
+   bez psucia ekranów TV i oznaczeń SHIRO. */
+
+:root{
+  --ika-dark-bg-2:#0b0d12;
+  --ika-dark-panel-2:#181b22;
+  --ika-dark-raised-2:#222733;
+  --ika-dark-border-2:#3f4553;
+  --ika-dark-text-2:#f4f6fb;
+  --ika-dark-muted-2:#bac1ce;
+  --ika-dark-accent-2:#e1261c;
+}
+
+html,body,#root{
+  background:var(--ika-dark-bg-2)!important;
+  color:var(--ika-dark-text-2)!important;
+}
+
+/* Uniwersalne ciemne powierzchnie w całym systemie */
+:is(
+  .panel-section,
+  .setup-card,
+  .stat-card,
+  .form-card,
+  .auth-card,
+  .competition-card,
+  .hero-card,
+  .training-card,
+  .home-mini-list article,
+  .parent-athlete-card,
+  .parent-entry,
+  .organizer-start-card,
+  .create-tournament-section,
+  .competition-picker-group,
+  .competition-picker-item,
+  .custom-competition-box,
+  .schedule-card,
+  .schedule-editor-row,
+  .catalog-row,
+  .simple-admin-list > div,
+  .match-control,
+  .match-versus > div,
+  .auto-schedule-note,
+  .bracket-builder,
+  .table-wrap,
+  .demo-box,
+  .empty-state,
+  .empty-icon,
+  .current-tournament-card,
+  .ika94-quickdesk,
+  .judge-empty-card,
+  .ranking-result-grid article,
+  .ranking-result-grid article > div,
+  .create-tournament-actions,
+  .organizer-banner,
+  .tournament-created-banner,
+  .post-create-actions,
+  .auto-tv-panel,
+  .auto-tv-card,
+  .auto-tv-info,
+  .auto-tv-warning,
+  .auto-tv-status,
+  .tv-status-chip,
+  .tv-status,
+  .tv-fullscreen-btn,
+  .bracket-tab,
+  .ranking-tabs button,
+  .ika94-center-tabs button,
+  .panel-section-head,
+  .current-tournament-card,
+  .organizer-start-screen .current-tournament-card,
+  .dashboard-main .heading-actions > *
+){
+  background:var(--ika-dark-panel-2)!important;
+  color:var(--ika-dark-text-2)!important;
+  border-color:var(--ika-dark-border-2)!important;
+  box-shadow:none!important;
+}
+
+/* Lekko podniesione sekcje */
+:is(
+  .form-card,
+  .parent-entry,
+  .competition-picker-item,
+  .custom-competition-box,
+  .auto-schedule-note,
+  .schedule-editor-row.manual,
+  .create-tournament-actions,
+  .match-versus > div,
+  .hero-time,
+  .score-controls-white,
+  .home-mini-list article,
+  .ika94-quickdesk-stats > div,
+  .auto-tv-chip,
+  .auto-tv-actions .btn,
+  .telebim-stop .btn,
+  .heading-actions .btn,
+  .dashboard-main .btn-outline,
+  .dashboard-main .btn-ghost
+){
+  background:var(--ika-dark-raised-2)!important;
+  color:var(--ika-dark-text-2)!important;
+  border-color:var(--ika-dark-border-2)!important;
+}
+
+/* Pozostałe białe przyciski i zakładki */
+:is(
+  .dashboard-main button,
+  .dashboard-main a.btn,
+  .public-page button,
+  .public-page a.btn,
+  .auth-page button,
+  .auth-page a.btn,
+  .ranking-tabs button,
+  .ika94-center-tabs button,
+  .btn-outline,
+  .btn-ghost,
+  .link-btn,
+  .tv-fullscreen-btn,
+  .bracket-tab,
+  .judge-actions button,
+  .heading-actions a,
+  .heading-actions button
+):not(.btn-primary):not(.organizer-create-btn):not(.judge-winner.red):not(.judge-winner.blue):not(.judge-winner.white){
+  background:var(--ika-dark-raised-2)!important;
+  color:var(--ika-dark-text-2)!important;
+  border:1px solid var(--ika-dark-border-2)!important;
+}
+
+:is(
+  .ranking-tabs button.active,
+  .ika94-center-tabs button.active,
+  .bracket-tab.active,
+  .dashboard-main button.active,
+  .public-page button.active,
+  .dashboard-main button[aria-pressed='true'],
+  .public-page button[aria-pressed='true']
+){
+  background:#2c313d!important;
+  color:#fff!important;
+  border-color:#596174!important;
+}
+
+/* Białe mini-karty w Centrum zawodów */
+.ika94-quickdesk-stats > div{
+  border:1px solid var(--ika-dark-border-2)!important;
+  border-radius:16px!important;
+}
+.ika94-quickdesk-stats > div,
+.ika94-quickdesk-stats > div strong,
+.ika94-quickdesk-stats > div small{
+  color:var(--ika-dark-text-2)!important;
+}
+.ika94-quickdesk-stats > div small{
+  color:var(--ika-dark-muted-2)!important;
+}
+
+/* Karty klasyfikacji zakończonych kategorii */
+.ranking-result-grid article{
+  background:var(--ika-dark-panel-2)!important;
+  border:1px solid var(--ika-dark-border-2)!important;
+}
+.ranking-result-grid article > div{
+  background:transparent!important;
+  border-top:1px solid var(--ika-dark-border-2)!important;
+}
+.ranking-result-grid article h3,
+.ranking-result-grid article b,
+.ranking-result-grid article span,
+.ranking-result-grid article small{
+  color:var(--ika-dark-text-2)!important;
+}
+.ranking-result-grid article > small,
+.ranking-result-grid .ika-ranking-podium-club,
+.ranking-result-grid article > div span{
+  color:var(--ika-dark-muted-2)!important;
+}
+.ranking-result-grid article > small{ color:var(--ika-dark-accent-2)!important; }
+
+/* Topbar i przełączniki języka / wylogowania */
+:is(.topbar,.dashboard-topbar){background:#090b10!important;border-color:#1d212a!important}
+:is(.topbar,.dashboard-topbar) :is(button,a.btn):not(.btn-primary){
+  background:#232732!important;
+  color:var(--ika-dark-text-2)!important;
+  border-color:#434958!important;
+}
+:is(.topbar,.dashboard-topbar) :is(.btn-outline,.btn-ghost){
+  background:#232732!important;
+  color:var(--ika-dark-text-2)!important;
+}
+:is(.topbar,.dashboard-topbar) :is([class*='lang'],[class*='language']){
+  background:#1d212b!important;
+  color:var(--ika-dark-text-2)!important;
+  border-color:#434958!important;
+}
+
+/* Formularze i selecty */
+:is(input:not([type='checkbox']):not([type='radio']):not([type='file']),select,textarea){
+  background:#10141b!important;
+  color:var(--ika-dark-text-2)!important;
+  border-color:#4a5161!important;
+}
+select option{background:#161a22!important;color:#fff!important}
+
+/* Napisy pomocnicze */
+:is(
+  .section-title p,
+  .panel-section-head p,
+  .setup-card > p,
+  .page-heading p,
+  .auth-card > p,
+  .organizer-start-card p,
+  .create-section-head p,
+  .schedule-editor-info span,
+  .schedule-editor-info small,
+  .auto-schedule-note small,
+  .parent-entry span,
+  .parent-time small,
+  .parent-athlete-head p,
+  .empty-state p,
+  .stat-card span,
+  .stat-card small,
+  .training-summary small,
+  .competition-picker-item small,
+  .form-stack label,
+  .form-grid label,
+  .entry-builder label,
+  .photo-picker,
+  .schedule-editor-row label,
+  .lookup-hero > p,
+  .privacy-note,
+  .catalog-row small,
+  .hero-screen p,
+  .hero-screen small,
+  .ika94-quickdesk p
+){
+  color:var(--ika-dark-muted-2)!important;
+}
+
+/* Zachowaj czerwone akcenty */
+:is(.eyebrow,.ika94-eyebrow,.section-title .eyebrow) { color:var(--ika-dark-accent-2)!important; }
+:is(.btn-primary,.organizer-create-btn){background:var(--ika-dark-accent-2)!important;color:#fff!important;border-color:var(--ika-dark-accent-2)!important}
+:is(.btn-primary,.organizer-create-btn):hover{background:#c91d15!important}
+
+/* Nie psuj białej strony SHIRO i ekranów walk/TV */
+:is(.tatami-screen,.telebim,.fighter,.judge-fighter.side-white,.bracket-white-side,.match-side-white){color:inherit}
+:is(.fighter-white,.judge-fighter.side-white,.match-side-white,.bracket-white-side){color:#111!important}
+:is(.fighter-white,.judge-fighter.side-white,.match-side-white,.bracket-white-side) :is(h1,h2,h3,p,strong,span,b,small,em){color:inherit!important}
+
+@media print{
+  html,body,#root{background:#fff!important;color:#111!important}
+}
