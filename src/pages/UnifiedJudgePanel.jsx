@@ -14,6 +14,7 @@ export default function UnifiedJudgePanel() {
   const [revision, setRevision] = useState(0)
   const [error, setError] = useState('')
   const switchedAt = useRef(0)
+  const WINNERS_DISPLAY_MS = 20000
 
   useEffect(() => {
     const refresh = () => setRevision(value => value + 1)
@@ -59,8 +60,12 @@ export default function UnifiedJudgePanel() {
   const fromUrl = items.find(item => item.kind === 'kata' && item.session?.id === params.get('sessionId')) ||
     items.find(item => item.kind === 'kumite' && item.category.competitionId === params.get('competitionId') && item.category.name === params.get('category'))
   const next = items.find(item => item.prepared && !item.done)
-  // Aktywny pojedynek/ocenianie ma zawsze pierwszenstwo. Nie wracamy do zakonczonych kategorii.
-  const chosen = ongoing || (current?.prepared && !current.done ? current : null) ||
+  // Po zakończeniu kategorii utrzymuj panel poprzedniej konkurencji przez 20 sekund.
+  // Tatami TV w tym czasie pozostaje w trybie podium / zwycięzców.
+  const holdWinners = Boolean(current?.done && switchedAt.current &&
+    Date.now() - switchedAt.current < WINNERS_DISPLAY_MS)
+  const chosen = ongoing || (holdWinners ? current : null) ||
+    (current?.prepared && !current.done ? current : null) ||
     (fromUrl?.prepared && !fromUrl.done ? fromUrl : null) || next || null
 
   // Zaznacz moment domkniecia aktualnej kategorii, aby wynik byl widoczny przed zmiana.
@@ -77,7 +82,7 @@ export default function UnifiedJudgePanel() {
     // Dodatkowy bezpiecznik - nie przelaczamy stanowiska w trakcie punktowania.
     if (items.some(item => item.busy && item !== chosen)) return
     // Pozwalamy poprzedniej kategorii pokazac wynik koncowy na TV.
-    if (current?.done && Date.now() - switchedAt.current < 6000) return
+    if (current?.done && (holdWinners || !switchedAt.current)) return
     try {
       const activeFight = chosen.ownMatches.find(item => item.status === 'active')
       const kataMode = chosen.session?.phase === 'scores' ? 'kata-scores' :
