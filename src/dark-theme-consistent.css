@@ -1,0 +1,96 @@
+/* IKA Poland | ujednolicony ciemny motyw – poprawka kontrastu.
+ * Wczytywany po pozostałych stylach. Wydruki oraz ekrany TV zachowują własną kolorystykę. */
+:root { --ika-fix-bg:#0c0e13; --ika-fix-card:#191d26; --ika-fix-elev:#242a36; --ika-fix-border:#424958; --ika-fix-text:#f4f6fc; --ika-fix-muted:#b8c3d3; --ika-fix-red:#e1261c; }
+
+/* Zastąp białe powierzchnie – tylko interfejs aplikacji. */
+:is(.dashboard-main,.public-page,.ranking-page,.auth-page,.section-wrap,.organizer-start-screen) {
+  color:var(--ika-fix-text);
+}
+:is(.panel-section,.setup-card,.stat-card,.form-card,.auth-card,.competition-card,.training-card,
+ .home-mini-list article,.parent-athlete-card,.parent-entry,.organizer-start-card,.create-tournament-section,
+ .competition-picker-group,.competition-picker-item,.custom-competition-box,.schedule-card,.schedule-editor-row,
+ .catalog-row,.simple-admin-list>div,.match-control,.auto-schedule-note,.table-wrap,.demo-box,
+ .empty-state,.empty-icon,.ika94-quickdesk,.ika94-center-tabs,.ika94-mat-overview,
+ .ranking-result-grid article,.bracket-admin-section,.kata-admin-section,.kata-admin-row,
+ .kata-toolbar,.bracket-toolbar,.bracket-builder,.bracket-tabs,.bracket-tab,
+ .auto-tv-panel,.auto-tv-settings,.auto-tv-status,.auto-tv-controls,.auto-tv-help,
+ .role-manager,.organizer-role-manager,.registration-deadline-preview,
+ .athlete-identifiers-info,.identifiers-info,.identifiers-ready,.club-card,.club-list-row,
+ .organizer-club-row,.organizer-club-card,.category-mat-item,.category-assignment-item,
+ .category-mat-card,.category-item,.category-row,.schedule-editor-row,
+ .ranking-tabs button,.ranking-table-wrap) {
+  background:var(--ika-fix-card)!important;
+  color:var(--ika-fix-text)!important;
+  border-color:var(--ika-fix-border)!important;
+}
+/* Konkretne białe elementy widoczne na zrzutach: zakładki, lista kata, kluby, tatami i AUTO TV. */
+:is(.ika94-center-tabs,.ika94-center-tabs button,.ika94-mat-overview,
+ .ika94-quickdesk-stats>div,.kata-admin-row,.kata-admin-row.done,.kata-admin-row.active,
+ .kata-admin-row>b,.auto-tv-badge,.auto-tv-panel,.auto-tv-panel>div,
+ .ranking-result-grid article,.ranking-result-grid article>div,
+ .bracket-toolbar,.bracket-toolbar>div,.bracket-toolbar>button,
+ .registration-deadline-status,.registration-deadline-status.closed,
+ .registration-deadline-admin .panel-section-head,
+ .organizer-club-management article,.organizer-club-management li,
+ .organizer-club-management .club-card,
+ .category-assignment-item,.category-mat-item,.category-mat-card) {
+  background:var(--ika-fix-card)!important;
+  color:var(--ika-fix-text)!important;
+  border-color:var(--ika-fix-border)!important;
+}
+/* Karty i rzędy wewnątrz sekcji administratora - bez naruszania reszty widoków. */
+.organizer-club-management :is(article,li,[class*='club-row'],[class*='club-item']),
+.panel-section :is([class*='mat-assignment'],[class*='category-assignment'],[class*='deadline-preview'],[class*='identifiers-ready'],[class*='tatami-status'],[class*='mat-status'],[class*='club-management'],[class*='role-user'],[class*='user-row']),
+.public-page :is([class*='step-card'],[class*='club-step'],[class*='tatami-card'],[class*='schedule-item'],[class*='upcoming-start']),
+.dashboard-main :is([class*='bracket-canvas'],[class*='bracket-container'],[class*='bracket-wrapper'],[class*='bracket-stage'],[class*='bracket-header'],[class*='bracket-round'],[class*='bracket-round-header'],[class*='bracket-match'],[class*='bracket-side'],[class*='bracket-controls']) {
+  background:var(--ika-fix-card)!important;
+  color:var(--ika-fix-text)!important;
+  border-color:var(--ika-fix-border)!important;
+}
+/* Drabinki: elementy wymagające nieco jaśniejszej powierzchni, nadal ciemne. */
+.dashboard-main :is([class*='bracket-match'],[class*='bracket-side'],[class*='bracket-athlete'],[class*='bracket-fight'],[class*='bracket-round-header']) {
+  background:var(--ika-fix-elev)!important;
+}
+/* Pasek i listy kata, zachowanie aktywnych wierszy. */
+.kata-admin-row.done {border-left:4px solid #45a969!important}
+.kata-admin-row.active {border-left:4px solid var(--ika-fix-red)!important}
+.kata-admin-row :is(strong,b,h3),
+.ranking-result-grid article :is(h3,strong,b),
+.organizer-club-management :is(strong,b,h3),
+.panel-section :is([class*='category-assignment'],[class*='mat-assignment']) :is(strong,b,span,small){color:var(--ika-fix-text)!important}
+:is(.kata-admin-row>div span,.ranking-result-grid article>div span,.auto-tv-panel small,
+ .panel-section-head p,.organizer-club-management small,.organizer-club-management p,
+ .registration-deadline-admin small,.auto-tv-status small){color:var(--ika-fix-muted)!important}
+/* Przyciskom zachowaj semantykę: czerwone działanie podstawowe, ciemne pozostałe. */
+:is(.dashboard-main,.public-page,.auth-page,.ranking-page) :is(button,.btn,a.btn):not(.btn-primary):not(.organizer-create-btn):not(.judge-winner):not(.btn-danger),
+.ika94-center-tabs button,.bracket-tab,.ranking-tabs button {
+  background:var(--ika-fix-elev)!important;
+  color:var(--ika-fix-text)!important;
+  border-color:var(--ika-fix-border)!important;
+}
+/* Czerwone najechanie i aktywna zakładka Centrum zawodów. */
+.ika94-center-tabs :is(button,a):hover,
+.ika94-center-tabs :is(button,a):focus-visible,
+.ranking-tabs button:hover,
+.bracket-tabs button:hover,
+.dashboard-main .ika94-center-tabs button:hover {
+  background:var(--ika-fix-red)!important;
+  border-color:var(--ika-fix-red)!important;
+  color:white!important;
+}
+.ika94-center-tabs :is(button.active,button[aria-selected='true'],button[aria-pressed='true']),
+.ranking-tabs button.active {background:#842019!important;color:#fff!important;border-color:#d22c21!important}
+.ika94-center-tabs button.active:hover,.ranking-tabs button.active:hover {background:var(--ika-fix-red)!important}
+/* Teksty w sekcjach i formularzach. */
+:is(.dashboard-main,.public-page,.ranking-page,.auth-page) :is(input:not([type=checkbox]):not([type=radio]),select,textarea) {
+  background:#11161f!important;color:#f4f6fc!important;border-color:#50596d!important;
+}
+:is(.dashboard-main,.public-page,.ranking-page,.auth-page) :is(input,textarea)::placeholder {color:#abb6c8!important}
+:is(.dashboard-main,.public-page,.ranking-page,.auth-page) :is(label,small,.muted-copy,.field-hint) {color:var(--ika-fix-muted)}
+/* Osobny wyjątek: medale, statusy i kolory stron walk pozostają funkcjonalne. */
+:is(.btn-primary,.organizer-create-btn){background:var(--ika-fix-red)!important;color:#fff!important;border-color:var(--ika-fix-red)!important}
+/* Ekrany TV i SHIRO wyłączone z globalnych selektorów. */
+@media print {
+  html,body,#root {background:#fff!important;color:#111!important}
+  .panel-section,.table-wrap,th,td,.kata-admin-row,.ranking-result-grid article {background:#fff!important;color:#111!important;border-color:#bbb!important}
+}
