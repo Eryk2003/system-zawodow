@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { db } from '../lib/demoStore'
 import JudgePanel from './JudgePanel'
 import KataJudgePanel from './KataJudgePanel'
+import TournamentPodiumTop3 from '../components/TournamentPodiumTop3.jsx'
 
 // Jeden panel sedziego. Konkurencja wynika z aktualnego tatami i harmonogramu.
 // Oryginalne moduly kata/kumite zachowuja cala logike ocen i walk.
@@ -34,6 +35,23 @@ export default function UnifiedJudgePanel() {
   const matches = db.getMatches()
   const sessions = db.getKataSessions()
   const matState = db.getMatState(matName) || {}
+  // Wyniki ostatniej ukonczonej kategorii sa pobierane z zapisanych rezultatow,
+  // a nie z adresu URL lub tymczasowego stanu ekranu.
+  const lastPodium = db.getTournamentPodiums()
+    .filter(item => item.mat === matName && item.placements?.length)
+    .sort((a, b) => Number(b.completedAt || 0) - Number(a.completedAt || 0))[0] || null
+  const athletes = db.getAthletes()
+  const clubs = db.getClubs()
+  const podiumAthlete = athleteId => {
+    const athlete = athletes.find(item => item.id === athleteId)
+    if (!athlete) return null
+    const club = clubs.find(item => item.id === athlete.clubId)
+    return {
+      name: `${athlete.firstName || ''} ${athlete.lastName || ''}`.trim(),
+      club: club?.shortName || club?.name || '',
+      photo: athlete.photo || '',
+    }
+  }
   const items = categories.flatMap(category => {
     const competition = competitions.find(value => value.id === category.competitionId)
     const kind = competition?.group === 'Kata' ? 'kata' : competition?.group === 'Kumite' ? 'kumite' : null
@@ -112,7 +130,24 @@ export default function UnifiedJudgePanel() {
 
 
   if (error) return <div role="alert" style={{ padding: 24, color: '#ae1d16' }}>{error}</div>
-  if (!chosen) return <div style={{ padding: 24 }}>Na {matName} nie ma kolejnej przygotowanej kategorii. Panel automatycznie wznowi pracę, gdy pojawi się drabinka kumite lub lista kata.</div>
+  if (!chosen && lastPodium) return (
+    <main style={{ minHeight: '100vh', background: '#090b10', color: '#f4f6fb' }}>
+      <div style={{ padding: '18px 24px', background: '#171b23', borderBottom: '1px solid #383e4d', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        <div>
+          <strong style={{ color: '#e1261c' }}>IKA POLAND · {matName}</strong>
+          <div style={{ marginTop: 5, fontSize: 14 }}>Ostatnia zakończona konkurencja: {lastPodium.competitionName} - {lastPodium.categoryName}</div>
+        </div>
+        <span style={{ fontSize: 13, color: '#b8c1d0' }}>Oczekiwanie na kolejną przygotowaną konkurencję</span>
+      </div>
+      <TournamentPodiumTop3
+        podium={lastPodium}
+        matName={matName}
+        tournamentName={db.getTournament().name || ''}
+        getAthlete={podiumAthlete}
+      />
+    </main>
+  )
+  if (!chosen) return <div style={{ padding: 24 }}>Na {matName} nie ma jeszcze zakończonej ani przygotowanej konkurencji. Panel wznowi pracę, gdy pojawi się drabinka kumite lub lista kata.</div>
   return chosen.kind === 'kata'
     ? <KataJudgePanel key={`kata:${matName}:${chosen.session.id}`} />
     : <JudgePanel key={`kumite:${matName}:${chosen.category.id}`} />
