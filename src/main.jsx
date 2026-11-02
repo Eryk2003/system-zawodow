@@ -16,6 +16,7 @@ import './dark-theme-actual-selectors.css'
 import './ika-red-tabs.css'
 import './ika-tv-bracket-fullheight.css'
 import './center-clean.css'
+import './ranking-places-fix.css'
 
 function renderApp() {
   ReactDOM.createRoot(document.getElementById('root')).render(

@@ -1,0 +1,12 @@
+/* IKA Poland: czytelne numery wszystkich miejsc w ciemnej klasyfikacji. */
+.ranking-page .ranking-table .ranking-place {
+  color: #111827 !important;
+  background: #e5e7eb !important;
+  font-weight: 900 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+.ranking-page .ranking-table .ranking-top-1 .ranking-place {background:#f3d778!important;color:#241900!important;-webkit-text-fill-color:#241900!important}
+.ranking-page .ranking-table .ranking-top-2 .ranking-place {background:#d9dde2!important;color:#18212c!important;-webkit-text-fill-color:#18212c!important}
+.ranking-page .ranking-table .ranking-top-3 .ranking-place {background:#d6a06c!important;color:#2c1808!important;-webkit-text-fill-color:#2c1808!important}
+@media print {.ranking-page .ranking-table .ranking-place {color:#111!important;-webkit-text-fill-color:#111!important}}
