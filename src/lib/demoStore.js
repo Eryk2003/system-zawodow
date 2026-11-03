@@ -1086,9 +1086,11 @@ export const db = {
     const index = sessions.findIndex((session) => session.id === sessionId)
     if (index < 0) return null
     const session = sessions[index]
+    // IKA_KATA_NO_REWIND_20261103: kolejka nie cofa sie do poprzednich zawodnikow.
     const resultIndex = (session.results || []).findIndex((result, idx) => idx >= Number(session.currentIndex || 0) && result.status !== 'done')
-    const fallbackIndex = (session.results || []).findIndex((result) => result.status !== 'done')
-    const currentIndex = resultIndex >= 0 ? resultIndex : fallbackIndex
+    const earlierPending = (session.results || []).some((result, idx) => idx < Number(session.currentIndex || 0) && result.status !== 'done')
+    if (resultIndex < 0 && earlierPending) throw new Error('Wykryto niespojnosc kolejki kata: wczesniejszy zawodnik nie ma zatwierdzonej oceny. Sprawdz wyniki przed kontynuowaniem.')
+    const currentIndex = resultIndex
     if (currentIndex < 0) throw new Error('Wszyscy zawodnicy w tej kategorii zostali już ocenieni.')
     const current = session.results[currentIndex]
     const results = session.results.map((result, idx) => idx === currentIndex ? { ...result, status: 'active' } : result.status === 'active' ? { ...result, status: 'pending' } : result)
@@ -1169,14 +1171,17 @@ export const db = {
     const currentIndex = Number(session.currentIndex || 0)
     const result = session.results?.[currentIndex]
     if (!result) return null
+    if (result.status === 'done') throw new Error('Ocena tego zawodnika zostala juz zatwierdzona. Nie zapisuj jej ponownie.')
     const calculation = calculateKataFinalScore(result.scores, session.judgeCount)
     if (!calculation) throw new Error(`Wpisz oceny wszystkich ${session.judgeCount} sędziów.`)
     const now = Date.now()
     const completedResult = { ...result, ...calculation, status: 'done', completedAt: now }
     const results = session.results.map((item, idx) => idx === currentIndex ? completedResult : item)
+    // IKA_KATA_NO_REWIND_20261103: nie wybieramy ponownie zawodnikow sprzed aktualnej pozycji.
     const nextIndex = results.findIndex((item, idx) => idx > currentIndex && item.status !== 'done')
-    const fallbackIndex = results.findIndex((item) => item.status !== 'done')
-    const pendingIndex = nextIndex >= 0 ? nextIndex : fallbackIndex
+    const earlierPending = results.some((item, idx) => idx < currentIndex && item.status !== 'done')
+    if (nextIndex < 0 && earlierPending) throw new Error('Wykryto niespojnosc kolejki kata: wczesniejszy zawodnik ma brakujaca ocene. Zatrzymano automatyczne przejscie, aby nie nadpisac wynikow.')
+    const pendingIndex = nextIndex
     const hasNext = pendingIndex >= 0
 
     if (!hasNext && isTwoRoundKataSession(session) && Number(session.roundNumber || 1) === 1) {
