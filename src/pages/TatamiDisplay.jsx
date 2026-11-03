@@ -318,7 +318,15 @@ export default function TatamiDisplay() {
         <section className="kata-final-stage">
           <div className="kata-final-athlete"><div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div><div><h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1><p>{athlete?.clubName || ''}</p>{result?.kataName && <div className="kata-final-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}</div></div>
           <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>{Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index} className={dropped.has(index) ? 'dropped' : ''}><span>JUDGE {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong>{dropped.has(index) && <small>EXCLUDED</small>}</article>)}</div>
-          <div className="kata-final-total"><span>FINAL SCORE</span><strong>{scoreText(result?.finalScore)}</strong>{payload.kata.judgeCount === 5 && <small>The highest and lowest scores are excluded.</small>}</div>
+          <div className="kata-final-total">
+            {/* IKA-KATA-TWO-ROUND-TOTAL-2026-11 */}
+            {Number(payload.kata.session.roundNumber || 1) === 2 && (payload.kata.preliminaryResults || []).some(item => item.athleteId === result?.athleteId) ? (() => {
+              const first = payload.kata.preliminaryResults.find(item => item.athleteId === result?.athleteId)
+              const combined = Math.round((Number(first.finalScore || 0) + Number(result?.finalScore || 0)) * 100) / 100
+              return <><span>ROUND 1: {scoreText(first.finalScore)} + ROUND 2: {scoreText(result?.finalScore)}</span><strong>TOTAL: {scoreText(combined)}</strong></>
+            })() : <><span>FINAL SCORE</span><strong>{scoreText(result?.finalScore)}</strong></>}
+            {payload.kata.judgeCount === 5 && <small>The highest and lowest scores are excluded in each round.</small>}
+          </div>
         </section>
       </main>
     )

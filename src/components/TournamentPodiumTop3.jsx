@@ -94,6 +94,12 @@ export default function TournamentPodiumTop3({ podium, matName, tournamentName, 
                 <div className="final-result-person">
                   <strong>{athleteName}</strong>
                   <span>{clubName}</span>
+                  {/* IKA-KATA-TWO-ROUND-TOTAL-2026-11 */}
+                  {podium?.source === 'kata' && placement.round1Score != null && (
+                    <small style={{ display: 'block', color: '#f4f6fb', fontWeight: 700, fontSize: 'clamp(13px, 1.4vw, 20px)', lineHeight: 1.2, marginTop: 4 }}>
+                      R1 {String(placement.round1Score).replace('.', ',')} + R2 {String(placement.round2Score).replace('.', ',')} = {String(placement.totalScore).replace('.', ',')}
+                    </small>
+                  )}
                 </div>
                 <em>{label}</em>
               </article>

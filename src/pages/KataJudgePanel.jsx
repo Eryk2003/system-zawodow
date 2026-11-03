@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { db } from '../lib/demoStore'
+import { db, getKataCombinedResults } from '../lib/demoStore'
 import { openTatamiTvWindow } from '../lib/tvWindow'
 import { KATA_GROUPS } from '../lib/kataCatalog'
 import { searchKataCatalog } from '../lib/kataAutocomplete'
@@ -102,7 +102,7 @@ export default function KataJudgePanel() {
   const current = session?.results?.[session.currentIndex] || null
   const currentAthlete = athleteInfo(current?.athleteId)
   const completed = orderedResults.filter((result) => result.status === 'done')
-  const liveRanking = completed.slice().sort((a, b) => Number(b.finalScore || 0) - Number(a.finalScore || 0) || Number(b.rawTotal || 0) - Number(a.rawTotal || 0))
+  const liveRanking = getKataCombinedResults(session) // IKA-KATA-TWO-ROUND-TOTAL-2026-11
 
   const run = (action, success = '') => {
     try {
@@ -264,7 +264,7 @@ export default function KataJudgePanel() {
           <div className="kata-live-ranking">
             {liveRanking.map((result, index) => {
               const info = athleteInfo(result.athleteId)
-              return <div key={result.athleteId}><b>{index + 1}</b><strong>{info.name}</strong><span>{info.club}</span><em>{scoreText(result.finalScore)}</em></div>
+              return <div key={result.athleteId}><b>{index + 1}</b><strong>{info.name}</strong><span>{info.club}</span><em>{result.round1Score != null ? `R1: ${scoreText(result.round1Score)} + R2: ${scoreText(result.round2Score)} = ${scoreText(result.totalScore)}` : scoreText(result.totalScore)}</em></div>
             })}
           </div>
         </section>
