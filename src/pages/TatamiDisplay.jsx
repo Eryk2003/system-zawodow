@@ -387,7 +387,7 @@ export default function TatamiDisplay() {
             <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
             <p>{m.redAthlete?.clubName || ''}</p>
             {redWinner && <div className="ika105-winner-badge">WINNER</div>}
-            <strong className="score-number">{scoreText(m.redScore)}</strong>
+            
             <TechniqueScoreColumns match={m} side="red" mode="tv" />
             <TvPenaltyColumns match={m} side="red" />
           </div>
@@ -410,7 +410,7 @@ export default function TatamiDisplay() {
             <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
             <p>{m.blueAthlete?.clubName || ''}</p>
             {blueWinner && <div className="ika105-winner-badge">WINNER</div>}
-            <strong className="score-number">{scoreText(m.blueScore)}</strong>
+            
             <TechniqueScoreColumns match={m} side="blue" mode="tv" />
             <TvPenaltyColumns match={m} side="blue" />
           </div>

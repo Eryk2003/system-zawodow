@@ -31,7 +31,7 @@ export default function TechniqueScoreColumns({ match, side, mode = 'judge', onC
                 </button>
               </div>
             )}
-            <small>{mode === 'tv' ? (technique === 'wazari' ? '1 PT' : '2 PTS') : points}</small>
+            {mode !== 'tv' && <small>{points}</small>}
           </div>
         )
       })}
