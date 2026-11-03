@@ -1,31 +1,47 @@
 import React from 'react'
+import { db } from '../lib/demoStore'
 import './AthleteIdentifierModern.css'
 
 const padNumber = (value) => String(Number(value || 0)).padStart(3, '0')
 const safeText = (value, fallback = '-') => String(value || '').trim() || fallback
 
-/** IKA Poland - wizualizacja identyfikatora. Bez zmiany QR, numerow i logiki wydruku. */
+const eventDate = (value) => {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/)
+  return match ? `${match[3]}.${match[2]}.${match[1]}` : ''
+}
+
+// Dane zawodów pochodzą z istniejącej konfiguracji. QR i numery nie są modyfikowane.
 export default function AthleteIdentifierModern({ row, onPrintOne }) {
+  const tournament = db.getTournament()
   const athlete = row.athlete || {}
   const athleteName = `${safeText(athlete.firstName, '')} ${safeText(athlete.lastName, '')}`.trim()
   const club = row.club?.name || row.club?.shortName || 'Klub niepodany'
   const country = row.club?.country || 'Polska'
-  // DOKLADNIE ten sam adres i te same parametry QR co w poprzednim identyfikatorze.
   const lookupUrl = `${window.location.origin}/zawodnik?athlete=${encodeURIComponent(athlete.id)}`
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=8&format=png&data=${encodeURIComponent(lookupUrl)}`
   const initials = `${athlete.firstName?.[0] || ''}${athlete.lastName?.[0] || ''}`.toUpperCase()
   const categories = row.categories || []
   const list = categories.slice(0, 2)
   const extraCategories = Math.max(0, categories.length - list.length)
+  const date = eventDate(tournament?.date)
+  const start = String(tournament?.startTime || '').trim()
+  const venue = String(tournament?.venue || '').trim()
+  const eventName = String(tournament?.name || 'Zawody karate').trim()
+  const scheduleInfo = [date, start ? `godz. ${start}` : ''].filter(Boolean).join(' • ')
+
   return (
     <div className="athlete-id-card-wrap" data-athlete-id={athlete.id}>
-      <article className="athlete-id-card athlete-id-card-art ika-badge-modern" aria-label={`Identyfikator zawodnika ${athleteName}`}>
+      <article className="athlete-id-card athlete-id-card-art ika-badge-modern ika-badge-event" aria-label={`Identyfikator zawodnika ${athleteName}`}>
         <div className="ika-badge-top">
-          <div className="ika-badge-brand">
-            <img src="/ika-poland-logo.jpg" alt="IKA Poland" />
-            <div><strong>IKA <span>POLAND</span></strong><small>SYSTEM ZAWODÓW</small></div>
+          <div className="ika-badge-brand ika-badge-event-name">
+            <strong>{eventName}</strong>
           </div>
           <div className="ika-badge-tag">ZAWODNIK</div>
+        </div>
+
+        <div className="ika-badge-event-details">
+          {scheduleInfo && <span><b>DATA I START</b>{scheduleInfo}</span>}
+          {venue && <span><b>MIEJSCE</b>{venue}</span>}
         </div>
 
         <div className="ika-badge-hero">
@@ -36,7 +52,6 @@ export default function AthleteIdentifierModern({ row, onPrintOne }) {
             <span>NUMER STARTOWY</span>
             <strong>{padNumber(row.startNumber)}</strong>
             <div className="ika-badge-stripe" />
-            <small>OFFICIAL COMPETITOR</small>
           </div>
         </div>
 
@@ -61,7 +76,7 @@ export default function AthleteIdentifierModern({ row, onPrintOne }) {
             <span>SKANUJ QR</span>
           </div>
         </div>
-        <div className="ika-badge-footer">SPRAWDŹ GODZINY STARTÓW I STATUS ZAWODNIKA</div>
+        <div className="ika-badge-footer">GODZINY STARTÓW I TATAMI — ZESKANUJ QR</div>
       </article>
       <button className="btn btn-outline athlete-id-print-one print-screen-only" type="button" onClick={() => onPrintOne(athlete.id)}>
         Drukuj ten identyfikator

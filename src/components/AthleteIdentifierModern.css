@@ -70,3 +70,135 @@
   }
   .ika-badge-modern *, .ika-badge-modern *::before { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
 }
+
+
+/* IKA BADGE EVENT: tylko identyfikatory, bez zmian pozostałego UI i QR */
+.athlete-id-card.ika-badge-modern.ika-badge-event {
+  display: flex !important;
+  flex-direction: column !important;
+  aspect-ratio: 3 / 4;
+}
+.ika-badge-event .ika-badge-top {
+  height: auto;
+  min-height: 18cqw;
+  flex: 0 0 auto;
+  padding: 2.2cqw 3.5cqw;
+  align-items: center;
+  gap: 2cqw;
+}
+.ika-badge-event .ika-badge-event-name {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.ika-badge-event .ika-badge-event-name > strong {
+  font-size: clamp(9px, 4.6cqw, 28px);
+  line-height: 1.02;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  color: #fff !important;
+}
+.ika-badge-event .ika-badge-tag { flex: 0 0 auto; }
+.ika-badge-event .ika-badge-event-details {
+  display: grid;
+  gap: .65cqw;
+  padding: 1.4cqw 3.5cqw 1.6cqw;
+  background: #172130;
+  border-bottom: .15cqw solid #475062;
+  color: #f4f5f8;
+  flex: 0 0 auto;
+}
+.ika-badge-event .ika-badge-event-details span {
+  display: flex;
+  gap: 1.7cqw;
+  align-items: baseline;
+  min-width: 0;
+  font-size: 2.55cqw;
+  font-weight: 750;
+  line-height: 1.11;
+  overflow-wrap: anywhere;
+}
+.ika-badge-event .ika-badge-event-details b {
+  color: #fa9b91;
+  flex: 0 0 19cqw;
+  font-size: 1.95cqw;
+  font-weight: 950;
+  letter-spacing: .09em;
+}
+.ika-badge-event .ika-badge-hero {
+  flex: 0 0 35cqw;
+  grid-template-columns: 32cqw 1fr;
+  gap: 3cqw;
+  padding: 2cqw 4cqw;
+  align-items: stretch;
+  min-height: 0;
+}
+.ika-badge-event .ika-badge-photo {
+  width: 32cqw;
+  height: 31cqw;
+}
+.ika-badge-event .ika-badge-number-wrap > strong {
+  font-size: 21cqw;
+  margin-top: .4cqw;
+}
+.ika-badge-event .ika-badge-stripe { margin-top: 1cqw; }
+.ika-badge-event .ika-badge-name {
+  flex: 0 0 auto;
+  min-height: 17cqw;
+  padding: 1.2cqw 4cqw 1.6cqw;
+  gap: .7cqw;
+  background: #f4f6fa !important;
+}
+.ika-badge-event .ika-badge-name small { color: #596170 !important; }
+.ika-badge-event .ika-badge-name strong {
+  display: block;
+  font-size: 6.1cqw;
+  line-height: 1.13;
+  letter-spacing: -.04em;
+  color: #071320 !important;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  max-height: none;
+}
+.ika-badge-event .ika-badge-meta {
+  flex: 0 0 auto;
+  min-height: 14cqw;
+  padding: 1.4cqw 4cqw;
+  gap: 2cqw;
+}
+.ika-badge-event .ika-badge-meta strong {
+  font-size: 3.15cqw;
+  line-height: 1.1;
+}
+.ika-badge-event .ika-badge-bottom {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 2cqw 4cqw 1cqw;
+}
+.ika-badge-event .ika-badge-categories {
+  gap: .6cqw;
+  overflow: hidden;
+}
+.ika-badge-event .ika-badge-categories > strong {
+  font-size: 2.65cqw;
+  line-height: 1.16;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+.ika-badge-event .ika-badge-qr { flex-shrink: 0; }
+.ika-badge-event .ika-badge-footer {
+  flex: 0 0 5cqw;
+  height: 5cqw;
+  font-size: 1.9cqw;
+  line-height: 1.1;
+}
+@media print {
+  .athlete-id-card.ika-badge-event {
+    height: 122.666mm !important;
+    width: 92mm !important;
+    aspect-ratio: 3/4 !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+}

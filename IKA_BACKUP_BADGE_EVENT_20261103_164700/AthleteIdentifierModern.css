@@ -1,0 +1,72 @@
+/* IKA POLAND - nowy wyglad identyfikatora. Ograniczone wylacznie do .ika-badge-modern */
+.athlete-id-card.ika-badge-modern {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  min-height: 0;
+  background: #111620 !important;
+  color: #fff !important;
+  border: 1px solid #333c4b !important;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 22px 48px rgba(0,0,0,.26);
+  container-type: inline-size;
+  isolation: isolate;
+}
+.ika-badge-modern::before { display: none !important; }
+.ika-badge-modern * { box-sizing: border-box; }
+.ika-badge-top {
+  display: flex; align-items: center; justify-content: space-between; gap: 2cqw;
+  height: 17cqw; flex: 0 0 17cqw;
+  padding: 2.3cqw 4cqw;
+  background: #080b11; border-bottom: .6cqw solid #e1261c;
+}
+.ika-badge-brand { display: flex; align-items: center; min-width: 0; gap: 2cqw; }
+.ika-badge-brand img { width: 10cqw; height: 10cqw; object-fit: contain; border-radius: 1.3cqw; background: #fff; padding: .5cqw; }
+.ika-badge-brand div { display: grid; min-width: 0; gap: .5cqw; }
+.ika-badge-brand strong { font-size: 4.6cqw; line-height: 1; letter-spacing: -.02em; color: #fff !important; white-space: nowrap; }
+.ika-badge-brand strong span { color: #f04438; }
+.ika-badge-brand small { font-size: 1.9cqw; letter-spacing: .12em; font-weight: 800; color: #cbd3e0; }
+.ika-badge-tag { padding: 1.5cqw 1.8cqw; border-radius: 1cqw; color: #fff; background: #b41b15; font-size: 2.1cqw; font-weight: 950; letter-spacing: .08em; }
+.ika-badge-hero {
+  display: grid; grid-template-columns: 35cqw 1fr; gap: 4cqw; padding: 4cqw 4cqw 2cqw;
+  flex: 0 0 43cqw; min-height: 0;
+  background: radial-gradient(circle at 94% 2%,rgba(226,38,28,.22),transparent 60%),linear-gradient(145deg,#1b2432,#10141d);
+}
+.ika-badge-photo { display: grid; place-items: center; width: 35cqw; height: 37cqw; overflow: hidden; border: .6cqw solid #e4e9f3; border-radius: 2.4cqw; background: #2e3849; }
+.ika-badge-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ika-badge-photo span { font-size: 13cqw; font-weight: 950; color: #fff; }
+.ika-badge-number-wrap { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-width: 0; padding-top: 1cqw; }
+.ika-badge-number-wrap > span { color: #c8d1e2; font-size: 2.6cqw; font-weight: 900; letter-spacing: .11em; }
+.ika-badge-number-wrap > strong { margin: 1.3cqw 0 0; font-size: 23cqw; line-height: .95; letter-spacing: -.06em; color: #fff !important; font-weight: 950; font-variant-numeric: tabular-nums; }
+.ika-badge-stripe { height: 1cqw; width: 17cqw; margin-top: 2cqw; background: #e1261c; border-radius: .5cqw; }
+.ika-badge-number-wrap > small { margin-top: 2cqw; color: #b6c0d0; font-size: 2cqw; letter-spacing: .08em; font-weight: 800; }
+.ika-badge-name { display: flex; flex-direction: column; justify-content: center; padding: 1cqw 4cqw 2cqw; min-height: 18cqw; flex: 0 0 18cqw; background: #f4f6fa; }
+.ika-badge-name small { color: #596170; font-size: 2.2cqw; font-weight: 950; letter-spacing: .1em; }
+.ika-badge-name strong { color: #111827 !important; font-weight: 950; font-size: 7cqw; line-height: 1.06; overflow-wrap: anywhere; letter-spacing: -.045em; }
+.ika-badge-meta { display: grid; grid-template-columns: 1.6fr 1fr; flex: 0 0 19cqw; min-height: 19cqw; padding: 2.2cqw 4cqw; gap: 2cqw; border-bottom: .25cqw solid #394354; background: #18212d; }
+.ika-badge-meta > div { min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: .8cqw; }
+.ika-badge-meta small, .ika-badge-categories > small { color: #b7c2d2; font-size: 2cqw; font-weight: 900; letter-spacing: .1em; }
+.ika-badge-meta strong { color: #fff !important; font-weight: 850; font-size: 3.7cqw; line-height: 1.13; overflow-wrap: anywhere; }
+.ika-badge-bottom { display: grid; grid-template-columns: minmax(0,1fr) 26cqw; gap: 2cqw; flex: 1 1 auto; min-height: 0; padding: 3cqw 4cqw 1.5cqw; background: #111620; }
+.ika-badge-categories { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; gap: 1cqw; overflow: hidden; }
+.ika-badge-categories > strong { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; color: #fff !important; font-size: 2.75cqw; line-height: 1.12; font-weight: 800; overflow-wrap: anywhere; }
+.ika-badge-categories em { color: #f67b72; font-size: 2.4cqw; font-style: normal; font-weight: 850; }
+.ika-badge-qr { background: #fff; border-radius: 2cqw; padding: 1.3cqw; width: 26cqw; height: 29cqw; align-self: start; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5cqw; }
+.ika-badge-qr img { display: block; width: 23cqw; height: 23cqw; object-fit: contain; }
+.ika-badge-qr span { color: #1e2634; font-weight: 1000; font-size: 2cqw; line-height: 1; letter-spacing: .1em; }
+.ika-badge-footer { flex: 0 0 6cqw; height: 6cqw; padding: 1cqw 3cqw; display: flex; align-items: center; justify-content: center; color: #f3f5fa; background: #a91c15; font-size: 2.1cqw; letter-spacing: .055em; font-weight: 950; text-align: center; }
+@media print {
+  .athlete-id-card.ika-badge-modern {
+    display: flex !important; width: 92mm !important; height: 122.666mm !important;
+    aspect-ratio: 3/4 !important; border-radius: 3mm !important;
+    background: #111620 !important; color: white !important;
+    border: 0 !important; box-shadow: none !important;
+    page-break-inside: avoid !important; break-inside: avoid !important;
+    print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important;
+  }
+  .ika-badge-modern *, .ika-badge-modern *::before { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+}
