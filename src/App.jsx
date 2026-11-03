@@ -22,8 +22,6 @@ import { readStationBinding, releaseStation, STATION_EVENT } from './lib/station
 function StationModeGate({ children }) {
   const location = useLocation()
   const [binding, setBinding] = useState(() => readStationBinding())
-  const [unlockCode, setUnlockCode] = useState('')
-  const [unlockError, setUnlockError] = useState('')
   useEffect(() => {
     const refresh = () => setBinding(readStationBinding())
     window.addEventListener(STATION_EVENT, refresh)
@@ -46,14 +44,7 @@ function StationModeGate({ children }) {
         <h1 style={{ fontSize: 32, margin: 0 }}>{binding.mat}</h1>
         <p style={{ color: '#c8d0df', margin: 0 }}>Ten laptop jest przypisany do jednego tatami. Przejście do innych stanowisk i Centrum Zawodów jest zablokowane w tym trybie.</p>
         <a href={ownUrl} style={{ background: '#e1261c', color: '#fff', textAlign: 'center', padding: 14, borderRadius: 10, textDecoration: 'none', fontWeight: 800 }}>OTWÓRZ SWOJE TATAMI</a>
-        <details style={{ borderTop: '1px solid #444c5a', paddingTop: 14 }}>
-          <summary style={{ cursor: 'pointer' }}>Odblokowanie przez organizatora</summary>
-          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            <input type="password" inputMode="numeric" value={unlockCode} onChange={e => { setUnlockCode(e.target.value); setUnlockError('') }} placeholder="Kod organizatora" aria-label="Kod organizatora" style={{ flex: '1 1 180px', padding: 10, borderRadius: 8, color: '#fff', background: '#10151f', border: '1px solid #555c6a' }}/>
-            <button type="button" onClick={() => { if (releaseStation(unlockCode)) { setUnlockCode(''); setUnlockError('') } else setUnlockError('Niepoprawny kod.') }} style={{ background: '#303746', color: '#fff', border: '1px solid #626b7d', padding: 10, borderRadius: 8 }}>Odblokuj</button>
-          </div>
-          {unlockError && <p role="alert" style={{ color: '#ff9999' }}>{unlockError}</p>}
-        </details>
+        <button type="button" onClick={() => releaseStation()} style={{ background: '#303746', color: '#fff', border: '1px solid #626b7d', padding: 12, borderRadius: 8, cursor: 'pointer' }}>Odblokuj ten laptop (bez kodu)</button>
       </section>
     </main>
   )

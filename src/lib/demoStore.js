@@ -729,14 +729,60 @@ export const db = {
     if (index < 0) throw new Error('Nie znaleziono kategorii.')
     const category = categories[index]
     if ((category.preferredMat || null) === (preferredMat || null)) return category
-    const isRelated = (row) => row.categoryId === categoryId || (row.competitionId === category.competitionId && row.category === category.name)
-    if (read(KEYS.matches, []).some(isRelated) || read(KEYS.kataSessions, []).some(isRelated)) {
-      throw new Error('Tatami jest zablokowane po losowaniu drabinki lub utworzeniu listy kata. Nie można przenosić rozpoczętej kategorii.')
+    const related = (row) => row.categoryId === categoryId ||
+      (row.competitionId === category.competitionId && row.category === category.name)
+    const allMatches = read(KEYS.matches, [])
+    const allSessions = read(KEYS.kataSessions, [])
+    const categoryMatches = allMatches.filter(related)
+    const categorySessions = allSessions.filter(related)
+    if (!preferredMat && (categoryMatches.length || categorySessions.length)) {
+      throw new Error('Po losowaniu wybierz konkretne tatami. Tryb automatyczny jest dostępny przed losowaniem.')
     }
-    categories[index] = { ...category, preferredMat: preferredMat || null }
+
+    // Można przenieść kategorię po losowaniu, ale tylko przed rozpoczęciem pierwszej walki/oceny.
+    // Wyniki, zakończone walki i aktualnie punktowane kata pozostają zablokowane.
+    const startedKumite = categoryMatches.some((m) => m.status !== 'scheduled' || Boolean(m.winnerId))
+    const startedKata = categorySessions.some((s) =>
+      !['ready', 'pending'].includes(s.status) ||
+      !['list', 'pending'].includes(s.phase) ||
+      (s.results || []).some((r) => r.status !== 'pending' || r.completedAt != null)
+    )
+    if (startedKumite || startedKata) {
+      throw new Error('Nie można przenieść kategorii, w której rozpoczęto walkę, ocenianie kata lub zapisano wyniki.')
+    }
+
+    const nextMat = preferredMat || null
+    categories[index] = { ...category, preferredMat: nextMat }
+    // Przeniesienie już wylosowanych drabinek i list kata, bez ponownego losowania.
+    const nextMatches = allMatches.map((m) => related(m) && nextMat ? { ...m, mat: nextMat } : m)
+    const nextSessions = allSessions.map((s) => related(s) && nextMat ? { ...s, mat: nextMat } : s)
+
+    // Gdy wybrano 'Automatycznie' przy gotowych losowaniach, pozostawiamy
+    // dotychczasowe tatami do momentu ręcznego wyboru nowego, aby nie zgubić list.
+    const oldMats = new Set([...categoryMatches.map((m) => m.mat), ...categorySessions.map((s) => s.mat)])
+    const matStates = read(KEYS.matStates, {})
+    for (const oldMat of oldMats) {
+      if (!oldMat || oldMat === nextMat) continue
+      const state = matStates[oldMat]
+      if (state && (state.categoryId === categoryId ||
+        (state.competitionId === category.competitionId && state.category === category.name))) {
+        matStates[oldMat] = {
+          ...state, competitionId: null, category: null, categoryId: null,
+          kataSessionId: null, currentMatchId: null, lastCompletedMatchId: null,
+          mode: 'bracket', autoTransition: null, transitionAuto: false,
+          updatedAt: Date.now(),
+        }
+      }
+    }
+
     write(KEYS.tournamentCategories, categories)
+    if (nextMat) {
+      write(KEYS.matches, nextMatches)
+      write(KEYS.kataSessions, nextSessions)
+      write(KEYS.matStates, matStates)
+    }
     const schedule = read(KEYS.schedule, [])
-    write(KEYS.schedule, schedule.map((slot) => isRelated(slot) ? { ...slot, manual: false } : slot))
+    write(KEYS.schedule, schedule.map((slot) => related(slot) ? { ...slot, manual: false } : slot))
     regenerateScheduleInternal()
     emit()
     return categories[index]

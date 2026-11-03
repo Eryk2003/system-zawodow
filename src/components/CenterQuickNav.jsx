@@ -46,7 +46,6 @@ export default function CenterQuickNav({
   const [selectedMat, setSelectedMat] = useState('Tatami 1')
   const [selectedCategoryId, setSelectedCategoryId] = useState('')
   const [error, setError] = useState('')
-  const [stationCode, setStationCode] = useState('')
   const [bulkJudgeCount, setBulkJudgeCount] = useState(3)
 
   const mat = matNames.includes(selectedMat) ? selectedMat : (matNames[0] || 'Tatami 1')
@@ -166,14 +165,12 @@ export default function CenterQuickNav({
           <details style={{ flex:'1 1 300px' }}>
             <summary style={{ cursor:'pointer', fontWeight:700 }}>Przypisz ten laptop do {mat}</summary>
             <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:10, alignItems:'center' }}>
-              <input type="password" inputMode="numeric" maxLength={8} value={stationCode}
-                onChange={e => setStationCode(e.target.value)} placeholder="Kod organizatora (4-8 cyfr)" aria-label="Kod do odblokowania laptopa" />
               <button type="button" className="btn btn-outline" onClick={() => {
-                try { bindStation(mat, stationCode); navigate(`/organizator/panel-sedziego/${encodeURIComponent(mat)}`) }
+                try { bindStation(mat); navigate(`/organizator/panel-sedziego/${encodeURIComponent(mat)}`) }
                 catch (e) { setError(e?.message || 'Nie można przypisać laptopa.') }
               }}>Włącz tryb stanowiska</button>
             </div>
-            <small style={{ display:'block', marginTop:6 }}>Tryb blokuje pozostałe widoki na tym laptopie. Kod służy do odblokowania przez organizatora.</small>
+            <small style={{ display:'block', marginTop:6 }}>Tryb ogranicza widok laptopa do jednego tatami. Możesz go wyłączyć przyciskiem bez wpisywania kodu.</small>
           </details>
         </div>
         <div className="ika-fast-entry" aria-label="Szybki wybór panelu sędziego">
