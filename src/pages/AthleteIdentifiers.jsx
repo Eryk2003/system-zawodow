@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { DashboardLayout, EmptyState } from '../components/Layout'
 import { db } from '../lib/demoStore'
+import AthleteIdentifierModern from '../components/AthleteIdentifierModern.jsx'
 
 const padNumber = (value) => String(Number(value || 0)).padStart(3, '0')
 
@@ -166,7 +167,7 @@ export default function AthleteIdentifiers() {
       ) : (
         <section className="athlete-identifiers-grid">
           {rows.map((row) => (
-            <AthleteIdentifierCard key={row.athlete.id} row={row} onPrintOne={printOne} />
+            <AthleteIdentifierModern key={row.athlete.id} row={row} onPrintOne={printOne} />
           ))}
         </section>
       )}
