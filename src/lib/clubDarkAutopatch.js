@@ -1,6 +1,6 @@
 (function () {
-  const STYLE_ID = 'ika-club-dark-autopatch-style'
-  const OBSERVER_KEY = '__ikaClubDarkObserver'
+  const STYLE_ID = 'ika-club-dark-autopatch-style-v2'
+  const OBSERVER_KEY = '__ikaClubDarkObserverV2'
 
   const isClubRoute = () => {
     const p = window.location.pathname || ''
@@ -17,60 +17,75 @@
   const luminance = ([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
 
   const addStyle = () => {
+    const prev = document.getElementById('ika-club-dark-autopatch-style')
+    if (prev) prev.remove()
     if (document.getElementById(STYLE_ID)) return
     const style = document.createElement('style')
     style.id = STYLE_ID
     style.textContent = `
-      body.ika-club-dark-route, body.ika-club-dark-route #root {
-        background: #090c12 !important;
-        color: #f4f7fb !important;
-      }
+      html, body { background: #080b11; }
+      body.ika-club-dark-route,
+      body.ika-club-dark-route #root,
       body.ika-club-dark-route main,
       body.ika-club-dark-route [role="main"] {
-        background: linear-gradient(180deg, #090c12 0%, #0d121a 100%) !important;
+        background: #080b11 !important;
         color: #f4f7fb !important;
       }
+      body.ika-club-dark-route .ika-club-dark-force-page {
+        background: #080b11 !important;
+      }
       body.ika-club-dark-route .ika-club-dark-surface {
-        background: linear-gradient(180deg, #171d28 0%, #121823 100%) !important;
+        background: linear-gradient(180deg, #161d28 0%, #111823 100%) !important;
         color: #f4f7fb !important;
-        border-color: #343d4f !important;
+        border: 1px solid #313b4c !important;
         box-shadow: none !important;
       }
       body.ika-club-dark-route .ika-club-dark-soft {
         background: #1c2330 !important;
         color: #eaf0f8 !important;
-        border-color: #394354 !important;
+        border: 1px solid #394354 !important;
+        box-shadow: none !important;
       }
-      body.ika-club-dark-route .ika-club-dark-surface *,
-      body.ika-club-dark-route .ika-club-dark-soft * {
-        border-color: inherit;
+      body.ika-club-dark-route .ika-club-dark-deep {
+        background: #0b1018 !important;
+        color: #f4f7fb !important;
+        border: 1px solid #2e3848 !important;
+        box-shadow: none !important;
       }
       body.ika-club-dark-route h1,
       body.ika-club-dark-route h2,
       body.ika-club-dark-route h3,
       body.ika-club-dark-route h4,
+      body.ika-club-dark-route h5,
       body.ika-club-dark-route strong,
+      body.ika-club-dark-route b,
       body.ika-club-dark-route label,
-      body.ika-club-dark-route b {
+      body.ika-club-dark-route th,
+      body.ika-club-dark-route thead,
+      body.ika-club-dark-route .ika-club-dark-title {
         color: #ffffff !important;
       }
       body.ika-club-dark-route p,
       body.ika-club-dark-route span,
       body.ika-club-dark-route small,
       body.ika-club-dark-route li,
+      body.ika-club-dark-route td,
       body.ika-club-dark-route div {
         color: inherit;
       }
       body.ika-club-dark-route .ika-club-dark-muted,
+      body.ika-club-dark-route .ika-club-dark-soft p,
+      body.ika-club-dark-route .ika-club-dark-soft span,
       body.ika-club-dark-route .ika-club-dark-surface p,
       body.ika-club-dark-route .ika-club-dark-surface span,
-      body.ika-club-dark-route .ika-club-dark-soft p,
-      body.ika-club-dark-route .ika-club-dark-soft span {
+      body.ika-club-dark-route .ika-club-dark-deep p,
+      body.ika-club-dark-route .ika-club-dark-deep span {
         color: #c8d0df !important;
       }
       body.ika-club-dark-route input,
       body.ika-club-dark-route textarea,
-      body.ika-club-dark-route select {
+      body.ika-club-dark-route select,
+      body.ika-club-dark-route option {
         background: #0f1520 !important;
         color: #ffffff !important;
         border: 1px solid #455063 !important;
@@ -91,10 +106,6 @@
         padding: 10px 14px;
         margin-right: 12px;
       }
-      body.ika-club-dark-route button:not(.ika-keep-red),
-      body.ika-club-dark-route a[role="button"]:not(.ika-keep-red) {
-        border-color: #495465 !important;
-      }
       body.ika-club-dark-route .ika-club-dark-button {
         background: #20293a !important;
         color: #fff !important;
@@ -109,8 +120,18 @@
       body.ika-club-dark-route img {
         border-color: #364051 !important;
       }
+      body.ika-club-dark-route hr {
+        border-color: #2f3949 !important;
+      }
     `
     document.head.appendChild(style)
+  }
+
+  const markPageBackground = () => {
+    document.documentElement.style.background = '#080b11'
+    document.body.style.background = '#080b11'
+    const root = document.getElementById('root')
+    if (root) root.classList.add('ika-club-dark-force-page')
   }
 
   const darkenButtons = () => {
@@ -118,11 +139,27 @@
     buttons.forEach((el) => {
       const text = (el.textContent || '').trim().toLowerCase()
       if (!text) return
-      if (/zobacz zawody|wyślij zgłoszenia|zgloszenia|dodaj zawodnika|zarejestruj|zapisz|opublikuj/.test(text)) {
-        el.classList.add('ika-club-dark-button-red', 'ika-keep-red')
-      } else if (/moi zawodnicy|usuń logo|wybierz plik|edytuj|anuluj|powrót|powrot/.test(text)) {
+      if (/zobacz zawody|wyślij zgłoszenia|wyslij zgloszenia|zgloszenia|dodaj zawodnika|zarejestruj|zapisz|opublikuj/.test(text)) {
+        el.classList.add('ika-club-dark-button-red')
+      } else if (/moi zawodnicy|usun logo|usuń logo|wybierz plik|edytuj|anuluj|powrót|powrot|wyloguj/.test(text)) {
         el.classList.add('ika-club-dark-button')
       }
+    })
+  }
+
+  const isBigSurface = (rect) => rect.width > 260 && rect.height > 70
+  const isMediumSurface = (rect) => rect.width > 120 && rect.height > 32
+
+  const forceDarkOnMainLayout = () => {
+    const main = document.querySelector('main, [role="main"]') || document.querySelector('#root > div')
+    if (!main) return
+    main.classList.add('ika-club-dark-force-page')
+    const children = Array.from(main.children || [])
+    children.forEach((el) => {
+      if (el.tagName === 'STYLE' || el.tagName === 'SCRIPT') return
+      const rect = el.getBoundingClientRect()
+      if (isBigSurface(rect)) el.classList.add('ika-club-dark-surface')
+      else if (isMediumSurface(rect)) el.classList.add('ika-club-dark-deep')
     })
   }
 
@@ -130,37 +167,61 @@
     document.querySelectorAll('input, textarea, select').forEach((el) => {
       el.classList.add('ika-club-dark-soft')
     })
-    document.querySelectorAll('main button, main a, main span, main div').forEach((el) => {
+    document.querySelectorAll('main button, main a, main span, main div, main section, main article, main form').forEach((el) => {
       const cs = getComputedStyle(el)
-      const rgb = parseRgb(cs.backgroundColor)
-      const text = (el.textContent || '').trim()
-      if (!rgb) return
-      const lum = luminance(rgb)
       const rect = el.getBoundingClientRect()
-      if (lum > 0.80 && rect.width > 40 && rect.height > 20) {
-        if (text && rect.width < 320 && rect.height < 80) el.classList.add('ika-club-dark-soft')
-        else el.classList.add('ika-club-dark-surface')
+      if (!isMediumSurface(rect)) return
+      const bg = parseRgb(cs.backgroundColor)
+      const color = parseRgb(cs.color)
+      const text = (el.textContent || '').trim()
+      if (bg && luminance(bg) > 0.80) {
+        if (rect.width > 340 || rect.height > 120) el.classList.add('ika-club-dark-surface')
+        else el.classList.add('ika-club-dark-soft')
+      }
+      if (color && luminance(color) < 0.35) {
+        if (/strefa zgłoszeń klubów|logo klubu|zawody ika poland|akademia karate zazen/i.test(text)) {
+          el.classList.add('ika-club-dark-title')
+        } else {
+          el.classList.add('ika-club-dark-muted')
+        }
       }
     })
   }
 
   const darkenLightSurfaces = () => {
-    const candidates = Array.from(document.querySelectorAll('main section, main article, main div, main form'))
+    const candidates = Array.from(document.querySelectorAll('main section, main article, main div, main form, main header'))
     candidates.forEach((el) => {
-      const cs = getComputedStyle(el)
-      const rgb = parseRgb(cs.backgroundColor)
       const rect = el.getBoundingClientRect()
-      if (!rgb) return
-      if (rect.width < 120 || rect.height < 36) return
-      const lum = luminance(rgb)
-      if (lum > 0.83) {
-        el.classList.add(rect.height < 90 || rect.width < 360 ? 'ika-club-dark-soft' : 'ika-club-dark-surface')
+      if (!isMediumSurface(rect)) return
+      const cs = getComputedStyle(el)
+      const bg = parseRgb(cs.backgroundColor)
+      if (!bg) {
+        if (isBigSurface(rect)) el.classList.add('ika-club-dark-surface')
+        return
       }
-      if ((cs.borderColor && parseRgb(cs.borderColor) && luminance(parseRgb(cs.borderColor)) > 0.8) || cs.borderStyle !== 'none') {
-        el.style.borderColor = '#364051'
+      const lum = luminance(bg)
+      if (lum > 0.85) {
+        el.classList.add(isBigSurface(rect) ? 'ika-club-dark-surface' : 'ika-club-dark-soft')
+      } else if (lum > 0.15 && lum < 0.45 && isBigSurface(rect)) {
+        el.classList.add('ika-club-dark-deep')
       }
-      if (['rgb(17, 24, 39)', 'rgb(31, 41, 55)', 'rgb(0, 0, 0)'].includes(cs.color)) {
-        el.style.color = '#f4f7fb'
+    })
+  }
+
+  const darkenText = () => {
+    document.querySelectorAll('main h1, main h2, main h3, main h4, main h5, main p, main span, main label, main strong, main small, main li, main div').forEach((el) => {
+      const cs = getComputedStyle(el)
+      const color = parseRgb(cs.color)
+      if (!color) return
+      const txt = (el.textContent || '').trim()
+      if (!txt) return
+      const lum = luminance(color)
+      if (lum < 0.35) {
+        if (el.matches('h1,h2,h3,h4,h5,strong,label')) {
+          el.style.color = '#ffffff'
+        } else {
+          el.style.color = '#c8d0df'
+        }
       }
     })
   }
@@ -170,7 +231,7 @@
       const rect = img.getBoundingClientRect()
       if (rect.width > 120 && rect.height > 120) {
         const parent = img.parentElement
-        if (parent) parent.classList.add('ika-club-dark-surface')
+        if (parent) parent.classList.add('ika-club-dark-deep')
         img.style.border = '1px solid #364051'
       }
     })
@@ -181,18 +242,19 @@
     const active = isClubRoute()
     document.body.classList.toggle('ika-club-dark-route', active)
     if (!active) return
-    const rootMain = document.querySelector('main, [role="main"]')
-    if (rootMain) rootMain.classList.add('ika-club-dark-scope')
+    markPageBackground()
+    forceDarkOnMainLayout()
     darkenLightSurfaces()
     darkenInputsAndChips()
+    darkenText()
     darkenButtons()
     darkenImageZone()
   }
 
   const hookNavigation = () => {
-    if (window.__ikaClubDarkHooked) return
-    window.__ikaClubDarkHooked = true
-    const rerun = () => window.requestAnimationFrame(() => setTimeout(applyPatch, 40))
+    if (window.__ikaClubDarkHookedV2) return
+    window.__ikaClubDarkHookedV2 = true
+    const rerun = () => window.requestAnimationFrame(() => setTimeout(applyPatch, 50))
     const wrap = (name) => {
       const original = history[name]
       if (!original) return
