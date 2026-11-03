@@ -637,6 +637,7 @@ export default function TournamentCenter() {
 
       {centerView === 'kumite' && (
       <section className="panel-section bracket-admin-section">
+        <style>{'@media screen { .ika-kumite-bracket-print-only { display: none !important; } }'}</style>
         <div className="panel-section-head"><div><span className="eyebrow">Kumite</span><h2>Drabinka + automatyczna tablica przy tatami</h2><p>Utwórz drabinkę z zawodników przypisanych do tej samej konkurencji, kategorii i tatami.</p></div></div>
         <form className="bracket-builder" onSubmit={createBracket}>
           <label>Tatami<select value={kumiteMat} onChange={(e) => { setKumiteMat(e.target.value); setBracketForm({ categoryId: '' }) }}>{matNames.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
@@ -665,7 +666,7 @@ export default function TournamentCenter() {
                 <button type="button" className="btn btn-ghost" onClick={() => { if (confirm('Usunąć tę drabinkę?')) { db.resetBracket(selected); setSelectedBracket(''); refresh() } }}>Usuń drabinkę</button>
               </div>
             </div>
-            <div id="print-kumite-bracket" className="academy-bracket-panel-wrap competition-print-section print-kumite-sheet">
+            <div id="print-kumite-bracket" className="academy-bracket-panel-wrap competition-print-section print-kumite-sheet ika-kumite-bracket-print-only">
               <div className="competition-print-header print-only">
                 <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
                 <h1>{selectedCompetition?.name || 'Kumite'} - {selected.category}</h1>
@@ -688,10 +689,10 @@ export default function TournamentCenter() {
             </div>
 
             <div className="alert alert-info competition-control-note">
-              Sterowanie walką jest dostępne wyłącznie w Panelu sędziego. W Centrum Zawodów możesz tylko przeglądać drabinkę i otworzyć panel właściwego tatami.
+              Drabinka pozostaje dostępna do wydruku oraz na TV. Prowadzenie walk odbywa się w Panelu sędziego.
             </div>
           </>
-        ) : <EmptyState title="Brak drabinki" text="Po utworzeniu drabinki zobaczysz ją tutaj. Sterowanie walką odbywa się wyłącznie w Panelu sędziego." />}
+        ) : <EmptyState title="Brak drabinki" text="Wybierz kategorię i wylosuj drabinkę. Jej podgląd jest dostępny na TV, a sterowanie walką w Panelu sędziego." />}
       </section>
       )}
 
