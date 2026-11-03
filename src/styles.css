@@ -1597,3 +1597,54 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
   }
 }
 
+/* IKA_TV_WINNER_ODSTEP_V2_START */
+/* Panel TV kumite: odstepy po zakonczeniu walki. Nie dotyczy panelu sedziego. */
+.scoreboard-screen .scoreboard-body > .fighter {
+  min-width: 0;
+}
+.scoreboard-screen .scoreboard-body > .fighter h1 {
+  line-height: 1.16 !important;
+  margin-top: 12px !important;
+  margin-bottom: 12px !important;
+  overflow-wrap: anywhere;
+}
+.scoreboard-screen .scoreboard-body > .fighter p {
+  line-height: 1.4 !important;
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+}
+/* Poprzedni CSS stosowal ujemny margines -22px na napisie WINNER.
+   To powodowalo nachodzenie na liczniki WAZARI/IPPON. */
+.scoreboard-screen .scoreboard-body > .fighter .ika105-winner-badge {
+  display: block;
+  position: relative;
+  align-self: center;
+  z-index: 1;
+  width: max-content;
+  max-width: 95%;
+  margin: 10px auto 22px !important;
+  padding: 9px 20px;
+  line-height: 1.2;
+  flex: 0 0 auto;
+}
+.scoreboard-screen .scoreboard-body > .fighter .technique-score-grid-tv {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 0;
+}
+.scoreboard-screen .scoreboard-body > .fighter .ika104-tv-penalty-grid {
+  margin-top: 10px !important;
+  flex: 0 0 auto;
+}
+@media (max-height: 750px) {
+  .scoreboard-screen .scoreboard-body > .fighter .ika105-winner-badge {
+    margin: 6px auto 14px !important;
+    padding: 6px 14px;
+  }
+  .scoreboard-screen .scoreboard-body > .fighter h1 {
+    margin-bottom: 7px !important;
+  }
+}
+/* IKA_TV_WINNER_ODSTEP_V2_END */
