@@ -264,7 +264,7 @@ export default function KataJudgePanel() {
           <div className="kata-live-ranking">
             {liveRanking.map((result, index) => {
               const info = athleteInfo(result.athleteId)
-              return <div key={result.athleteId}><b>{index + 1}</b><strong>{info.name}</strong><span>{info.club}</span><em>{result.round1Score != null ? `R1: ${scoreText(result.round1Score)} + R2: ${scoreText(result.round2Score)} = ${scoreText(result.totalScore)}` : scoreText(result.totalScore)}</em></div>
+              return <div key={result.athleteId}><b>{index + 1}</b><strong>{info.name}</strong><span>{info.club}</span><em>{scoreText(result.totalScore)}</em></div>
             })}
           </div>
         </section>

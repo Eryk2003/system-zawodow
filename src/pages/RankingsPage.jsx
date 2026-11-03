@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { PublicHeader, EmptyState } from '../components/Layout'
 import { db } from '../lib/demoStore'
 import ClubLogo from '../components/ClubLogo.jsx'
+import KataCategoryResults from '../components/KataCategoryResults.jsx'
 
 function MedalSummary({ row }) {
   return <span className="ranking-medals"><b>🥇 {row.gold}</b><b>🥈 {row.silver}</b><b>🥉 {row.bronze}</b></span>
@@ -89,6 +90,7 @@ export default function RankingsPage() {
                       <span className="ika-ranking-podium-club"><ClubLogo club={getClub(result)} size="sm" />{result.clubName} • {tab === 'clubs' ? (result.place === 1 ? '🥇 Złoto' : result.place === 2 ? '🥈 Srebro' : '🥉 Brąz') : ('zawodnik +' + result.points + ' pkt')}</span>
                     </div>
                   ))}
+                  {podium.source === 'kata' && <KataCategoryResults podium={podium} />}
                 </article>
               ))}
             </div>
