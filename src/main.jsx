@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
@@ -34,3 +34,5 @@ function renderApp() {
 
 initializeCloudSync().finally(renderApp)
 import './ika-judge-fast-entry.css'
+import './lib/clubDarkAutopatch.js'
+
