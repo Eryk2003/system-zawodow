@@ -41,6 +41,7 @@ export default function KataJudgePanel() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [browserOnline, setBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine)
   /* ika95-score-drafts: wpisywanie cyfry bez niepotrzebnego zapisu do bazy */
   const [scoreDrafts,setScoreDrafts] = useState({})
   const scoreInputRefs = useRef([])
@@ -51,6 +52,17 @@ export default function KataJudgePanel() {
   const [kataHighlightedIndex, setKataHighlightedIndex] = useState(-1)
   const kataInputRef = useRef(null)
   const kataMatches = useMemo(() => searchKataCatalog(kataQuery, KATA_GROUPS, 9), [kataQuery])
+
+  useEffect(() => {
+    const onOnline = () => setBrowserOnline(true)
+    const onOffline = () => setBrowserOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [])
 
   const refresh = () => setRefreshKey((value) => value + 1)
 
@@ -238,9 +250,10 @@ export default function KataJudgePanel() {
       <header className="judge-topbar kata-judge-topbar">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
-        <div className="judge-actions"><TatamiBreakControl mat={matName} /><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
+        <div className="judge-actions"><TatamiBreakControl mat={matName} /><details className="ika-referee-tools"><summary>TV i widoki</summary><div className="ika-referee-tools-body"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-outline" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div></details></div>
       </header>
 
+      {!browserOnline && <div className="ika-referee-offline" role="alert">Brak internetu na tym laptopie. Wyniki mogą nie synchronizować się z innymi stanowiskami. Po powrocie połączenia sprawdź aktualny stan tatami.</div>}
       {error && <div className="judge-message error">{error}</div>}
 
       {session.status === 'completed' ? (
@@ -317,13 +330,13 @@ export default function KataJudgePanel() {
                 {scoresOpen && <strong className="kata-score-entry-ready">WPROWADŹ OCENY SĘDZIÓW</strong>}
               </div>
             </div>
-            <div className="kata-judge-count-box">
+            <details className="ika-referee-config"><summary>Ustawienia sędziów</summary><div className="kata-judge-count-box">
               <span>Liczba sędziów</span>
               <div>
                 {[3, 5].map((count) => <button key={count} type="button" className={session.judgeCount === count ? 'active' : ''} disabled={completed.length > 0} onClick={() => run(() => db.setKataJudgeCount(session.id, count), `Ustawiono ${count} sędziów.`)}>{count}</button>)}
               </div>
               <small>{session.judgeCount === 5 ? 'Najwyższa i najniższa ocena są odrzucane.' : 'Końcowa ocena to suma 3 ocen.'}</small>
-            </div>
+            </div></details>
 
             {Number(session.totalRounds || 1) > 1 && (
               <div className="kata-round-box">
@@ -349,6 +362,7 @@ export default function KataJudgePanel() {
         </>
       )}
 
+      <details className="ika-referee-queue"><summary>{Number(session.roundNumber || 1) === 2 ? "Lista finalistów" : "Lista zawodników"} ({orderedResults.length}) - rozwiń w razie potrzeby</summary>
       <section className="judge-queue kata-queue">
         <div className="judge-queue-head"><h3>{Number(session.roundNumber || 1) === 2 ? 'Lista finalistów' : 'Lista uczestników'}</h3><span>Po końcowej ocenie TV pokaże tę listę, a następnie kolejnego zawodnika.</span></div>
         <div className="kata-queue-list">
@@ -359,6 +373,7 @@ export default function KataJudgePanel() {
           })}
         </div>
       </section>
+      </details>
     </main>
   )
 }

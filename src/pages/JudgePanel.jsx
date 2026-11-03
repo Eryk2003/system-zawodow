@@ -26,6 +26,7 @@ export default function JudgePanel() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [browserOnline, setBrowserOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine)
 
   const refresh = () => setRefreshKey((v) => v + 1)
 
@@ -38,6 +39,17 @@ export default function JudgePanel() {
       window.removeEventListener('storage', handle)
       window.removeEventListener('ika:data', handle)
       clearInterval(interval)
+    }
+  }, [])
+
+  useEffect(() => {
+    const onOnline = () => setBrowserOnline(true)
+    const onOffline = () => setBrowserOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
     }
   }, [])
 
@@ -88,6 +100,7 @@ export default function JudgePanel() {
 
   const finish = (winnerId) => {
     if (!active) return
+    if (activeRaw?.timerRunning && !window.confirm('Zegar nadal odlicza. Na pewno zakończyć walkę i zatwierdzić zwycięzcę?')) return
     const isFinal = active.roundName === 'Finał'
     run(
       () => db.finishMatch(active.id, winnerId),
@@ -167,9 +180,10 @@ export default function JudgePanel() {
       <header className="judge-topbar">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
         <div className="judge-title"><b>PANEL SĘDZIEGO • {matName}</b><span>{competition?.name || 'Kumite'} • {category}</span></div>
-        <div className="judge-actions"><TatamiBreakControl mat={matName} /><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-primary" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div>
+        <div className="judge-actions"><TatamiBreakControl mat={matName} /><details className="ika-referee-tools"><summary>TV i widoki</summary><div className="ika-referee-tools-body"><button className="btn btn-outline" type="button" onClick={showBracket}>Drabinka na TV</button><a className="btn btn-outline" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div></details></div>
       </header>
 
+      {!browserOnline && <div className="ika-referee-offline" role="alert">Brak internetu na tym laptopie. Wyniki mogą nie synchronizować się z innymi stanowiskami. Po powrocie połączenia sprawdź aktualny stan tatami.</div>}
       {error && <div className="judge-message error">{error}</div>}
 
       <section className="judge-current">
@@ -197,9 +211,11 @@ export default function JudgePanel() {
               >
                 {activeRaw.timerRunning ? 'PAUZA CZASU' : 'START CZASU'}
               </button>
-              <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, 10))}>COFNIJ 10 s</button>
-              <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, -10))}>ODEJMIJ 10 s</button>
-              <button className="btn btn-outline" type="button" onClick={() => run(() => db.resetMatchTimer(active.id))}>RESET CZASU</button>
+              <details className="ika-referee-tools ika-referee-time-tools"><summary>Korekta czasu</summary><div className="ika-referee-tools-body">
+                <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, 10))}>DODAJ 10 s</button>
+                <button className="btn btn-outline" type="button" onClick={() => run(() => db.adjustMatchTime(active.id, -10))}>ODEJMIJ 10 s</button>
+                <button className="btn btn-outline" type="button" onClick={() => { if (window.confirm('Zresetować czas tej walki?')) run(() => db.resetMatchTimer(active.id)) }}>RESET CZASU</button>
+              </div></details>
             </div>
           ) : next ? (
             <button className="btn btn-primary judge-start" onClick={start}>ROZPOCZNIJ WALKĘ</button>
@@ -220,6 +236,7 @@ export default function JudgePanel() {
 
       {active && <section className="judge-winner-row"><span>ZAKOŃCZ WALKĘ I WSKAŻ ZWYCIĘZCĘ</span><button className="judge-winner red" onClick={() => finish(active.redResolvedId)}>{theme.red.code} - {athlete(active.redResolvedId).name}</button><button className={`judge-winner ${theme.mode === 'red-white' ? 'white' : 'blue'}`} onClick={() => finish(active.blueResolvedId)}>{theme.blue.code} - {athlete(active.blueResolvedId).name}</button></section>}
 
+      <details className="ika-referee-queue"><summary>Lista walk ({resolvedMatches.length}) - rozwiń w razie potrzeby</summary>
       <section className="judge-queue">
         <div className="judge-queue-head"><h3>Kolejność walk</h3><span>Po zakończeniu walki zwycięzca automatycznie przechodzi dalej.</span></div>
         <div className="judge-queue-list">
@@ -230,6 +247,7 @@ export default function JudgePanel() {
           })}
         </div>
       </section>
+      </details>
     </main>
   )
 }

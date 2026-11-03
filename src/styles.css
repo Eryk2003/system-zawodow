@@ -1512,3 +1512,45 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .ika-kata-finalists-scores{text-align:right}
 .ika-kata-finalists-body p{text-align:center;color:#c6cbd4;font-size:15px}
 @media(max-width:680px){.ika-kata-finalists-list article{grid-template-columns:38px 1fr;gap:8px;padding:10px}.ika-kata-finalists-scores{grid-column:2;text-align:left}}
+
+/* IKA_REFEREE_UX_V1 */
+/* Sekcje pomocnicze pozostają dostępne, ale nie dominują bieżącego startu. */
+.judge-screen .ika-referee-tools { position:relative; display:inline-block; color:#f6f7fb; }
+.judge-screen .ika-referee-tools > summary,
+.judge-screen .ika-referee-queue > summary {
+  list-style:none; cursor:pointer; color:#f5f7fb; background:#242a36;
+  border:1px solid #4b5464; border-radius:10px; padding:11px 16px;
+  font-weight:700; line-height:1.3; user-select:none;
+}
+.judge-screen .ika-referee-tools > summary::-webkit-details-marker,
+.judge-screen .ika-referee-queue > summary::-webkit-details-marker { display:none; }
+.judge-screen .ika-referee-tools > summary::after,
+.judge-screen .ika-referee-queue > summary::after { content:'  ▾'; color:#ef4b40; }
+.judge-screen .ika-referee-tools[open] > summary,
+.judge-screen .ika-referee-queue[open] > summary { border-color:#df291e; background:#352327; }
+.judge-screen .ika-referee-tools > summary:hover,
+.judge-screen .ika-referee-queue > summary:hover { background:#c9271d; border-color:#e1261c; color:#fff; }
+.judge-screen .ika-referee-tools > summary:hover::after,
+.judge-screen .ika-referee-queue > summary:hover::after { color:#fff; }
+.judge-screen .ika-referee-tools-body { display:flex; gap:10px; flex-wrap:wrap; padding:12px 0 0; }
+.judge-screen .ika-referee-time-tools { width:100%; }
+.judge-screen .ika-referee-time-tools > summary { text-align:center; }
+.judge-screen .ika-referee-queue { margin:20px auto; width:min(100%,1500px); }
+.judge-screen .ika-referee-queue > summary { display:block; text-align:left; }
+.judge-screen .ika-referee-queue .judge-queue { margin-top:10px; }
+.judge-screen .ika-referee-queue:not([open]) .judge-queue { display:none; }
+@media(max-width:760px) {
+ .judge-screen .ika-referee-tools { width:100%; }
+ .judge-screen .ika-referee-tools > summary { text-align:center; }
+ .judge-screen .ika-referee-tools-body > * { flex:1 1 180px; }
+}
+
+/* IKA_REFEREE_UX_V2 */
+.judge-screen .ika-referee-offline { background:#452018; border:2px solid #f66b47; color:#fff; font-weight:750; line-height:1.5; margin:12px 18px; padding:14px 20px; border-radius:12px; }
+.judge-screen .ika-referee-config { flex:1 1 240px; min-width:220px; align-self:start; }
+.judge-screen .ika-referee-config > summary { display:block; list-style:none; cursor:pointer; background:#242a36; border:1px solid #4b5464; border-radius:12px; color:#f4f6fb; padding:14px 16px; font-weight:700; }
+.judge-screen .ika-referee-config > summary::-webkit-details-marker { display:none; }
+.judge-screen .ika-referee-config > summary::after { content:' ▾'; color:#f0473b; }
+.judge-screen .ika-referee-config > summary:hover, .judge-screen .ika-referee-config[open] > summary { background:#bd241b; color:#fff; border-color:#e1261c; }
+.judge-screen .ika-referee-config .kata-judge-count-box { margin-top:8px; width:100%; }
+@media(max-width:760px){ .judge-screen .ika-referee-config{width:100%;} }
