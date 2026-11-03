@@ -1,0 +1,42 @@
+.ika-public-live {min-height:100vh;background:#090c12;color:#f4f7fb}
+.ika-live-page {width:min(1600px,96vw);margin:auto;padding:34px 0 75px}
+.ika-live-heading {display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:26px}
+.ika-live-heading h1{font-size:clamp(30px,4vw,48px);margin:0 0 9px;color:#fff}
+.ika-live-heading p,.ika-live-details p{color:#c3cedd;margin:6px 0 18px}
+.ika-live-badge{border:1px solid #435066;background:#1c2533;color:#dce8f7;border-radius:100px;padding:9px 14px;font-size:12px;font-weight:800;white-space:nowrap}
+.ika-live-layout{display:grid;grid-template-columns:minmax(240px,340px) minmax(0,1fr);align-items:start;gap:18px}
+.ika-live-choices,.ika-live-details,.ika-live-card{border:1px solid #343d4c;border-radius:17px;background:#171d28;padding:20px;min-width:0}
+.ika-live-choices h2{font-size:21px;margin:0 0 15px}
+.ika-live-choices input{width:100%;background:#0c1119;color:#fff;border:1px solid #465268;border-radius:9px;padding:12px}
+.ika-live-types{display:flex;gap:6px;margin:12px 0}
+.ika-live-types button{flex:1;min-width:0;background:#242d3c;color:#fff;border:1px solid #465268;padding:9px 5px;border-radius:9px;font-size:12px}
+.ika-live-types button.active{background:#c7231b;border-color:#c7231b}
+.ika-live-choices-list{display:grid;gap:6px;max-height:72vh;overflow-y:auto}
+.ika-live-choices-list button{display:grid;gap:4px;text-align:left;padding:12px;background:#0e141f;color:#eaf0fa;border:1px solid #343e50;border-radius:10px}
+.ika-live-choices-list button.selected,.ika-live-choices-list button:hover{border-color:#e1261c;background:#3a1a1b}
+.ika-live-choices-list button strong{font-size:12px}.ika-live-choices-list button span{font-size:13px}.ika-live-choices-list button small{color:#aebbd0}
+.ika-live-category-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:20px;border-bottom:1px solid #343d4c;padding-bottom:20px}
+.ika-live-category-head h2{font-size:clamp(24px,3vw,34px);margin:0;color:#fff}
+.ika-live-category-head p{margin:4px 0 0}
+.ika-live-details h3{color:#fff;margin:15px 0;font-size:20px}
+.ika-live-card{background:#101720;margin:15px 0}
+.ika-live-card h3{margin:0 0 14px}
+.ika-live-result-row{display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:center;border-bottom:1px solid #303b4d;padding:12px 2px;color:#fff}
+.ika-live-result-row:last-child{border:0}
+.ika-live-result-row>div{display:grid;gap:4px}.ika-live-result-row small{color:#aab8cc}.ika-live-result-row .ika-live-score{font-size:19px;color:#fff}
+.ika-live-winner{border:1px solid #b79645;background:#322719;border-radius:13px;padding:19px;display:grid;gap:6px;margin:0 0 18px}
+.ika-live-winner span{color:#f0cf70;font-weight:700}.ika-live-winner strong{font-size:27px}.ika-live-winner small{color:#d4c7a6}
+.ika-live-now{border:1px solid #5a3640;background:#28191e;border-radius:12px;padding:15px;display:flex;justify-content:space-between;gap:14px;align-items:center}
+.ika-live-now>div{display:grid;gap:8px}.ika-live-now small{color:#ff9d93}.ika-live-now strong{color:#fff}.ika-live-now strong span{color:#aeb8c5}
+.ika-live-now>span{color:#ff9a88;font-size:12px;font-weight:900}
+.ika-live-bracket{overflow:auto;background:#111720;border:1px solid #343d4c;border-radius:13px;padding:18px 10px;max-height:75vh}
+.ika-live-bracket .academy-bracket{min-width:780px}
+.ika-live-bout{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #303b4d}
+.ika-live-bout:last-child{border:0}.ika-live-bout>div{display:grid;gap:7px}.ika-live-bout small{color:#9caec4}.ika-live-bout strong{color:#fff}
+.ika-live-bout>span{font-size:12px;color:#c9d5e3}.ika-live-bout>span.finished{color:#70dc99;font-weight:800;text-align:right}
+.ika-live-empty{padding:45px 10px;text-align:center;color:#bac6d4}
+.ika-live-footer{margin-top:28px;display:flex;flex-wrap:wrap;gap:12px}.ika-live-footer a{padding:10px 14px;border:1px solid #465166;border-radius:10px;color:#fff}
+.ika-live-entry-link{display:inline-flex;margin-top:12px;background:#222a39;color:#fff;border:1px solid #455168;border-radius:9px;padding:9px 13px;font-weight:800;font-size:13px}
+.ika-live-entry-link:hover{background:#a71e1c}
+@media(max-width:900px){.ika-live-layout{grid-template-columns:minmax(0,1fr)}.ika-live-heading{align-items:flex-start;flex-direction:column}.ika-live-choices-list{max-height:240px}.ika-live-page{width:94vw}}
+@media(max-width:570px){.ika-live-choices,.ika-live-details{padding:13px}.ika-live-bout{align-items:flex-start;flex-direction:column}.ika-live-category-head{flex-wrap:wrap}}

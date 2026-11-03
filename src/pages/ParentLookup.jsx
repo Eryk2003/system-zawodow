@@ -143,7 +143,7 @@ export default function ParentLookup() {
                       <div className="parent-main-info">
                         <strong>{entry.competitionName}</strong>
                         <span>{entry.category || 'Kategoria w przygotowaniu'} • {entry.mat || 'Tatami w przygotowaniu'}</span>
-                        <small>Na tatami teraz: <b>{entry.currentOnMat}</b></small>
+                        <small>Na tatami teraz: <b>{entry.currentOnMat}</b></small><a className="ika-live-entry-link" href={`/wyniki-live?athlete=${encodeURIComponent(athlete.id)}${entry.categoryId ? `&category=${encodeURIComponent(`id:${entry.categoryId}`)}` : ""}`}>Zobacz wyniki i drabinkę</a>
                       </div>
                       <div className="fights-counter">
                         <small>Do startu</small>

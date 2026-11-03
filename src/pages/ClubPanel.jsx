@@ -295,7 +295,7 @@ export default function ClubPanel() {
         </div>
         <div className="club-site-intro-actions">
           <a className="btn btn-primary" href="#club-active-tournaments">Zobacz zawody</a>
-          <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a>
+          <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a><a className="btn btn-outline" href="/wyniki-live">Wyniki LIVE</a>
         </div>
       </section>
 
