@@ -1554,3 +1554,46 @@ input.numeric-input{-moz-appearance:textfield;appearance:textfield}
 .judge-screen .ika-referee-config > summary:hover, .judge-screen .ika-referee-config[open] > summary { background:#bd241b; color:#fff; border-color:#e1261c; }
 .judge-screen .ika-referee-config .kata-judge-count-box { margin-top:8px; width:100%; }
 @media(max-width:760px){ .judge-screen .ika-referee-config{width:100%;} }
+
+/* IKA-TV-FIGHTER-SPACING-V1: tylko tablica walki na TV */
+.scoreboard-screen .scoreboard-body > .fighter {
+  min-width: 0;
+}
+.scoreboard-screen .scoreboard-body > .fighter h1 {
+  line-height: 1.14 !important;
+  margin-top: 12px !important;
+  margin-bottom: 18px !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  max-width: 100%;
+}
+.scoreboard-screen .scoreboard-body > .fighter p {
+  line-height: 1.35 !important;
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  position: relative;
+  z-index: 1;
+}
+.scoreboard-screen .scoreboard-body > .fighter .technique-score-grid-tv {
+  margin-top: 12px !important;
+  flex-shrink: 0;
+}
+.scoreboard-screen .scoreboard-body > .fighter .ika104-tv-penalty-grid {
+  margin-top: 10px !important;
+  flex-shrink: 0;
+}
+@media (max-height: 760px) and (min-width: 761px) {
+  .scoreboard-screen .scoreboard-body > .fighter h1 {
+    line-height: 1.12 !important;
+    margin-bottom: 12px !important;
+  }
+  .scoreboard-screen .scoreboard-body > .fighter p {
+    margin-bottom: 10px !important;
+  }
+  .scoreboard-screen .scoreboard-body > .fighter .technique-score-grid-tv {
+    margin-top: 8px !important;
+  }
+}
+
