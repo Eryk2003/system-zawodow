@@ -429,6 +429,35 @@ function sortKataResults(results = []) {
       || Number(a.order || 0) - Number(b.order || 0))
 }
 
+// IKA-KATA-TWO-ROUND-TOTAL-RESTORE-20261103
+// Wynik finalowy: suma ocen eliminacji i finalu. Remis: wyzsza pojedyncza nota.
+export function getKataCombinedResults(session) {
+  const preliminaries = new Map((session?.preliminaryResults || []).map(item => [item.athleteId, item]))
+  const twoRounds = Number(session?.totalRounds || 1) === 2 && preliminaries.size > 0
+  const highest = item => Math.max(0, ...(item?.scores || []).map(value => Number(value) || 0))
+  const sum = (a, b) => Math.round((Number(a || 0) + Number(b || 0)) * 100) / 100
+  return (session?.results || [])
+    .filter(item => item.status === 'done' && item.finalScore != null && Number.isFinite(Number(item.finalScore)))
+    .map(item => {
+      const preliminary = twoRounds ? preliminaries.get(item.athleteId) : null
+      const first = preliminary?.finalScore != null ? Number(preliminary.finalScore) : null
+      const second = Number(item.finalScore)
+      return {
+        ...item,
+        round1Score: first,
+        round2Score: twoRounds ? second : null,
+        totalScore: first == null ? second : sum(first, second),
+        highestJudgeScore: Math.max(highest(item), highest(preliminary)),
+        combinedRawTotal: sum(item.rawTotal, preliminary?.rawTotal),
+      }
+    })
+    .sort((a, b) => b.totalScore - a.totalScore
+      || b.highestJudgeScore - a.highestJudgeScore
+      || b.combinedRawTotal - a.combinedRawTotal
+      || Number(a.completedAt || 0) - Number(b.completedAt || 0)
+      || Number(a.order || 0) - Number(b.order || 0))
+}
+
 function createEmptyKataResult(athleteId, index, judgeCount, extra = {}) {
   return {
     athleteId,
@@ -536,9 +565,7 @@ function buildTournamentPodiums() {
   const kataSessions = read(KEYS.kataSessions, [])
   kataSessions.forEach((session) => {
     if (session.status !== 'completed') return
-    const completed = (session.results || [])
-      .filter((result) => result.status === 'done' && Number.isFinite(Number(result.finalScore)))
-      .sort((a, b) => Number(b.finalScore) - Number(a.finalScore) || Number(b.rawTotal || 0) - Number(a.rawTotal || 0) || Number(a.completedAt || 0) - Number(b.completedAt || 0))
+    const completed = getKataCombinedResults(session)
     if (!completed.length) return
     const category = categories.find((item) => item.id === session.categoryId) || null
     const competition = competitions.find((item) => item.id === session.competitionId) || null
@@ -550,8 +577,11 @@ function buildTournamentPodiums() {
         place,
         points: place === 1 ? 6 : place === 2 ? 4 : 2,
         clubPoints: place === 1 ? 6 : place === 2 ? 4 : 2,
-        finalScore: result.finalScore,
-        rawTotal: result.rawTotal,
+        finalScore: result.totalScore,
+        round1Score: result.round1Score,
+        round2Score: result.round2Score,
+        totalScore: result.totalScore,
+        rawTotal: result.combinedRawTotal,
         ...info,
       } : null
     }).filter(Boolean)
