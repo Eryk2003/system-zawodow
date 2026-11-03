@@ -15,6 +15,49 @@ import UnifiedJudgePanel from './pages/UnifiedJudgePanel'
 import RankingsPage from './pages/RankingsPage'
 import AthleteIdentifiers from './pages/AthleteIdentifiers'
 import { useAuth } from './lib/AuthContext'
+import { readStationBinding, releaseStation, STATION_EVENT } from './lib/stationLock.js'
+
+// Tryb stanowiska: przypisany laptop pracuje w panelu tylko swojego tatami.
+// Kontrola uprawnień na poziomie Supabase wymaga oddzielnego wdrożenia RLS.
+function StationModeGate({ children }) {
+  const location = useLocation()
+  const [binding, setBinding] = useState(() => readStationBinding())
+  const [unlockCode, setUnlockCode] = useState('')
+  const [unlockError, setUnlockError] = useState('')
+  useEffect(() => {
+    const refresh = () => setBinding(readStationBinding())
+    window.addEventListener(STATION_EVENT, refresh)
+    window.addEventListener('storage', refresh)
+    return () => {
+      window.removeEventListener(STATION_EVENT, refresh)
+      window.removeEventListener('storage', refresh)
+    }
+  }, [])
+  if (!binding) return children
+  const allowedJudge = ['/organizator/panel-sedziego/', '/organizator/sedzia/', '/organizator/kata-sedzia/']
+    .some(prefix => location.pathname === prefix + encodeURIComponent(binding.mat))
+  const allowedTv = location.pathname === '/tatami/' + encodeURIComponent(binding.mat)
+  if (allowedJudge || allowedTv || location.pathname === '/organizator/logowanie') return children
+  const ownUrl = '/organizator/panel-sedziego/' + encodeURIComponent(binding.mat)
+  return (
+    <main style={{ minHeight: '100vh', background: '#090c12', color: '#f4f7fb', display: 'grid', placeItems: 'center', padding: 24 }}>
+      <section style={{ width: 'min(100%, 530px)', background: '#1a1f29', border: '1px solid #454c5b', borderRadius: 18, padding: 28, display: 'grid', gap: 16 }}>
+        <strong style={{ color: '#e1261c', letterSpacing: 1 }}>IKA POLAND · STANOWISKO SĘDZIOWSKIE</strong>
+        <h1 style={{ fontSize: 32, margin: 0 }}>{binding.mat}</h1>
+        <p style={{ color: '#c8d0df', margin: 0 }}>Ten laptop jest przypisany do jednego tatami. Przejście do innych stanowisk i Centrum Zawodów jest zablokowane w tym trybie.</p>
+        <a href={ownUrl} style={{ background: '#e1261c', color: '#fff', textAlign: 'center', padding: 14, borderRadius: 10, textDecoration: 'none', fontWeight: 800 }}>OTWÓRZ SWOJE TATAMI</a>
+        <details style={{ borderTop: '1px solid #444c5a', paddingTop: 14 }}>
+          <summary style={{ cursor: 'pointer' }}>Odblokowanie przez organizatora</summary>
+          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+            <input type="password" inputMode="numeric" value={unlockCode} onChange={e => { setUnlockCode(e.target.value); setUnlockError('') }} placeholder="Kod organizatora" aria-label="Kod organizatora" style={{ flex: '1 1 180px', padding: 10, borderRadius: 8, color: '#fff', background: '#10151f', border: '1px solid #555c6a' }}/>
+            <button type="button" onClick={() => { if (releaseStation(unlockCode)) { setUnlockCode(''); setUnlockError('') } else setUnlockError('Niepoprawny kod.') }} style={{ background: '#303746', color: '#fff', border: '1px solid #626b7d', padding: 10, borderRadius: 8 }}>Odblokuj</button>
+          </div>
+          {unlockError && <p role="alert" style={{ color: '#ff9999' }}>{unlockError}</p>}
+        </details>
+      </section>
+    </main>
+  )
+}
 
 function ProtectedRoute({ children, role }) {
   const { user, loading } = useAuth()
@@ -38,6 +81,7 @@ export default function App() {
     return () => window.removeEventListener('ika:periodic-refresh', update)
   }, [])
   return (
+    <StationModeGate>
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/aktualnosci" element={<NewsPage />} />
@@ -60,5 +104,6 @@ export default function App() {
       <Route path="/organizator/kata-sedzia/:mat" element={<ProtectedRoute role="organizer"><UnifiedJudgePanel /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </StationModeGate>
   )
 }

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { db } from '../lib/demoStore'
+import { bindStation } from '../lib/stationLock.js'
 
 const TABS = [
   { id: 'judges', label: 'Sędziowie' },
@@ -39,12 +40,14 @@ function categoryForMat(category, mat, competitions, schedule, matches, kataSess
 
 export default function CenterQuickNav({
   tournament, competitions, categories, schedule, matches, kataSessions,
-  matStates, matNames, activeTab, onTabChange, onPrepareCategory,
+  matStates, matNames, activeTab, onTabChange, onPrepareCategory, onBulkDrawMat,
 }) {
   const navigate = useNavigate()
   const [selectedMat, setSelectedMat] = useState('Tatami 1')
   const [selectedCategoryId, setSelectedCategoryId] = useState('')
   const [error, setError] = useState('')
+  const [stationCode, setStationCode] = useState('')
+  const [bulkJudgeCount, setBulkJudgeCount] = useState(3)
 
   const mat = matNames.includes(selectedMat) ? selectedMat : (matNames[0] || 'Tatami 1')
   const options = useMemo(() => categories
@@ -149,6 +152,29 @@ export default function CenterQuickNav({
             <div><strong>{categories.length}</strong><small>Kategorii</small></div>
             <div><strong>{kataSessions.length + new Set(matches.map((item) => `${item.mat}|${item.competitionId}|${item.category}`)).size}</strong><small>Przygotowanych</small></div>
           </div>
+        </div>
+        <div className="ika-station-tools" style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:12, padding:'14px 0', borderTop:'1px solid #434b5d', marginTop:10 }}>
+          <div style={{ display:'flex', flexWrap:'wrap', alignItems:'center', gap:8 }}>
+            <strong>Losowanie zbiorcze:</strong>
+            <select value={bulkJudgeCount} onChange={e => setBulkJudgeCount(Number(e.target.value))} aria-label="Liczba sędziów kata przy losowaniu zbiorczym">
+              <option value={3}>Kata: 3 sędziów</option><option value={5}>Kata: 5 sędziów</option>
+            </select>
+            <button type="button" className="btn btn-primary" onClick={() => onBulkDrawMat?.(mat, bulkJudgeCount)}>
+              Losuj wszystkie kategorie - {mat}
+            </button>
+          </div>
+          <details style={{ flex:'1 1 300px' }}>
+            <summary style={{ cursor:'pointer', fontWeight:700 }}>Przypisz ten laptop do {mat}</summary>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginTop:10, alignItems:'center' }}>
+              <input type="password" inputMode="numeric" maxLength={8} value={stationCode}
+                onChange={e => setStationCode(e.target.value)} placeholder="Kod organizatora (4-8 cyfr)" aria-label="Kod do odblokowania laptopa" />
+              <button type="button" className="btn btn-outline" onClick={() => {
+                try { bindStation(mat, stationCode); navigate(`/organizator/panel-sedziego/${encodeURIComponent(mat)}`) }
+                catch (e) { setError(e?.message || 'Nie można przypisać laptopa.') }
+              }}>Włącz tryb stanowiska</button>
+            </div>
+            <small style={{ display:'block', marginTop:6 }}>Tryb blokuje pozostałe widoki na tym laptopie. Kod służy do odblokowania przez organizatora.</small>
+          </details>
         </div>
         <div className="ika-fast-entry" aria-label="Szybki wybór panelu sędziego">
           <div className="ika-fast-step">

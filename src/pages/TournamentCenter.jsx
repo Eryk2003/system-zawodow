@@ -150,6 +150,65 @@ export default function TournamentCenter() {
     }
   }
 
+  // Losowanie na całym tatami: tylko nieprzygotowane kategorie, bez nadpisania wyników.
+  const drawAllOnMat = (mat, judgeCount = 3) => {
+    setError('')
+    setMessage('')
+    const currentMatches = db.getMatches()
+    const currentSessions = db.getKataSessions()
+    if (currentMatches.some(m => m.mat === mat && m.status === 'active') ||
+        currentSessions.some(s => s.mat === mat && s.phase === 'scores' && s.status === 'active')) {
+      setError('Nie można losować na tatami podczas aktywnej walki lub oceniania kata.')
+      return
+    }
+    const slots = db.getSchedule().filter(slot => slot.mat === mat)
+    const allocated = slots.map(slot => categories.find(c => c.id === slot.categoryId ||
+      (c.competitionId === slot.competitionId && c.name === slot.category))).filter(Boolean)
+    const unique = [...new Map(allocated.map(c => [c.id, c])).values()]
+    let drawn = 0
+    let skipped = 0
+    const errors = []
+    const before = db.getMatState(mat)
+    for (const category of unique) {
+      const competition = competitions.find(c => c.id === category.competitionId)
+      if (!['Kata','Kumite'].includes(competition?.group)) { skipped++; continue }
+      const related = row => row.categoryId === category.id ||
+        (row.competitionId === category.competitionId && row.category === category.name)
+      // Zabezpieczenie przed ponownym losowaniem istniejącej kategorii.
+      if (db.getMatches().some(related) || db.getKataSessions().some(related)) { skipped++; continue }
+      const participants = [...new Set(db.getEntries()
+        .filter(e => related(e) && e.mat === mat)
+        .map(e => e.athleteId).filter(Boolean))]
+      if (participants.length < (competition.group === 'Kata' ? 1 : 2)) { skipped++; continue }
+      try {
+        if (competition.group === 'Kata') {
+          db.generateKataStartList({ competitionId: category.competitionId, category: category.name,
+            categoryId: category.id, mat, judgeCount: Number(judgeCount) === 5 ? 5 : 3, shuffle: true })
+        } else {
+          db.generateBracket({ competitionId: category.competitionId, category: category.name,
+            categoryId: category.id, mat, shuffle: true })
+        }
+        drawn++
+      } catch (err) { errors.push(`${category.name}: ${err?.message || 'Błąd losowania'}`) }
+    }
+    // Każde losowanie ustawia TV na swoją kategorię; przywróć poprzedni widok.
+    if (drawn && before?.competitionId) db.setMatState(mat, before)
+    if (drawn && !before?.competitionId) {
+      const first = unique.find(c => db.getMatches().some(m => m.categoryId === c.id && m.mat === mat) ||
+        db.getKataSessions().some(s => s.categoryId === c.id && s.mat === mat))
+      if (first) {
+        const firstSession = db.getKataSessions().find(s => s.categoryId === first.id && s.mat === mat)
+        db.setMatState(mat, { competitionId: first.competitionId, category: first.name,
+          categoryId: first.id, mode: firstSession ? 'kata-list' : 'bracket',
+          kataSessionId: firstSession?.id || null, currentMatchId: null })
+      }
+    }
+    const summary = `${mat}: wylosowano ${drawn} kategorii, pominięto ${skipped}.`
+    if (errors.length) setError(`${summary} Błędy: ${errors.slice(0, 3).join('; ')}`)
+    else setMessage(summary + ' Istniejących kategorii i wyników nie zmieniono.')
+    refresh()
+  }
+
   /* ETAP 86B - przerwa osobno na tatami */
   const toggleBreakForMat = (mat, enabled) => {
     try {
@@ -376,6 +435,7 @@ export default function TournamentCenter() {
         activeTab={centerView}
         onTabChange={setCenterView}
         onPrepareCategory={prepareCategoryFromQuick}
+        onBulkDrawMat={drawAllOnMat}
       />
       {centerView === 'settings' && <OrganizerRoleManager />}
       <div className="ika94-tv-mounted" hidden={centerView !== 'tv'}>
