@@ -105,9 +105,9 @@ export function logoutAccount() {
   localStorage.removeItem(KEYS.session)
 }
 
-function roundName(slotCount, preliminary = false) {
-  if (preliminary) return 'Runda wstępna'
-  const matchCount = slotCount / 2
+function roundName(slotCount) {
+  const normalizedSlots = Math.max(2, Number(slotCount || 0))
+  const matchCount = Math.max(1, normalizedSlots / 2)
   if (matchCount === 1) return 'Finał'
   if (matchCount === 2) return 'Półfinał'
   if (matchCount === 4) return 'Ćwierćfinał'
@@ -429,36 +429,6 @@ function sortKataResults(results = []) {
       || Number(a.order || 0) - Number(b.order || 0))
 }
 
-// IKA-KATA-TWO-ROUND-TOTAL-2026-11
-// W eliminacjach i finale zachowujemy osobne oceny. Klasyfikacja: suma obu rund.
-// Przy remisie wyzsza pojedyncza nota sedziowska z obu rund.
-export function getKataCombinedResults(session) {
-  const preliminaryByAthlete = new Map((session?.preliminaryResults || []).map(item => [item.athleteId, item]))
-  const twoRounds = Number(session?.totalRounds || 1) === 2 && preliminaryByAthlete.size > 0
-  const highest = item => Math.max(0, ...(item?.scores || []).map(score => Number(score) || 0))
-  const total = (a, b) => Math.round((Number(a || 0) + Number(b || 0)) * 100) / 100
-  return (session?.results || [])
-    .filter(item => item.status === 'done' && item.finalScore != null && Number.isFinite(Number(item.finalScore)))
-    .map(item => {
-      const preliminary = twoRounds ? preliminaryByAthlete.get(item.athleteId) : null
-      const first = preliminary?.finalScore != null ? Number(preliminary.finalScore) : null
-      const second = Number(item.finalScore)
-      return {
-        ...item,
-        round1Score: first,
-        round2Score: twoRounds ? second : null,
-        totalScore: first == null ? second : total(first, second),
-        highestJudgeScore: Math.max(highest(item), highest(preliminary)),
-        combinedRawTotal: total(item.rawTotal, preliminary?.rawTotal),
-      }
-    })
-    .sort((a,b) => b.totalScore - a.totalScore
-      || b.highestJudgeScore - a.highestJudgeScore
-      || b.combinedRawTotal - a.combinedRawTotal
-      || Number(a.completedAt || 0) - Number(b.completedAt || 0)
-      || Number(a.order || 0) - Number(b.order || 0))
-}
-
 function createEmptyKataResult(athleteId, index, judgeCount, extra = {}) {
   return {
     athleteId,
@@ -566,7 +536,9 @@ function buildTournamentPodiums() {
   const kataSessions = read(KEYS.kataSessions, [])
   kataSessions.forEach((session) => {
     if (session.status !== 'completed') return
-    const completed = getKataCombinedResults(session)
+    const completed = (session.results || [])
+      .filter((result) => result.status === 'done' && Number.isFinite(Number(result.finalScore)))
+      .sort((a, b) => Number(b.finalScore) - Number(a.finalScore) || Number(b.rawTotal || 0) - Number(a.rawTotal || 0) || Number(a.completedAt || 0) - Number(b.completedAt || 0))
     if (!completed.length) return
     const category = categories.find((item) => item.id === session.categoryId) || null
     const competition = competitions.find((item) => item.id === session.competitionId) || null
@@ -578,11 +550,8 @@ function buildTournamentPodiums() {
         place,
         points: place === 1 ? 6 : place === 2 ? 4 : 2,
         clubPoints: place === 1 ? 6 : place === 2 ? 4 : 2,
-        finalScore: result.totalScore,
-        round1Score: result.round1Score,
-        round2Score: result.round2Score,
-        totalScore: result.totalScore,
-        rawTotal: result.combinedRawTotal,
+        finalScore: result.finalScore,
+        rawTotal: result.rawTotal,
         ...info,
       } : null
     }).filter(Boolean)
@@ -760,60 +729,14 @@ export const db = {
     if (index < 0) throw new Error('Nie znaleziono kategorii.')
     const category = categories[index]
     if ((category.preferredMat || null) === (preferredMat || null)) return category
-    const related = (row) => row.categoryId === categoryId ||
-      (row.competitionId === category.competitionId && row.category === category.name)
-    const allMatches = read(KEYS.matches, [])
-    const allSessions = read(KEYS.kataSessions, [])
-    const categoryMatches = allMatches.filter(related)
-    const categorySessions = allSessions.filter(related)
-    if (!preferredMat && (categoryMatches.length || categorySessions.length)) {
-      throw new Error('Po losowaniu wybierz konkretne tatami. Tryb automatyczny jest dostępny przed losowaniem.')
+    const isRelated = (row) => row.categoryId === categoryId || (row.competitionId === category.competitionId && row.category === category.name)
+    if (read(KEYS.matches, []).some(isRelated) || read(KEYS.kataSessions, []).some(isRelated)) {
+      throw new Error('Tatami jest zablokowane po losowaniu drabinki lub utworzeniu listy kata. Nie można przenosić rozpoczętej kategorii.')
     }
-
-    // Można przenieść kategorię po losowaniu, ale tylko przed rozpoczęciem pierwszej walki/oceny.
-    // Wyniki, zakończone walki i aktualnie punktowane kata pozostają zablokowane.
-    const startedKumite = categoryMatches.some((m) => m.status !== 'scheduled' || Boolean(m.winnerId))
-    const startedKata = categorySessions.some((s) =>
-      !['ready', 'pending'].includes(s.status) ||
-      !['list', 'pending'].includes(s.phase) ||
-      (s.results || []).some((r) => r.status !== 'pending' || r.completedAt != null)
-    )
-    if (startedKumite || startedKata) {
-      throw new Error('Nie można przenieść kategorii, w której rozpoczęto walkę, ocenianie kata lub zapisano wyniki.')
-    }
-
-    const nextMat = preferredMat || null
-    categories[index] = { ...category, preferredMat: nextMat }
-    // Przeniesienie już wylosowanych drabinek i list kata, bez ponownego losowania.
-    const nextMatches = allMatches.map((m) => related(m) && nextMat ? { ...m, mat: nextMat } : m)
-    const nextSessions = allSessions.map((s) => related(s) && nextMat ? { ...s, mat: nextMat } : s)
-
-    // Gdy wybrano 'Automatycznie' przy gotowych losowaniach, pozostawiamy
-    // dotychczasowe tatami do momentu ręcznego wyboru nowego, aby nie zgubić list.
-    const oldMats = new Set([...categoryMatches.map((m) => m.mat), ...categorySessions.map((s) => s.mat)])
-    const matStates = read(KEYS.matStates, {})
-    for (const oldMat of oldMats) {
-      if (!oldMat || oldMat === nextMat) continue
-      const state = matStates[oldMat]
-      if (state && (state.categoryId === categoryId ||
-        (state.competitionId === category.competitionId && state.category === category.name))) {
-        matStates[oldMat] = {
-          ...state, competitionId: null, category: null, categoryId: null,
-          kataSessionId: null, currentMatchId: null, lastCompletedMatchId: null,
-          mode: 'bracket', autoTransition: null, transitionAuto: false,
-          updatedAt: Date.now(),
-        }
-      }
-    }
-
+    categories[index] = { ...category, preferredMat: preferredMat || null }
     write(KEYS.tournamentCategories, categories)
-    if (nextMat) {
-      write(KEYS.matches, nextMatches)
-      write(KEYS.kataSessions, nextSessions)
-      write(KEYS.matStates, matStates)
-    }
     const schedule = read(KEYS.schedule, [])
-    write(KEYS.schedule, schedule.map((slot) => related(slot) ? { ...slot, manual: false } : slot))
+    write(KEYS.schedule, schedule.map((slot) => isRelated(slot) ? { ...slot, manual: false } : slot))
     regenerateScheduleInternal()
     emit()
     return categories[index]
@@ -1338,12 +1261,15 @@ export const db = {
     if (openingPlan.opening) {
       const prelimRoundId = uid('round')
       let prelimNo = 1
+      const realOpeningMatches = openingPlan.opening.filter((slot) => slot.type !== 'bye')
+      const singleOpeningMatch = realOpeningMatches.length === 1
+      const openingRoundLabel = roundName(bracketSize)
       slots = openingPlan.opening.map((slot) => {
         if (slot.type === 'bye') return { athleteId: slot.athleteId }
         const match = {
           id: uid('match'), competitionId, category, categoryId, mat, roundId: prelimRoundId, roundIndex,
-          roundName: 'Runda wstępna', matchNo: prelimNo++, queueOrder: queueOrder++,
-          bracketPosition: slot.position, bracketSize,
+          roundName: openingRoundLabel, matchNo: prelimNo++, queueOrder: queueOrder++,
+          bracketPosition: singleOpeningMatch ? 0 : slot.position, bracketSize,
           redAthleteId: slot.redAthleteId, blueAthleteId: slot.blueAthleteId,
           redSourceMatchId: null, blueSourceMatchId: null, winnerId: null,
           redScore: 0, blueScore: 0, redPenaltyLevel: 0, bluePenaltyLevel: 0, redWazariCount: 0, redIpponCount: 0, blueWazariCount: 0, blueIpponCount: 0, redExitPenaltyLevel: 0, redBehaviorPenaltyLevel: 0, blueExitPenaltyLevel: 0, blueBehaviorPenaltyLevel: 0,
