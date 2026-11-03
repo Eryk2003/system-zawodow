@@ -1,0 +1,215 @@
+/* IKA Poland — ciemny motyw STREFY KLUBU, poprawka oparta na klasach ClubPanel.jsx.
+   Scope: .club-site-shell. Nie dotyczy panelu sedziego, TV, organizatora ani QR.
+   Zastepuje nieprzewidywalny MutationObserver z clubDarkAutopatch.js. */
+
+.club-site-shell {
+  --club-bg: #080b11;
+  --club-surface: #151b26;
+  --club-surface-2: #1d2532;
+  --club-surface-3: #101722;
+  --club-border: #384254;
+  --club-text: #f5f7fc;
+  --club-muted: #bfcbdd;
+  background: var(--club-bg) !important;
+  color: var(--club-text) !important;
+  min-height: 100vh;
+}
+.club-site-shell .club-site-main {
+  background: var(--club-bg) !important;
+  color: var(--club-text) !important;
+  border-color: var(--club-border) !important;
+}
+.club-site-shell .club-site-footer {
+  background: var(--club-bg) !important;
+  border-color: var(--club-border) !important;
+  color: var(--club-muted) !important;
+}
+.club-site-shell .club-site-intro {
+  background: linear-gradient(180deg, #171e29, #101721) !important;
+  border-color: var(--club-border) !important;
+  color: var(--club-text) !important;
+}
+.club-site-shell .club-site-intro h1,
+.club-site-shell .club-site-section h1,
+.club-site-shell .club-site-section h2,
+.club-site-shell .club-site-section h3,
+.club-site-shell .club-site-section h4,
+.club-site-shell .club-event-card h3,
+.club-site-shell .club-site-section label {
+  color: var(--club-text) !important;
+}
+.club-site-shell .club-site-intro p,
+.club-site-shell .club-site-section-head p,
+.club-site-shell .club-site-section p,
+.club-site-shell .club-site-section small {
+  color: var(--club-muted) !important;
+}
+.club-site-shell .eyebrow,
+.club-site-shell .ika-brand-ika,
+.club-site-shell .ika-brand-poland { color: #f04439 !important; }
+.club-site-shell .club-site-details span,
+.club-site-shell .club-event-categories span,
+.club-site-shell .registration-total-badge,
+.club-site-shell .club-event-date-status,
+.club-site-shell .club-event-open.closed {
+  background: #252f40 !important;
+  color: #f5f7fc !important;
+  border: 1px solid #48556b !important;
+}
+.club-site-shell .club-site-details span,
+.club-site-shell .club-event-categories span {
+  font-weight: 750;
+}
+.club-site-shell .club-event-categories span { display: inline-flex; align-items: center; }
+.club-site-shell .club-site-section,
+.club-site-shell .club-site-section-head,
+.club-site-shell .club-event-summary,
+.club-site-shell .club-registration-athlete-head,
+.club-site-shell .club-category-registration-row,
+.club-site-shell .club-event-summary > div {
+  border-color: var(--club-border) !important;
+}
+.club-site-shell .club-site-section { background: var(--club-bg) !important; }
+.club-site-shell .club-event-card,
+.club-site-shell .setup-card,
+.club-site-shell .panel-section,
+.club-site-shell .form-card,
+.club-site-shell .club-registration-athlete,
+.club-site-shell .club-site-section .empty-state,
+.club-site-shell .club-site-section .table-wrap,
+.club-site-shell .club-list-search,
+.club-site-shell .club-athlete-search-wrap {
+  background: var(--club-surface) !important;
+  color: var(--club-text) !important;
+  border-color: var(--club-border) !important;
+}
+.club-site-shell .club-event-main,
+.club-site-shell .club-registration-athlete-head,
+.club-site-shell .club-event-summary,
+.club-site-shell .club-event-actions,
+.club-site-shell .club-event-categories {
+  background: var(--club-surface) !important;
+  color: var(--club-text) !important;
+  border-color: var(--club-border) !important;
+}
+.club-site-shell .club-event-main p,
+.club-site-shell .club-event-summary small,
+.club-site-shell .club-event-date-status small,
+.club-site-shell .club-event-categories > small,
+.club-site-shell .club-registration-athlete-head p,
+.club-site-shell .club-category-registration-row small,
+.club-site-shell .category-participant-count span,
+.club-site-shell .club-list-search label > span {
+  color: var(--club-muted) !important;
+}
+.club-site-shell .club-event-main strong,
+.club-site-shell .club-event-summary strong,
+.club-site-shell .club-event-date-status strong,
+.club-site-shell .club-category-registration-row strong,
+.club-site-shell .club-registration-athlete-head strong,
+.club-site-shell .club-registration-athlete-head h3,
+.club-site-shell .club-search-count strong {
+  color: #fff !important;
+}
+.club-site-shell .club-event-categories > div { gap: 8px; }
+.club-site-shell .club-deadline-summary,
+.club-site-shell .club-deadline-summary.closed,
+.club-site-shell .club-registration-deadline,
+.club-site-shell .club-registration-deadline.closed,
+.club-site-shell .registration-deadline-banner,
+.club-site-shell .registration-deadline-banner.closed {
+  background: var(--club-border) !important;
+  border-color: var(--club-border) !important;
+  color: var(--club-text) !important;
+}
+.club-site-shell .club-registration-deadline > div,
+.club-site-shell .club-registration-deadline.closed > div,
+.club-site-shell .registration-deadline-banner > div,
+.club-site-shell .registration-deadline-banner.closed > div {
+  background: var(--club-surface-2) !important;
+  color: var(--club-text) !important;
+}
+.club-site-shell .club-registration-deadline strong,
+.club-site-shell .registration-deadline-banner strong,
+.club-site-shell .club-deadline-summary strong,
+.club-site-shell .club-deadline-summary.closed strong { color: #f8fafc !important; }
+.club-site-shell .club-registration-deadline small,
+.club-site-shell .registration-deadline-banner small { color: var(--club-muted) !important; }
+.club-site-shell .club-registration-deadline.closed strong,
+.club-site-shell .registration-deadline-banner.closed strong { color: #ffa49e !important; }
+.club-site-shell .club-category-registration-row {
+  background: var(--club-surface-3) !important;
+  color: var(--club-text) !important;
+}
+.club-site-shell .club-category-registration-row.registered {
+  background: #102c25 !important;
+  box-shadow: inset 4px 0 0 #45b184 !important;
+}
+.club-site-shell .club-category-registration-row.registered strong { color: #effff6 !important; }
+.club-site-shell .club-search-count {
+  background: var(--club-surface-3) !important;
+  border: 1px solid var(--club-border) !important;
+}
+.club-site-shell .club-site-section th,
+.club-site-shell .club-site-section td,
+.club-site-shell .club-site-section tr,
+.club-site-shell .club-site-section table {
+  color: var(--club-text) !important;
+  background: var(--club-surface) !important;
+  border-color: var(--club-border) !important;
+}
+.club-site-shell .club-site-section th { background: #202939 !important; }
+.club-site-shell .club-site-section tbody tr:nth-child(even) td { background: #1a2330 !important; }
+.club-site-shell .club-site-section .empty-icon { background: #263143 !important; color: #f3f5fb !important; }
+.club-site-shell input:not([type="checkbox"]):not([type="radio"]),
+.club-site-shell select,
+.club-site-shell textarea {
+  background: #0d1420 !important;
+  color: #f6f8fd !important;
+  border: 1px solid #4a586d !important;
+  box-shadow: none !important;
+}
+.club-site-shell input::placeholder,
+.club-site-shell textarea::placeholder { color: #9eafc3 !important; opacity: 1; }
+.club-site-shell input[type="file"] { color: #dce6f5 !important; }
+.club-site-shell input[type="file"]::file-selector-button {
+  background: #283246 !important;
+  border: 1px solid #55647b !important;
+  color: #fff !important;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.club-site-shell select option { background: #151c28; color: #fff; }
+.club-site-shell .btn-outline,
+.club-site-shell .btn-ghost,
+.club-site-shell .link-btn:not(.danger) {
+  background: #222c3c !important;
+  border-color: #4c5970 !important;
+  color: #f5f7fc !important;
+}
+.club-site-shell .btn-primary { background: #e1261c !important; color: #fff !important; border-color: #e1261c !important; }
+.club-site-shell .btn-primary:hover { background: #bc211a !important; border-color: #bc211a !important; }
+.club-site-shell .btn-outline:hover,
+.club-site-shell .btn-ghost:hover { background: #a32624 !important; color: #fff !important; }
+.club-site-shell .status,
+.club-site-shell .alert,
+.club-site-shell .alert-success,
+.club-site-shell .alert-info,
+.club-site-shell .alert-error,
+.club-site-shell .club-event-open:not(.closed) {
+  background: #223145 !important;
+  color: #f6f8fd !important;
+  border-color: #48576c !important;
+}
+.club-site-shell .alert-error { border-color: #984641 !important; color: #ffc3bd !important; }
+.club-site-shell .alert-success { border-color: #357b60 !important; color: #b3f5d1 !important; }
+.club-site-shell .club-event-open:not(.closed) { background: #196342 !important; border-color: #278b60 !important; }
+.club-site-shell .registration-disabled-link { background: #2b3444 !important; color: #b9c4d6 !important; }
+.club-site-shell .ika-club-logo-settings img { border: 1px solid #3c4656; }
+.club-site-shell .ika-club-logo-settings .club-logo-field,
+.club-site-shell .ika-club-logo-settings .club-logo-upload,
+.club-site-shell .ika-club-logo-settings .club-logo-preview { color: #f5f7fc !important; }
+@media (max-width: 700px) {
+  .club-site-shell .club-event-categories > div { gap: 6px; }
+  .club-site-shell .club-event-categories span { white-space: normal; overflow-wrap: anywhere; }
+}
