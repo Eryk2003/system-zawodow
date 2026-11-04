@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { ClubWebsiteLayout, EmptyState, StatusBadge } from '../components/Layout'
 import AthleteAvatar from '../components/AthleteAvatar'
 import ClubLogoField from '../components/ClubLogoField.jsx'
+import ClubTournamentRegistration from '../components/ClubTournamentRegistration.jsx'
 import { useAuth } from '../lib/AuthContext'
 import { db } from '../lib/demoStore'
 
@@ -135,6 +136,7 @@ export default function ClubPanel() {
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [visibleTournament, setVisibleTournament] = useState(() => db.getVisibleTournamentForClubs())
+  const [openedTournamentId, setOpenedTournamentId] = useState('')
   const [athleteSearch, setAthleteSearch] = useState('')
   const [clubAthleteSearch, setClubAthleteSearch] = useState('')
   const [registrationMessage, setRegistrationMessage] = useState('')
@@ -234,7 +236,7 @@ export default function ClubPanel() {
     const competition = comps.find((item) => item.id === category.competitionId)
     const age = ageOnDate(athlete.birthDate, visibleTournament?.date)
     const maxAge = category.maxAge ?? competition?.maxAge ?? null
-    if (category.gender && athlete.gender !== category.gender) return false
+    if (['K', 'M'].includes(category.gender) && athlete.gender !== category.gender) return false
     if (category.minAge != null && (age == null || age < Number(category.minAge))) return false
     if (maxAge != null && (age == null || age > Number(maxAge))) return false
     return true
@@ -295,7 +297,7 @@ export default function ClubPanel() {
         </div>
         <div className="club-site-intro-actions">
           <a className="btn btn-primary" href="#club-active-tournaments">Zobacz zawody</a>
-          <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a><a className="btn btn-outline" href="/wyniki-live">Wyniki LIVE</a>
+          <a className="btn btn-outline" href="#club-athletes">Moi zawodnicy</a>
         </div>
       </section>
 
@@ -343,16 +345,8 @@ export default function ClubPanel() {
               <div><small>ZAPISY DO</small><strong>{formatRegistrationDeadline(visibleTournament.registrationDeadline)}</strong></div>
               <div><small>STATUS</small><strong>{registrationStatus.text}</strong></div>
             </div>
-
-            <div className="club-event-categories">
-              <small>Dostępne konkurencje i kategorie</small>
-              <div>
-                {visibleCompetitionNames.length ? visibleCompetitionNames.map((name) => <span key={name}>{name}</span>) : <span>Kategorie zostaną dodane przez organizatora</span>}
-              </div>
-            </div>
-
             <div className="club-event-actions">
-              <a className={`btn ${registrationsClosed ? 'btn-ghost registration-disabled-link' : 'btn-primary'}`} href={registrationsClosed ? '#club-entries' : '#club-registration'}>{registrationsClosed ? 'Zapisy zakończone' : 'Zgłoś zawodników'}</a>
+              <button type="button" className="btn btn-primary" onClick={() => { setOpenedTournamentId(visibleTournament.id); window.setTimeout(() => document.getElementById('club-registration')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50) }}>Otwórz zawody</button>
               <a className="btn btn-outline" href="#club-entries">Moje zgłoszenia</a>
             </div>
           </article>
@@ -389,83 +383,24 @@ export default function ClubPanel() {
         )}
       </section>
 
-      <section className="club-site-section club-registration-section" id="club-registration">
-        <div className="club-site-section-head">
-          <div>
-            <span className="eyebrow">Zgłoszenie zawodników</span>
-            <h2>Zgłoś zawodnika na zawody</h2>
-            <p>Wybierz swojego zawodnika. Strona pokaże tylko kategorie pasujące do jego wieku i płci. Przy kategorii widoczna jest wyłącznie łączna liczba zgłoszeń, bez danych innych klubów.</p>
-          </div>
-        </div>
-
-        {visibleTournament && (
-          <div className={`registration-deadline-banner ${registrationsClosed ? 'closed' : ''}`}>
-            <div><small>Termin zgłoszeń</small><strong>{formatRegistrationDeadline(visibleTournament.registrationDeadline)}</strong></div>
-            <div><small>Status</small><strong>{registrationStatus.text}</strong></div>
-          </div>
-        )}
-
-        {!visibleTournament ? (
-          <EmptyState title="Brak otwartych zawodów" text="Po opublikowaniu zawodów przez organizatora pojawi się tutaj formularz zgłoszeniowy." />
-        ) : !tournamentCategories.length ? (
-          <EmptyState title="Organizator nie dodał jeszcze kategorii" text="Gdy kategorie zostaną przygotowane, klub będzie mógł wysłać zgłoszenia." />
-        ) : !athletes.length ? (
-          <EmptyState title="Najpierw dodaj zawodników" text="Dodaj zawodnika do listy swojego klubu, a następnie wróć do tej sekcji." />
-        ) : (
-          <>
-            <div className="club-athlete-search-wrap">
-              <label>
-                <span>Znajdź zawodnika swojego klubu</span>
-                <input type="search" value={athleteSearch} onChange={(event) => setAthleteSearch(event.target.value)} placeholder="Imię, nazwisko, data urodzenia lub stopień..." />
-              </label>
-              <div className="club-search-count"><strong>{searchedAthletes.length}</strong><span>znalezionych</span></div>
-            </div>
-
-            {registrationMessage && <div className="alert alert-success">{registrationMessage}</div>}
-
-            {!searchedAthletes.length ? (
-              <div className="empty-state compact"><h3>Nie znaleziono zawodnika</h3><p>Sprawdź wpisane dane albo dodaj zawodnika do listy klubu.</p></div>
-            ) : (
-              <div className="club-registration-athletes">
-                {searchedAthletes.map((athlete) => {
-                  const eligible = tournamentCategories.filter((category) => isEligibleForCategory(athlete, category))
-                  const age = ageOnDate(athlete.birthDate, visibleTournament.date)
-                  return (
-                    <article className="club-registration-athlete" key={athlete.id}>
-                      <div className="club-registration-athlete-head">
-                        <div className="athlete-cell">
-                          <AthleteAvatar athlete={athlete} large />
-                          <div><h3>{athlete.firstName} {athlete.lastName}</h3><p>{athlete.birthDate || 'brak daty urodzenia'}{age != null ? ` - ${age} lat` : ''}{athlete.grade ? ` - ${athlete.grade}` : ''}</p></div>
-                        </div>
-                        <span className="registration-total-badge">{clubEntries.filter((entry) => entry.athleteId === athlete.id).length} zgłoszeń</span>
-                      </div>
-
-                      {!eligible.length ? (
-                        <div className="alert alert-info">Brak kategorii pasujących do wieku i płci tego zawodnika.</div>
-                      ) : (
-                        <div className="club-category-registration-list">
-                          {eligible.map((category) => {
-                            const competition = comps.find((item) => item.id === category.competitionId)
-                            const registered = athleteIsRegistered(athlete.id, category)
-                            const participantCount = categoryEntries(category).length
-                            return (
-                              <div className={`club-category-registration-row ${registered ? 'registered' : ''}`} key={category.id}>
-                                <div><small>{competition?.name || 'Konkurencja'}</small><strong>{category.name}</strong></div>
-                                <div className="category-participant-count"><strong>{participantCount}</strong><span>{participantCount === 1 ? 'zawodnik' : 'zawodników'} w kategorii</span></div>
-                                <button type="button" disabled={registrationsClosed} className={`btn btn-sm ${registered ? 'btn-outline' : 'btn-primary'}`} onClick={() => toggleTournamentRegistration(athlete, category)}>{registrationsClosed ? 'Zapisy zakończone' : registered ? 'Usuń zgłoszenie' : 'Zgłoś'}</button>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-          </>
-        )}
-      </section>
+      {openedTournamentId === visibleTournament?.id && visibleTournament && (
+        <section className="club-site-section club-registration-section" id="club-registration">
+          <ClubTournamentRegistration
+            tournament={visibleTournament}
+            competitions={comps}
+            categories={tournamentCategories}
+            athletes={athletes}
+            closed={registrationsClosed}
+            deadlineText={registrationStatus.text}
+            registrationMessage={registrationMessage}
+            isEligibleForCategory={isEligibleForCategory}
+            athleteIsRegistered={athleteIsRegistered}
+            categoryEntries={categoryEntries}
+            onToggle={toggleTournamentRegistration}
+            onClose={() => { setOpenedTournamentId(''); setRegistrationMessage('') }}
+          />
+        </section>
+      )}
 
       <section className="club-site-section" id="club-entries">
         <div className="club-site-section-head">

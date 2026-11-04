@@ -1,0 +1,26 @@
+.ika-club-event-registration{display:grid;gap:22px;color:#f5f7fc}
+.ika-club-event-register-head{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.ika-club-event-register-head h2{color:#fff;margin:6px 0;font-size:clamp(23px,3vw,30px)}
+.ika-club-event-register-head p{color:#cbd6e6;margin:0}
+.ika-club-event-register-deadline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:13px 16px;border-radius:10px;background:#123b2e;border:1px solid #36775e;color:#d7f9e9}
+.ika-club-event-register-deadline.is-closed{background:#3c2225;border-color:#a64c4c;color:#ffe5e5}
+.ika-club-event-step{display:grid;gap:13px;padding-top:17px;border-top:1px solid #3c465b}
+.ika-club-event-step-title{display:flex;gap:12px;align-items:center}
+.ika-club-event-step-title b{display:grid;place-items:center;flex:none;width:30px;height:30px;background:#e1261c;color:#fff;border-radius:8px}
+.ika-club-event-step-title h3{color:#fff;margin:0;font-size:20px}
+.ika-club-event-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px}
+.ika-club-event-option{display:grid;gap:8px;text-align:left;padding:15px;border-radius:10px;border:1px solid #4c5870;background:#212938;color:#f5f8fd;cursor:pointer}
+.ika-club-event-option strong{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.ika-club-event-option small{color:#c9d4e3}
+.ika-club-event-option:hover,.ika-club-event-option:focus-visible{border-color:#e1261c;background:#3a2429}
+.ika-club-event-option.selected{border:2px solid #ed4036;background:#4a252a}
+.ika-club-event-hint{margin:0;color:#bfcde0}
+.ika-club-event-search{display:grid;gap:8px;font-size:13px;font-weight:800;color:#e5edfa}
+.ika-club-event-search input{background:#101720;color:#fff;border:1px solid #566277;border-radius:9px;padding:13px;width:100%;min-width:0}
+.ika-club-event-athletes{display:grid;gap:9px}
+.ika-club-event-athlete{display:flex;justify-content:space-between;align-items:center;gap:13px;flex-wrap:wrap;padding:13px;background:#1c2635;border:1px solid #44516a;border-radius:10px}
+.ika-club-event-athlete .athlete-cell{min-width:0;color:#fff}
+.ika-club-event-athlete .athlete-cell small{display:block;color:#c3d1e3;margin-top:3px}
+.ika-club-event-athlete-actions{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.ika-club-event-registered{font-size:12px;font-weight:900;color:#9bffcb}
+@media(max-width:600px){.ika-club-event-athlete-actions{width:100%;justify-content:flex-end}}
