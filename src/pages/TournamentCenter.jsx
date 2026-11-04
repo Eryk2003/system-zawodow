@@ -588,10 +588,10 @@ export default function TournamentCenter() {
 
       {centerView === 'kata' && (
       <section className="panel-section kata-admin-section">
-        <div className="panel-section-head"><div><span className="eyebrow">Kata</span><h2>Lista startowa + punktacja sędziów</h2><p>W kata nie ma drabinki. Losujesz kolejność zawodników, wybierasz 3 albo 5 sędziów i prowadzisz występy jeden po drugim.</p></div></div>
+        <div className="panel-section-head"><div><span className="eyebrow">Kata</span><h2>Kata / Kihon - lista startowa i oceny sędziów</h2><p>W kata nie ma drabinki. Losujesz kolejność zawodników, wybierasz 3 albo 5 sędziów i prowadzisz występy jeden po drugim.</p></div></div>
         <form className="bracket-builder kata-list-builder" onSubmit={createKataList}>
           <label>Tatami<select value={kataMat} onChange={(e) => { setKataMat(e.target.value); setKataForm((current) => ({ ...current, categoryId: '' })) }}>{matNames.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
-          <label>Kategoria kata<select required value={kataForm.categoryId} onChange={(e) => setKataForm({ ...kataForm, categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kataMat, 'Kata')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
+          <label>Kategoria kata / kihon<select required value={kataForm.categoryId} onChange={(e) => setKataForm({ ...kataForm, categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kataMat, 'Kata')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
           <label>Liczba sędziów<select value={kataForm.judgeCount} onChange={(e) => setKataForm({ ...kataForm, judgeCount: Number(e.target.value) })}><option value={3}>3 sędziów</option><option value={5}>5 sędziów</option></select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie listę startową</button>
         </form>
@@ -638,10 +638,10 @@ export default function TournamentCenter() {
       {centerView === 'kumite' && (
       <section className="panel-section bracket-admin-section">
         <style>{'@media screen { .ika-kumite-bracket-print-only { display: none !important; } }'}</style>
-        <div className="panel-section-head"><div><span className="eyebrow">Kumite</span><h2>Drabinka + automatyczna tablica przy tatami</h2><p>Utwórz drabinkę z zawodników przypisanych do tej samej konkurencji, kategorii i tatami.</p></div></div>
+        <div className="panel-section-head"><div><span className="eyebrow">Kumite</span><h2>Kumite / Fantom - drabinka i tablica tatami</h2><p>Utwórz drabinkę z zawodników przypisanych do tej samej konkurencji, kategorii i tatami.</p></div></div>
         <form className="bracket-builder" onSubmit={createBracket}>
           <label>Tatami<select value={kumiteMat} onChange={(e) => { setKumiteMat(e.target.value); setBracketForm({ categoryId: '' }) }}>{matNames.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
-          <label>Kategoria kumite<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kumiteMat, 'Kumite')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
+          <label>Kategoria kumite / fantom<select required value={bracketForm.categoryId} onChange={(e) => setBracketForm({ categoryId: e.target.value })}><option value="">Wybierz kategorię</option>{categories.filter((category) => categoryOnMat(category, kumiteMat, 'Kumite')).map((category) => { const competition = competitions.find((c) => c.id === category.competitionId); return <option value={category.id} key={category.id}>{competition?.name} - {category.name}</option> })}</select></label>
           <button className="btn btn-primary">Losuj / losuj ponownie drabinkę</button>
         </form>
 

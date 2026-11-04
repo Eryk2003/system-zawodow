@@ -20,6 +20,7 @@ export function PublicHeader() {
     <header className="topbar">
       <Brand />
       <nav className="public-nav">
+        <NavLink to="/zawody">Zawody</NavLink>
         <NavLink to="/aktualnosci">{t.news}</NavLink>
         <NavLink to="/zawodnik">{t.athleteZone}</NavLink>
         <NavLink to="/klasyfikacja">{t.rankings}</NavLink><NavLink to="/wyniki-live">Wyniki LIVE</NavLink>

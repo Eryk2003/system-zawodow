@@ -1,0 +1,42 @@
+.ika-athlete-finder{background:#171d29;border:1px solid #3a4557;border-radius:16px;padding:20px;margin:0 0 22px;color:#f8fafc;box-shadow:0 12px 32px #0002}
+.ika-athlete-finder-heading span{color:#ff493f;font-weight:900;font-size:11px;letter-spacing:.12em}
+.ika-athlete-finder-heading h2{color:#fff;font-size:24px;margin:5px 0}
+.ika-athlete-finder-heading p{color:#c9d2df;margin:0 0 16px;font-size:14px}
+.ika-athlete-finder>label{display:block;font-size:13px;font-weight:800;margin-bottom:8px;color:#eef2fa}
+.ika-athlete-finder>input{display:block;width:100%;border:1px solid #59677a;background:#0b111b;color:#fff;border-radius:10px;padding:13px 15px;font-size:16px;outline:none}
+.ika-athlete-finder>input:focus{border-color:#f1382b;box-shadow:0 0 0 2px #e1261c33}
+.ika-athlete-finder-suggestions{display:grid;gap:5px;padding-top:9px;max-height:300px;overflow:auto}
+.ika-athlete-finder-suggestions button{display:flex;gap:12px;justify-content:space-between;align-items:center;text-align:left;flex-wrap:wrap;padding:11px 13px;border:1px solid #364256;border-radius:9px;background:#222b3b;color:#fff;cursor:pointer}
+.ika-athlete-finder-suggestions button:hover{background:#a72520;border-color:#e1261c}
+.ika-athlete-finder-suggestions span{font-size:12px;color:#cbd5e1}
+.ika-athlete-finder-suggestions p{padding:10px;color:#cdd5e2}
+.ika-athlete-finder-person{margin-top:18px;border-top:1px solid #3c4658;padding-top:17px}
+.ika-athlete-finder-person-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+.ika-athlete-finder-person-head img,.ika-athlete-finder-initials{width:62px;height:62px;object-fit:cover;border-radius:12px;background:#283345;color:white;display:grid;place-items:center;font-size:22px;font-weight:900}
+.ika-athlete-finder-person-head h3{font-size:20px;margin:0;color:#fff}
+.ika-athlete-finder-person-head p{font-size:13px;margin:3px 0;color:#cbd5e1}
+.ika-athlete-finder-person-head small{color:#91a0b7}
+.ika-athlete-finder-entries{display:grid;gap:12px}
+.ika-athlete-finder-entry{background:#0e1420;border:1px solid #344054;border-radius:12px;padding:16px;min-width:0}
+.ika-athlete-finder-entry-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.ika-athlete-finder-entry-head>div{display:grid;gap:4px;min-width:0}
+.ika-athlete-finder-entry-head b{font-size:13px;color:#f04438}
+.ika-athlete-finder-entry-head strong{font-size:16px;color:#f8fafc;overflow-wrap:anywhere}
+.ika-athlete-finder-entry-head small{font-size:12px;color:#c3cee0}
+.ika-athlete-state{background:#253044;color:#d4deeb;font-size:12px;font-weight:800;padding:7px 9px;border-radius:99px}
+.ika-athlete-state.active{background:#8a281b;color:#fff}.ika-athlete-state.done{background:#1b4439;color:#d1f8e4}
+.ika-athlete-finder-time{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}
+.ika-athlete-finder-time>div{padding:10px;background:#192437;border:1px solid #35445c;border-radius:9px;display:grid;gap:5px}
+.ika-athlete-finder-time small{font-size:11px;color:#bdc9d9}.ika-athlete-finder-time strong{font-size:16px;color:#fff}
+.ika-athlete-finder-results{display:grid;gap:9px;margin:12px 0}
+.ika-athlete-finder-results>div:not(.ika-athlete-finder-bout){display:flex;gap:10px;justify-content:space-between;align-items:center;padding:8px 10px;background:#1b2636;border-radius:8px;color:#f7fafc}
+.ika-athlete-finder-results span{color:#c8d3e2;font-size:13px}.ika-athlete-finder-results b{font-size:16px;color:#fff}
+.ika-athlete-finder-results .ika-athlete-finder-total{border:1px solid #dd4033}
+.ika-athlete-finder-results>small{color:#c5d1e0}
+.ika-athlete-finder-expand{background:transparent;border:1px solid #526175;border-radius:8px;padding:9px;color:#fff;cursor:pointer;text-align:left}
+.ika-athlete-finder-bout{display:grid;gap:3px;background:#202a39;border-radius:8px;padding:9px;color:#fff}
+.ika-athlete-finder-bout span{font-size:13px}.ika-athlete-success{color:#93f1ba}
+.ika-athlete-finder-go{border:1px solid #b72d25;background:#a9211b;color:#fff;border-radius:9px;padding:10px 13px;font-size:13px;font-weight:800;cursor:pointer;width:100%;margin-top:10px}
+.ika-athlete-finder-go:hover{background:#e1261c}
+.ika-athlete-finder-note{margin:14px 0 0;color:#a9b7c9;font-size:12px;line-height:1.4}
+@media(max-width:650px){.ika-athlete-finder{padding:14px}.ika-athlete-finder-time{grid-template-columns:1fr}}

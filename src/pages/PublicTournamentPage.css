@@ -1,0 +1,24 @@
+.ika-public-tournament-page{min-height:100vh;background:#090c12;color:#f1f4f9}
+.ika-public-tournament-main{max-width:1330px;margin:0 auto;padding:28px 24px 85px}
+.ika-public-tournament-crumb{display:flex;gap:12px;align-items:center;font-size:13px;color:#aab8cc;margin-bottom:24px}
+.ika-public-tournament-crumb a{color:#dce5f2;text-decoration:none}
+.ika-public-tournament-heading>span,.ika-public-tournament-head>span{font-size:12px;font-weight:900;letter-spacing:1.3px;color:#f04438}
+.ika-public-tournament-heading h1,.ika-public-tournament-head h1{font-size:clamp(28px,4vw,46px);margin:12px 0 8px;color:#fff}
+.ika-public-tournament-heading p{color:#c5cedf;margin:0 0 26px}
+.ika-public-tournament-event{display:flex;gap:28px;text-decoration:none;color:inherit;background:#171d28;border:1px solid #354154;border-radius:16px;padding:24px;transition:border-color .16s,background .16s}
+.ika-public-tournament-event:hover{border-color:#e1261c;background:#202332}
+.ika-public-tournament-event>img{width:160px;height:210px;object-fit:cover;border-radius:10px}
+.ika-public-tournament-event>div{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.ika-public-tournament-event span{font-size:12px;letter-spacing:1px;color:#f04438;font-weight:900}
+.ika-public-tournament-event h2{font-size:clamp(22px,3vw,32px);color:#fff;line-height:1.15;margin:10px 0 14px}
+.ika-public-tournament-event p{margin:3px 0;color:#cbd5e4}
+.ika-public-tournament-event strong{color:#fff;margin-top:16px}
+.ika-public-tournament-head{background:linear-gradient(135deg,#191f2c,#111722);padding:30px;border:1px solid #353f50;border-radius:18px;margin-bottom:24px}
+.ika-public-tournament-facts{display:flex;gap:14px;flex-wrap:wrap;margin:20px 0}
+.ika-public-tournament-facts>div{flex:1 1 160px;padding:14px;border:1px solid #394457;border-radius:10px;background:#101722;display:grid;gap:6px}
+.ika-public-tournament-facts small{font-size:12px;color:#b2c1d4}.ika-public-tournament-facts strong{color:#fff;font-size:15px}
+.ika-public-tournament-links{display:flex;flex-wrap:wrap;gap:12px}
+.ika-public-tournament-links a{display:inline-block;background:#232b3a;border:1px solid #485467;padding:11px 15px;border-radius:9px;color:#fff;text-decoration:none;font-weight:800}
+.ika-public-tournament-links a:hover{background:#bd211e}
+.ika-public-tournament-empty{background:#161d29;padding:35px;border-radius:14px;border:1px solid #344154}
+@media(max-width:640px){.ika-public-tournament-main{padding:22px 14px 70px}.ika-public-tournament-event{flex-direction:column}.ika-public-tournament-event>img{width:100%;max-height:190px}.ika-public-tournament-head{padding:20px}}

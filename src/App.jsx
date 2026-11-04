@@ -9,6 +9,7 @@ import CreateTournamentPage from './pages/CreateTournamentPage'
 import TournamentCenter from './pages/TournamentCenter'
 import ParentLookup from './pages/ParentLookup'
 import PublicLiveResults from './pages/PublicLiveResults'
+import PublicTournamentPage from './pages/PublicTournamentPage'
 import Telebim from './pages/Telebim'
 import NewsPage from './pages/NewsPage'
 import TatamiDisplay from './pages/TatamiDisplay'
@@ -84,6 +85,8 @@ export default function App() {
       <Route path="/rodzic" element={<LegacyAthleteRedirect />} />
       <Route path="/klasyfikacja" element={<RankingsPage />} />
       <Route path="/wyniki-live" element={<PublicLiveResults />} />
+      <Route path="/zawody" element={<PublicTournamentPage />} />
+      <Route path="/zawody/:tournamentId" element={<PublicTournamentPage />} />
       <Route path="/telebim" element={<Telebim />} />
       <Route path="/tatami/:mat" element={<TatamiDisplay />} />
       <Route path="/panel" element={<ProtectedRoute role="club"><ClubPanel /></ProtectedRoute>} />
