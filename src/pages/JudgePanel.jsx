@@ -191,9 +191,9 @@ export default function JudgePanel() {
           <span className="judge-side-code">{theme.red.code}</span>
           <h2>{red.name}</h2>
           <p>{red.club}</p>
-          <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>
+          {theme.discipline !== 'fantom' && <strong className="judge-score">{scoreText(active?.redScore || 0)}</strong>}
           {active && <>
-            <TechniqueScoreColumns match={activeRaw} side="red" onChange={changeTechnique} />
+            {theme.discipline !== 'fantom' && <TechniqueScoreColumns match={activeRaw} side="red" onChange={changeTechnique} />}
             {renderPenaltyPanel('red')}
           </>}
         </div>
@@ -226,9 +226,9 @@ export default function JudgePanel() {
           <span className="judge-side-code">{theme.blue.code}</span>
           <h2>{blue.name}</h2>
           <p>{blue.club}</p>
-          <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>
+          {theme.discipline !== 'fantom' && <strong className="judge-score">{scoreText(active?.blueScore || 0)}</strong>}
           {active && <>
-            <TechniqueScoreColumns match={activeRaw} side="blue" onChange={changeTechnique} />
+            {theme.discipline !== 'fantom' && <TechniqueScoreColumns match={activeRaw} side="blue" onChange={changeTechnique} />}
             {renderPenaltyPanel('blue')}
           </>}
         </div>

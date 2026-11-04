@@ -143,7 +143,7 @@ export default function KumiteBracket({
                           <strong>{red.name}</strong>
                           {red.club && <small>{red.club}</small>}
                         </div>
-                        <b>{match.redResolvedId ? scoreText(match.redScore) : '-'}</b>
+                        <b>{sideTheme?.discipline === 'fantom' ? '' : match.redResolvedId ? scoreText(match.redScore) : '-'}</b>
                       </div>
 
                       <div className={`academy-bracket-player academy-bracket-player-${rightColorClass} ${blueWinner ? 'winner' : ''}`}>
@@ -152,7 +152,7 @@ export default function KumiteBracket({
                           <strong>{blue.name}</strong>
                           {blue.club && <small>{blue.club}</small>}
                         </div>
-                        <b>{match.blueResolvedId ? scoreText(match.blueScore) : '-'}</b>
+                        <b>{sideTheme?.discipline === 'fantom' ? '' : match.blueResolvedId ? scoreText(match.blueScore) : '-'}</b>
                       </div>
                     </article>
                     {!isLastRound && <i className="academy-bracket-connector-out" aria-hidden="true" />}

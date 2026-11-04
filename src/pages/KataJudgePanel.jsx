@@ -249,7 +249,7 @@ export default function KataJudgePanel() {
     <main className="judge-screen kata-judge-screen">
       <header className="judge-topbar kata-judge-topbar">
         <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{tournament.name}</span></div>
-        <div className="judge-title"><b>PANEL SĘDZIEGO KATA • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
+        <div className="judge-title"><b>PANEL SĘDZIEGO {competition?.id === 'para-kihon' ? 'KIHON' : 'KATA'} • {matName}</b><span>{competition?.name || 'Kata'} • {session.category}</span></div>
         <div className="judge-actions"><TatamiBreakControl mat={matName} /><details className="ika-referee-tools"><summary>TV i widoki</summary><div className="ika-referee-tools-body"><button className="btn btn-outline" type="button" onClick={showList}>Lista na TV</button><a className="btn btn-outline" href={`/tatami/${encodeURIComponent(matName)}`} target="_blank" rel="noreferrer">Otwórz tablicę TV</a></div></details></div>
       </header>
 
@@ -279,7 +279,7 @@ export default function KataJudgePanel() {
               <h1>{currentAthlete.name}</h1>
               <p>{currentAthlete.club}</p>
               <div className="kata-name-field ika93-kata-field">
-                <span>Wykonywane kata</span>
+                <span>{competition?.id === 'para-kihon' ? 'Wykonywany kihon' : 'Wykonywane kata'}</span>
                 <div className="ika93-kata-combobox">
                   <input
                     ref={kataInputRef}
@@ -342,7 +342,7 @@ export default function KataJudgePanel() {
               <div className="kata-round-box">
                 <span>System rund</span>
                 <strong>{session.stageName || 'KATA'}</strong>
-                <small>{Number(session.roundNumber || 1) === 1 ? 'Po ocenieniu 10 zawodników system wybierze 5 najlepszych do finału.' : 'To jest runda finałowa dla 5 najlepszych zawodników.'}</small>
+                <small>{Number(session.roundNumber || 1) === 1 ? 'Po ocenieniu 10 zawodników system wybierze 6 najlepszych do finału.' : 'To jest runda finałowa dla 6 najlepszych zawodników.'}</small>
               </div>
             )}
           </section>

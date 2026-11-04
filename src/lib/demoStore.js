@@ -55,7 +55,14 @@ export function ensureSeed() {
     const saved = read(KEYS.competitions, [])
     const savedIds = new Set(saved.map((item) => item.id))
     const missing = DEFAULT_COMPETITIONS.filter((item) => !savedIds.has(item.id))
-    if (missing.length) write(KEYS.competitions, [...saved, ...missing])
+    // IKA 2026: dopelnij i przypisz wlasciwy tryb rowniez istniejącym konkurencjom.
+    const migrated = [...saved, ...missing].map((item) => {
+      const current = DEFAULT_COMPETITIONS.find((entry) => entry.id === item.id)
+      return ['fantom', 'para'].includes(item.id) && current
+        ? { ...item, name: current.name, group: current.group }
+        : item
+    })
+    if (JSON.stringify(migrated) !== JSON.stringify(saved)) write(KEYS.competitions, migrated)
   }
   if (!localStorage.getItem(KEYS.clubs)) write(KEYS.clubs, [])
   if (!localStorage.getItem(KEYS.athletes)) write(KEYS.athletes, [])
@@ -181,6 +188,8 @@ function secondsToTime(value, forceSeconds = false) {
 }
 
 function getCategoryBoutSeconds(categoryRecord, tournament) {
+  // Fantom: staly czas 15 sekund, takze dla istniejacych szablonow.
+  if (['fantom', 'para-fantom'].includes(categoryRecord?.competitionId)) return 15
   const categorySeconds = Number(categoryRecord?.boutSeconds)
   if (Number.isFinite(categorySeconds) && categorySeconds > 0) return Math.max(1, Math.round(categorySeconds))
 
@@ -1048,7 +1057,7 @@ export const db = {
       order: athleteIds, currentIndex: 0, currentAthleteId: athleteIds[0] || null, lastAthleteId: null,
       status: 'ready', phase: 'list', createdAt: Date.now(), completedAt: null,
       initialAthleteCount: athleteIds.length,
-      advancingToFinalCount: useTwoRounds ? 5 : 0,
+      advancingToFinalCount: useTwoRounds ? 6 : 0,
       roundNumber: 1,
       totalRounds: useTwoRounds ? 2 : 1,
       stageName: useTwoRounds ? 'RUNDA 1 • ELIMINACJE' : 'FINAŁ',
@@ -1185,7 +1194,7 @@ export const db = {
     const hasNext = pendingIndex >= 0
 
     if (!hasNext && isTwoRoundKataSession(session) && Number(session.roundNumber || 1) === 1) {
-      const finalists = sortKataResults(results).slice(0, Number(session.advancingToFinalCount || 5))
+      const finalists = sortKataResults(results).slice(0, Math.min(results.length, Math.max(6, Number(session.advancingToFinalCount || 6))))
       const finalResults = finalists.map((item, finalIndex) => createEmptyKataResult(item.athleteId, finalIndex, session.judgeCount, {
         roundNumber: 2,
         seededFromRound1Place: finalIndex + 1,
@@ -1278,7 +1287,7 @@ export const db = {
     const categoryRecord = read(KEYS.tournamentCategories, []).find((item) =>
       item.id === categoryId || (item.competitionId === competitionId && item.name === category)
     )
-    const categoryBoutSeconds = getCategoryBoutSeconds(categoryRecord, tournament)
+    const categoryBoutSeconds = ['fantom', 'para-fantom'].includes(competitionId) ? 15 : getCategoryBoutSeconds(categoryRecord, tournament)
 
     const allMatches = read(KEYS.matches, []).filter(
       (m) => !(m.competitionId === competitionId && m.category === category && m.mat === mat),
@@ -1446,6 +1455,7 @@ export const db = {
 
     const match = read(KEYS.matches, []).find((row) => row.id === matchId)
     if (!match) return null
+    if (['fantom', 'para-fantom'].includes(match.competitionId)) throw new Error('W Fantom zwyciezce wskazuje sedzia. Nie stosujemy punktow Wazari / Ippon.')
     if (match.status === 'done' || match.winnerId) throw new Error('Nie mozna zmieniac kar po zakonczeniu walki.')
     if (match.status !== 'active') throw new Error('Kary mozna zmieniac tylko w aktywnej walce.')
 

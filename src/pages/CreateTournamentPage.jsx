@@ -454,7 +454,7 @@ export default function CreateTournamentPage() {
               <label>Wiek od<input className="numeric-input" inputMode="numeric" value={categoryForm.minAge} onChange={(event) => setCategoryForm({ ...categoryForm, minAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 10" /></label>
               <label>Wiek do<input className="numeric-input" inputMode="numeric" value={categoryForm.maxAge} onChange={(event) => setCategoryForm({ ...categoryForm, maxAge: event.target.value.replace(/\D/g, '') })} placeholder="np. 11" /></label>
               {categoryCompetition?.group === 'Kumite' && (
-                <label>Czas walki<select value={categoryForm.boutSeconds} onChange={(event) => setCategoryForm({ ...categoryForm, boutSeconds: event.target.value })}><option value="">Domyślny czas zawodów ({formatBoutDuration(createdTournament?.boutSeconds || form.boutSeconds)})</option><option value="60">1:00 min</option><option value="90">1:30 min</option><option value="120">2:00 min</option><option value="180">3:00 min</option></select></label>
+                <label>Czas walki<select value={categoryForm.boutSeconds} onChange={(event) => setCategoryForm({ ...categoryForm, boutSeconds: event.target.value })}><option value="">Domyślny czas zawodów ({formatBoutDuration(createdTournament?.boutSeconds || form.boutSeconds)})</option><option value="15">0:15 s (Fantom)</option><option value="60">1:00 min</option><option value="90">1:30 min</option><option value="120">2:00 min</option><option value="180">3:00 min</option></select></label>
               )}
               <button className="btn btn-primary">+ Dodaj kategorię</button>
             </form>

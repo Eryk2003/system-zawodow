@@ -5,8 +5,9 @@ function normalizeCompetition(competition) {
   const isIppon = id === 'ippon' || (name.includes('ippon') && !name.includes('nihon'))
   const isNihon = id === 'nihon' || id === 'nihon-u12' || name.includes('nihon')
   const isSanbon = id === 'sanbon' || name.includes('sanbon')
+  const isFantom = id === 'fantom' || id === 'para-fantom' || name.includes('fantom')
 
-  return { id, name, isIppon, isNihon, isSanbon }
+  return { id, name, isIppon, isNihon, isSanbon, isFantom }
 }
 
 export function getKumiteWinRule(competition) {
@@ -44,13 +45,13 @@ export function getKumiteWinRule(competition) {
 }
 
 export function getKumiteSideTheme(competition) {
-  const { isIppon, isNihon, isSanbon } = normalizeCompetition(competition)
+  const { isIppon, isNihon, isSanbon, isFantom } = normalizeCompetition(competition)
   const winRule = getKumiteWinRule(competition)
 
-  if (isIppon) {
+  if (isIppon || isFantom) {
     return {
       mode: 'red-white',
-      discipline: 'ippon',
+      discipline: isFantom ? 'fantom' : 'ippon',
       red: { key: 'red', code: 'AKA', label: 'AKA', className: 'side-red' },
       blue: { key: 'blue', code: 'SHIRO', label: 'SHIRO', className: 'side-white' },
       scoreRules: {

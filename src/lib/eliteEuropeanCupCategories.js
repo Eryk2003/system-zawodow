@@ -38,8 +38,8 @@ const kataGirls = ['6-7','8','9','10','11','12','13','14-15','16-17','18-21','22
 Array.from({length:12},(_,i)=>`K${i+14}`).forEach((code,i)=>official.push(record('kata',code,'Dziewczęta / kobiety','K',kataGirls[i])))
 // JURUKEN/FANTOM: J1-J5, J6-J10.
 const jrAges = ['6-7','8','9','10','11']
-Array.from({length:5},(_,i)=>`J${i+1}`).forEach((code,i)=>official.push(record('fantom',code,'Chłopcy','M',jrAges[i])))
-Array.from({length:5},(_,i)=>`J${i+6}`).forEach((code,i)=>official.push(record('fantom',code,'Dziewczęta','K',jrAges[i])))
+Array.from({length:5},(_,i)=>`J${i+1}`).forEach((code,i)=>official.push(record('fantom',code,'Chłopcy','M',jrAges[i],{boutSeconds:15})))
+Array.from({length:5},(_,i)=>`J${i+6}`).forEach((code,i)=>official.push(record('fantom',code,'Dziewczęta','K',jrAges[i],{boutSeconds:15})))
 // SANBON SHOBU: S1-S9, S11-S13; S14-S25. Regulamin pomija S10.
 const sanbonAges = ['6-7','8','9','10','11','12','13','14-15','16-17','18-21','22-40','over41']
 ;[...Array.from({length:9},(_,i)=>`S${i+1}`),'S11','S12','S13'].forEach((code,i)=>official.push(record('sanbon',code,'Chłopcy / mężczyźni','M',sanbonAges[i],{boutSeconds:i<=5?90:i<=8?120:180})))
@@ -60,7 +60,9 @@ const supplementary = []
 })
 supplementary.push({code:'',competitionId:'kata-pairs',name:'Kata w parach · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 supplementary.push({code:'',competitionId:'kata-team',name:'Kata drużynowe · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
-supplementary.push({code:'',competitionId:'para',name:'Para Karate · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
+supplementary.push({code:'',competitionId:'para',name:'Para Karate - Kata - OPEN (podział organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
+supplementary.push({code:'',competitionId:'para-kihon',name:'Para Karate - Kihon - OPEN (podział organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
+supplementary.push({code:'',competitionId:'para-fantom',name:'Para Karate - Fantom - OPEN (podział organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:15,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 
 export const ELITE_2027_OFFICIAL_CATEGORIES = official
 export const ELITE_2027_EXTRA_TEMPLATES = supplementary
