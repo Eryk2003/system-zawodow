@@ -3,12 +3,14 @@ import { Link, useParams } from 'react-router-dom'
 import { PublicHeader } from '../components/Layout'
 import { db } from '../lib/demoStore'
 import AthleteLiveSearch from '../components/AthleteLiveSearch.jsx'
+import PublicCategoryOverview from '../components/PublicCategoryOverview.jsx'
 import './PublicTournamentPage.css'
 
 const readTournamentData = () => ({
   tournament: db.getVisibleTournamentForClubs(),
   competitions: db.getCompetitions(),
   categories: db.getTournamentCategories(),
+  schedule: db.getSchedule(),
   entries: db.getEntries(),
   matches: db.getMatches(),
   sessions: db.getKataSessions(),
@@ -83,6 +85,8 @@ export default function PublicTournamentPage() {
           <div className="ika-public-tournament-links"><Link to="/klasyfikacja">Klasyfikacja zawodów</Link></div>
         </section>
         <AthleteLiveSearch data={data} choices={choices} />
+        /* IKA_PUBLIC_CATEGORY_OVERVIEW_20261104 */
+        <PublicCategoryOverview data={data} />
 
       </>}
     </main>
