@@ -7,7 +7,7 @@ const score = value => value == null || !Number.isFinite(Number(value)) ? '—' 
 const norm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pl').trim()
 const displayTime = value => /^\d{1,2}:\d{2}/.test(String(value || '')) ? value : (value || '')
 
-export default function AthleteLiveSearch({ data, choices, onOpenCategory, initialAthleteId = '' }) {
+export default function AthleteLiveSearch({ data, choices, initialAthleteId = '' }) {
   const [query, setQuery] = useState('')
   const [selectedId, setSelectedId] = useState(initialAthleteId)
   const [expanded, setExpanded] = useState('')
@@ -32,10 +32,6 @@ export default function AthleteLiveSearch({ data, choices, onOpenCategory, initi
 
   const athleteEntries = info?.entries || []
   const choose = athlete => { setSelectedId(athlete.id); setQuery(`${athlete.firstName || ''} ${athlete.lastName || ''}`.trim()); setExpanded('') }
-  const openCategory = entry => {
-    const c = choices.find(c => entry.categoryId && c.categoryId === entry.categoryId) || choices.find(c => c.competitionId === entry.competitionId && c.category === entry.category)
-    if (c) onOpenCategory(c.key)
-  }
   const detail = entry => {
     const id = entry.athleteId
     const session = sessions.find(s => (entry.categoryId && s.categoryId === entry.categoryId) || (s.competitionId === entry.competitionId && s.category === entry.category && (!entry.mat || s.mat === entry.mat)))
@@ -104,7 +100,6 @@ export default function AthleteLiveSearch({ data, choices, onOpenCategory, initi
               {expanded === key && d.completed.map(m => <div key={m.id} className="ika-athlete-finder-bout"><small>{m.roundName} · walka {m.matchNo}</small><b>{m.winnerId === picked.id ? 'Wygrana' : 'Przegrana'}</b><span>Wygrał: {(() => { const a = data.athletes.find(a => a.id === m.winnerId); return a ? `${a.firstName} ${a.lastName}` : 'Nie ustalono' })()}</span></div>)}
             </div>}
             <AthleteCompetitionPreview entry={entry} athleteId={picked.id} data={data} />
-            {hasCategory && <button className="ika-athlete-finder-go" type="button" onClick={() => openCategory(entry)}>Otwórz pełne wyniki konkurencji</button>}
           </article>
         })}
         {!athleteEntries.length && <p>Nie ma jeszcze zgłoszeń do konkurencji.</p>}

@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { PublicHeader } from '../components/Layout'
 import { db } from '../lib/demoStore'
 import AthleteLiveSearch from '../components/AthleteLiveSearch.jsx'
-import PublicLiveResults from './PublicLiveResults.jsx'
 import './PublicTournamentPage.css'
 
 const readTournamentData = () => ({
@@ -28,7 +27,6 @@ const formatDate = value => {
 
 export default function PublicTournamentPage() {
   const { tournamentId } = useParams()
-  const navigate = useNavigate()
   const [data, setData] = useState(readTournamentData)
   useEffect(() => {
     const refresh = () => setData(readTournamentData())
@@ -61,10 +59,6 @@ export default function PublicTournamentPage() {
     return [...mapped.values()]
   }, [data.matches, data.sessions])
 
-  const openCategory = (key) => {
-    navigate(`/zawody/${encodeURIComponent(data.tournament?.id || tournamentId)}?category=${encodeURIComponent(key)}#wyniki-konkurencji`)
-    window.setTimeout(() => document.getElementById('wyniki-konkurencji')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60)
-  }
   const validTournament = tournament && (!tournamentId || String(tournamentId) === String(tournament.id))
 
   return <div className="ika-public-tournament-page">
@@ -86,13 +80,10 @@ export default function PublicTournamentPage() {
             <div><small>Godzina rozpoczęcia</small><strong>{tournament.startTime || 'Nie ustalono'}</strong></div>
             <div><small>Miejsce</small><strong>{tournament.venue || 'Nie ustalono'}</strong></div>
           </div>
-          <div className="ika-public-tournament-links"><a href="#wyniki-konkurencji">Drabinki kumite i listy kata</a><Link to="/klasyfikacja">Klasyfikacja zawodów</Link></div>
+          <div className="ika-public-tournament-links"><Link to="/klasyfikacja">Klasyfikacja zawodów</Link></div>
         </section>
-        <AthleteLiveSearch data={data} choices={choices} onOpenCategory={openCategory} />
-        <section id="wyniki-konkurencji" className="ika-tournament-results-block" aria-label="Drabinki kumite i listy kata">
-          <div className="ika-tournament-results-title"><span>PRZEBIEG ZAWODÓW</span><h2>Drabinki kumite i listy kata</h2><p>Wybierz konkurencję, aby zobaczyć jej przebieg, oceny kata, walki i zwycięzców. Wyniki aktualizują się automatycznie.</p></div>
-          <PublicLiveResults embedded />
-        </section>
+        <AthleteLiveSearch data={data} choices={choices} />
+
       </>}
     </main>
   </div>
