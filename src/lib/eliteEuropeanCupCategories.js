@@ -58,6 +58,7 @@ const supplementary = []
   supplementary.push(record('nihon-u12','', 'Nihon Shobu - chłopcy', 'M', age, {official:false,boutSeconds:90}))
   supplementary.push(record('nihon-u12','', 'Nihon Shobu - dziewczęta', 'K', age, {official:false,boutSeconds:90}))
 })
+supplementary.push({code:'',competitionId:'kata-family',name:'Kata rodzinne - OPEN (podział organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 supplementary.push({code:'',competitionId:'kata-pairs',name:'Kata w parach · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 supplementary.push({code:'',competitionId:'kata-team',name:'Kata drużynowe · OPEN (do podziału przez organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})
 supplementary.push({code:'',competitionId:'para',name:'Para Karate - Kata - OPEN (podział organizatora)',gender:'X',minAge:null,maxAge:null,boutSeconds:null,official:false,preferredMat:null,categorySource:'elite2027-helper'})

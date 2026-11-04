@@ -1,6 +1,7 @@
 export const DEFAULT_COMPETITIONS = [
   { id: 'kata', name: 'Kata indywidualne', group: 'Kata', active: true },
   { id: 'kata-pairs', name: 'Kata w parach', group: 'Kata', active: true },
+  { id: 'kata-family', name: 'Kata rodzinne', group: 'Kata', active: true },
   { id: 'kata-team', name: 'Kata drużynowe', group: 'Kata', active: true },
   { id: 'fantom', name: 'Juruken / Fantom', group: 'Kumite', active: true },
   { id: 'sanbon', name: 'Kumite Sanbon Shobu', group: 'Kumite', active: true },

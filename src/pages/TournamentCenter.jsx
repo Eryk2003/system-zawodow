@@ -325,6 +325,29 @@ export default function TournamentCenter() {
       refresh()
     } catch (err) { setMessage(''); setError(err?.message || 'Import kategorii nie powiódł się.') }
   }
+  /* IKA_EXTRA_COMPETITIONS_2026: uzupelnij brakujace konkurencje bez usuwania dotychczasowych danych. */
+  const addMissingDisciplines = () => {
+    const requiredIds = ['fantom', 'para', 'para-kihon', 'para-fantom', 'kata-family', 'kata-pairs', 'kumite-team']
+    try {
+      const catalog = db.getCompetitions()
+      const unavailable = requiredIds.filter((id) => !catalog.some((item) => item.id === id))
+      if (unavailable.length) throw new Error('Brakuje konkurencji w katalogu: ' + unavailable.join(', '))
+      const templates = getElite2027Templates(requiredIds)
+      if (!templates.length) throw new Error('Nie znaleziono szablonow kategorii.')
+      const previousIds = tournament.competitionIds || []
+      const result = db.importElite2027Categories(templates, requiredIds)
+      const missingIds = requiredIds.filter((id) => !previousIds.includes(id))
+      if (missingIds.length && !result.added) {
+        db.saveTournament({ ...tournament, competitionIds: [...new Set([...previousIds, ...requiredIds])] })
+      }
+      setMessage('Uzupelniono konkurencje. Dodano kategorii: ' + result.added + '. Juz istnialo: ' + result.skipped + '. Mozesz przypisac im tatami i zawodnikow. Kategorie OPEN sa szablonami pomocniczymi.')
+      setError('')
+      refresh()
+    } catch (err) {
+      setMessage('')
+      setError(err.message || 'Nie udalo sie dodac konkurencji.')
+    }
+  }
   const assignCategoryMat = (categoryId, mat) => {
     try {
       db.assignCategoryMat(categoryId, mat)
@@ -530,6 +553,8 @@ export default function TournamentCenter() {
         <div className="ika87-import-box">
           <div><strong>Elite European Cup 2027 - oficjalne kategorie</strong><p>Możesz zaimportować kategorie K, J, S, IP, KU zgodne z regulaminem oraz dodatkowe szablony dla pozostałych konkurencji. Import nie usuwa wcześniej utworzonych kategorii.</p></div>
           <button className="btn btn-outline" type="button" onClick={importElite2027}>Importuj kategorie z regulaminu</button>
+          {/* IKA_EXTRA_COMPETITIONS_BUTTON_2026 */}
+          <button className="btn btn-primary" type="button" onClick={addMissingDisciplines}>Dodaj Fantom, Para Karate, Kata rodzinne, pary i kumite drużynowe</button>
         </div>
         {!!categories.length && <div className="ika87-center-categories"><h3>Przypisz tatami do kategorii ({categories.length})</h3><p style={{ color: "#b8c1d0", fontSize: 13 }}>Kategorie można przenosić także po losowaniu, dopóki nie rozpoczęto walk ani ocen kata. Gotowe listy i drabinki zostają zachowane.</p><div className="ika87-center-categories-list">{categories.map((category) => {
           const competition = competitions.find((item) => item.id === category.competitionId)

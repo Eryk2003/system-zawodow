@@ -461,6 +461,8 @@ export default function CreateTournamentPage() {
             <div className="ika87-import-box">
               <div><strong>Elite European Cup 2027 - kategorie z regulaminu</strong><p>Importuj oficjalne kategorie K, J, S, IP, KU dla wybranych konkurencji. Dodatkowe szablony Nihon, Kata w parach, Kata drużynowe i Para Karate są oznaczone jako pomocnicze. Duplikaty zostaną pominięte.</p></div>
               <button type="button" className="btn btn-outline" onClick={importElite2027}>Dodaj kategorie z regulaminu</button>
+              {/* IKA_EXTRA_COMPETITIONS_SETUP_2026: ułatwienie wyboru konkurencji z grup Kata/Kumite. */}
+              <p style={{marginTop:8, color:'#ccd6e6',fontSize:13}}>Fantom i Para Karate są dostępne w kroku 2. Zaznacz je, a następnie dodaj gotowe kategorie albo własne podziały. Kata rodzinne, kata w parach i kumite drużynowe również można wybrać w kroku 2.</p>
             </div>
           </section>
         ) : (
