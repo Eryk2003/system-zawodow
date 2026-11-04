@@ -36,6 +36,7 @@ export default function KumiteBracket({
   sideTheme,
   variant = 'panel',
   highlightMatchId = null,
+  highlightAthleteId = null,
 }) {
   const resolved = useMemo(
     () => matches.map((match) => resolveMatch(match, matches)),
@@ -117,6 +118,8 @@ export default function KumiteBracket({
                 const red = athleteInfo(match.redResolvedId)
                 const blue = athleteInfo(match.blueResolvedId)
                 const redWinner = Boolean(match.winnerId && match.winnerId === match.redResolvedId)
+                const redSearched = Boolean(highlightAthleteId && match.redResolvedId === highlightAthleteId)
+                const blueSearched = Boolean(highlightAthleteId && match.blueResolvedId === highlightAthleteId)
                 const blueWinner = Boolean(match.winnerId && match.winnerId === match.blueResolvedId)
                 const pairTop = position % 2 === 0
                 const isHighlighted = Boolean(highlightMatchId && match.id === highlightMatchId)
@@ -137,7 +140,7 @@ export default function KumiteBracket({
                         <em>{isHighlighted ? (variant === 'tv' ? 'NEXT BOUT' : 'NASTĘPNA WALKA') : statusLabel(match, variant === 'tv')}</em>
                       </div>
 
-                      <div className={`academy-bracket-player academy-bracket-player-aka ${redWinner ? 'winner' : ''}`}>
+                      <div className={`academy-bracket-player academy-bracket-player-aka ${redWinner ? 'winner' : ''} ${redSearched ? 'ika-searched-competitor' : ''}`}>
                         <span className="academy-bracket-player-side">{leftLabel}</span>
                         <div>
                           <strong>{red.name}</strong>
@@ -146,7 +149,7 @@ export default function KumiteBracket({
                         <b>{sideTheme?.discipline === 'fantom' ? '' : match.redResolvedId ? scoreText(match.redScore) : '-'}</b>
                       </div>
 
-                      <div className={`academy-bracket-player academy-bracket-player-${rightColorClass} ${blueWinner ? 'winner' : ''}`}>
+                      <div className={`academy-bracket-player academy-bracket-player-${rightColorClass} ${blueWinner ? 'winner' : ''} ${blueSearched ? 'ika-searched-competitor' : ''}`}>
                         <span className="academy-bracket-player-side">{rightLabel}</span>
                         <div>
                           <strong>{blue.name}</strong>

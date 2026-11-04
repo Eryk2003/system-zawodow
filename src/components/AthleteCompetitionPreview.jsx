@@ -67,7 +67,7 @@ export default function AthleteCompetitionPreview({ entry, athleteId, data }) {
       {active ? `Trwa: ${active.roundName || 'walka'}` : next ? `Najbliższa runda: ${next.roundName || 'oczekiwanie'}` : `Ostatnia walka: ${last.roundName || 'zakończona'}`}
       {last?.status === 'done' && <span> · Ostatni wynik: {last.winnerId === athleteId ? 'wygrana' : 'przegrana'}</span>}
     </p>}
-    <div className="ika-search-preview-bracket"><KumiteBracket matches={matches} athletes={data.athletes} clubs={data.clubs} sideTheme={theme} variant="panel" highlightMatchId={active?.id || next?.id || null}/></div>
+    <div className="ika-search-preview-bracket"><KumiteBracket matches={matches} athletes={data.athletes} clubs={data.clubs} sideTheme={theme} variant="panel" highlightMatchId={active?.id || next?.id || null} highlightAthleteId={athleteId}/></div>
     {own.length > 0 && <div className="ika-search-preview-history"><h4>Rozegrane walki zawodnika</h4>{own.map(m => <div key={m.id}><span>{m.roundName || 'Walka'} · {competitorName(m.redResolvedId)} vs {competitorName(m.blueResolvedId)}</span><strong>{m.winnerId === athleteId ? 'Wygrana' : 'Przegrana'} · {Number(m.redScore||0)}:{Number(m.blueScore||0)}</strong></div>)}</div>}
   </div>
 }

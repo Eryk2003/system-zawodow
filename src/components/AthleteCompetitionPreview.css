@@ -22,3 +22,7 @@
 .ika-search-preview-history>div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;background:#202938;border-radius:8px;padding:8px 10px;font-size:12px}
 .ika-search-preview-history strong{color:#e7f7e9}
 @media(max-width:650px){.ika-search-preview{padding:10px}.ika-search-preview-athlete{grid-template-columns:24px minmax(0,1fr) auto;font-size:12px}.ika-search-preview-bracket .academy-bracket{min-width:650px}}
+
+/* IKA_ATHLETE_CATEGORY_SELECTION_V1 */
+.ika-search-preview-bracket .academy-bracket-player.ika-searched-competitor {background:#632828 !important;outline:2px solid #ff4238;outline-offset:-2px;box-shadow:inset 4px 0 #ff4238;}
+.ika-search-preview-bracket .academy-bracket-player.ika-searched-competitor strong {color:#fff !important;text-decoration:underline;text-decoration-color:#ff8a81;text-decoration-thickness:2px;text-underline-offset:3px;}

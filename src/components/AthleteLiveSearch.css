@@ -40,3 +40,17 @@
 .ika-athlete-finder-go:hover{background:#e1261c}
 .ika-athlete-finder-note{margin:14px 0 0;color:#a9b7c9;font-size:12px;line-height:1.4}
 @media(max-width:650px){.ika-athlete-finder{padding:14px}.ika-athlete-finder-time{grid-template-columns:1fr}}
+
+/* IKA_ATHLETE_CATEGORY_SELECTION_V1 */
+.ika-athlete-finder-entry {padding:10px;}
+.ika-athlete-finder-category-choice {width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;cursor:pointer;color:#fff;background:#192334;border:1px solid #445168;border-radius:10px;padding:14px 16px;}
+.ika-athlete-finder-category-choice:hover,.ika-athlete-finder-category-choice:focus-visible {background:#302432;border-color:#e1261c;outline:none;}
+.ika-athlete-finder-entry-selected {border-color:#da342b;background:#141b28;}
+.ika-athlete-finder-entry-selected .ika-athlete-finder-category-choice {border-color:#e1261c;background:#472226;}
+.ika-athlete-category-choice-copy {display:grid;gap:4px;min-width:0;}
+.ika-athlete-category-choice-copy b {color:#ff7770;font-size:12px;}
+.ika-athlete-category-choice-copy strong {color:#fff;font-size:16px;overflow-wrap:anywhere;}
+.ika-athlete-category-choice-copy small {color:#c9d3e1;font-size:12px;}
+.ika-athlete-category-choice-open {color:#fff;font-size:12px;font-weight:900;white-space:nowrap;}
+.ika-athlete-finder-entry-head {margin-top:14px;}
+@media(max-width:560px){.ika-athlete-finder-category-choice{align-items:flex-start;flex-direction:column}.ika-athlete-category-choice-open{white-space:normal}}
