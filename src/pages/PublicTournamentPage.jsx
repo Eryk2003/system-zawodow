@@ -85,7 +85,6 @@ export default function PublicTournamentPage() {
           <div className="ika-public-tournament-links"><Link to="/klasyfikacja">Klasyfikacja zawodów</Link></div>
         </section>
         <AthleteLiveSearch data={data} choices={choices} />
-        /* IKA_PUBLIC_CATEGORY_OVERVIEW_20261104 */
         <PublicCategoryOverview data={data} />
 
       </>}
