@@ -35,3 +35,27 @@
 .ika-public-tournament-page .ika-live-choices,.ika-public-tournament-page .ika-live-details{min-width:0}
 @media(max-width:720px){.ika-public-tournament-page .ika-public-live-embedded .ika-live-layout{display:grid;grid-template-columns:1fr}}
 /* END IKA_TOURNAMENT_RESULTS_INSIDE_EVENT_20261104 */
+
+/* IKA_POSTER_CONTAIN_20261104 */
+/* Pokaz caly plakat w kafelku zawodow, bez przycinania. */
+.ika-public-tournament-event > img {
+  width: 180px;
+  height: 244px;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: #10151f;
+  flex: 0 0 auto;
+  border-radius: 10px;
+}
+@media (max-width: 640px) {
+  .ika-public-tournament-event > img {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    max-width: 350px;
+    object-fit: contain;
+    object-position: left center;
+    align-self: flex-start;
+  }
+}

@@ -71,7 +71,7 @@ export default function PublicTournamentPage() {
         <div className="ika-public-tournament-heading"><span>IKA POLAND · ZAWODY</span><h1>Wybierz zawody</h1><p>Otwórz turniej, aby wyszukać zawodnika, sprawdzić konkurencje, starty i wyniki.</p></div>
         <Link to={`/zawody/${encodeURIComponent(tournament.id)}`} className="ika-public-tournament-event">
           {tournament.poster && <img src={tournament.poster} alt="Plakat zawodów" />}
-          <div><span>AKTUALNE ZAWODY</span><h2>{tournament.name}</h2><p>{formatDate(tournament.date)} · {tournament.startTime || 'Godzina do ustalenia'}</p><p>{tournament.venue || 'Miejsce do ustalenia'}</p><strong>Otwórz szczegóły zawodów i wyszukiwarkę zawodników</strong></div>
+          <div><span>AKTUALNE ZAWODY</span><h2>{tournament.name}</h2><p>{formatDate(tournament.date)} · {tournament.startTime || 'Godzina do ustalenia'}</p><p>{tournament.venue || 'Miejsce do ustalenia'}</p></div>
         </Link>
       </> : <>
         <section className="ika-public-tournament-head">
