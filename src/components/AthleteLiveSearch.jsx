@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { db, resolveMatch, getKataCombinedResults } from '../lib/demoStore'
 import './AthleteLiveSearch.css'
+import AthleteCompetitionPreview from './AthleteCompetitionPreview.jsx'
 
 const score = value => value == null || !Number.isFinite(Number(value)) ? '—' : String(Math.round(Number(value) * 100) / 100).replace('.', ',')
 const norm = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pl').trim()
@@ -22,7 +23,7 @@ export default function AthleteLiveSearch({ data, choices, onOpenCategory, initi
       return words.every(w => full.includes(w) || reversed.includes(w))
     }).slice(0, 12)
   }, [query, athletes])
-  const picked = athletes.find(a => a.id === selectedId)
+  const picked = athletes.find(a => a.id === selectedId) || (found.find(a => norm(`${a.firstName || ''} ${a.lastName || ''}`) === norm(query)) || (found.length === 1 ? found[0] : null))
   const info = picked ? db.parentLookupById(picked.id).find(item => item.athlete.id === picked.id) : null
   const club = picked ? data.clubs.find(c => c.id === picked.clubId) : null
   const sessions = data.sessions
@@ -102,6 +103,7 @@ export default function AthleteLiveSearch({ data, choices, onOpenCategory, initi
               {d.completed.length > 0 && <button type="button" className="ika-athlete-finder-expand" onClick={() => setExpanded(expanded === key ? '' : key)}>{expanded === key ? 'Ukryj rozegrane walki' : `Pokaż rozegrane walki (${d.completed.length})`}</button>}
               {expanded === key && d.completed.map(m => <div key={m.id} className="ika-athlete-finder-bout"><small>{m.roundName} · walka {m.matchNo}</small><b>{m.winnerId === picked.id ? 'Wygrana' : 'Przegrana'}</b><span>Wygrał: {(() => { const a = data.athletes.find(a => a.id === m.winnerId); return a ? `${a.firstName} ${a.lastName}` : 'Nie ustalono' })()}</span></div>)}
             </div>}
+            <AthleteCompetitionPreview entry={entry} athleteId={picked.id} data={data} />
             {hasCategory && <button className="ika-athlete-finder-go" type="button" onClick={() => openCategory(entry)}>Otwórz pełne wyniki konkurencji</button>}
           </article>
         })}

@@ -1,0 +1,24 @@
+/* IKA 20261104 - automatyczny podglad konkurencji po wyszukaniu zawodnika */
+.ika-search-preview{margin-top:14px;background:#111923;border:1px solid #3b4960;border-radius:12px;padding:14px;color:#f4f6fb;min-width:0}
+.ika-search-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-bottom:10px;border-bottom:1px solid #374355}
+.ika-search-preview-head h3{margin:0;color:#fff;font-size:17px}
+.ika-search-preview-head span{color:#b7c4d6;font-size:12px}
+.ika-search-preview-empty{color:#cbd5e1;font-size:13px;line-height:1.5;margin:12px 0 0}
+.ika-search-preview-list-group{margin-top:14px}
+.ika-search-preview-list-group h4,.ika-search-preview-history h4{margin:0 0 8px;font-size:14px;color:#fff}
+.ika-search-preview-list{display:grid;gap:3px}
+.ika-search-preview-athlete{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;padding:9px 10px;background:#202938;border:1px solid transparent;border-radius:8px;font-size:13px;min-width:0}
+.ika-search-preview-athlete.is-searched-athlete{border-color:#eb342b;background:#492324}
+.ika-search-preview-athlete>b{color:#f5f7fb}
+.ika-search-preview-athlete>div{min-width:0;display:grid;gap:3px}
+.ika-search-preview-athlete strong{color:#fff;overflow-wrap:anywhere}
+.ika-search-preview-athlete small{color:#b4bfd1}
+.ika-search-preview-athlete>span{color:#f4f6fb;text-align:right;font-weight:900}
+.ika-search-preview-total{margin-top:16px;border-top:1px solid #38445a;padding-top:4px}
+.ika-search-preview-status{margin:12px 0;font-size:13px;color:#d5dfec}
+.ika-search-preview-bracket{margin-top:14px;max-width:100%;overflow-x:auto;overflow-y:hidden;border:1px solid #39445b;border-radius:12px;background:#171d27;padding:10px}
+.ika-search-preview-bracket .academy-bracket{min-width:760px}
+.ika-search-preview-history{display:grid;gap:6px;margin-top:13px}
+.ika-search-preview-history>div{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;background:#202938;border-radius:8px;padding:8px 10px;font-size:12px}
+.ika-search-preview-history strong{color:#e7f7e9}
+@media(max-width:650px){.ika-search-preview{padding:10px}.ika-search-preview-athlete{grid-template-columns:24px minmax(0,1fr) auto;font-size:12px}.ika-search-preview-bracket .academy-bracket{min-width:650px}}
