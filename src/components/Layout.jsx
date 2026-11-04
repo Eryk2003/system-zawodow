@@ -23,7 +23,7 @@ export function PublicHeader() {
         <NavLink to="/zawody">Zawody</NavLink>
         <NavLink to="/aktualnosci">{t.news}</NavLink>
         <NavLink to="/zawodnik">{t.athleteZone}</NavLink>
-        <NavLink to="/klasyfikacja">{t.rankings}</NavLink>
+        
         <NavLink to="/telebim">{t.scoreboard}</NavLink>
         {user ? <NavLink to={user.role === 'organizer' ? '/organizator' : '/panel'}>{user.role === 'organizer' ? t.organizer : t.clubEntries}</NavLink> : <NavLink to="/logowanie">{t.clubLogin}</NavLink>}
         <LanguageSwitch compact />
