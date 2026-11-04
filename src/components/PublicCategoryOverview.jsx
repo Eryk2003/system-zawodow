@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import './PublicCategoryOverview.css'
+import PublicCategoryDetails from './PublicCategoryDetails.jsx' // IKA_CATEGORY_INTERACTIVE_20261104
 
 const normalize = value => String(value || '').toLocaleLowerCase('pl').trim()
 const sameCategory = (row, cat) => Boolean(row && cat) && (
@@ -35,6 +36,7 @@ export default function PublicCategoryOverview({ data }) {
   const [mat, setMat] = useState('all')
   const [status, setStatus] = useState('all')
   const [query, setQuery] = useState('')
+  const [openedCategory, setOpenedCategory] = useState('')
   const allMats = useMemo(() => Array.from(
     { length: Math.max(1, Number(data.tournament?.matCount) || 1) },
     (_, i) => `Tatami ${i + 1}`
@@ -52,6 +54,7 @@ export default function PublicCategoryOverview({ data }) {
     return {
       id: cat.id || `${cat.competitionId}|${cat.name}`,
       name: cat.name,
+      competitionId: cat.competitionId,
       competition: competitions.get(cat.competitionId)?.name || 'Konkurencja',
       mat: resolvedMat,
       start: slot?.startTime || '',
@@ -102,7 +105,7 @@ export default function PublicCategoryOverview({ data }) {
       </div>
       <div className="ika-public-categories-list">
         {filtered.map(row => (
-          <article className={`ika-public-category-row status-${row.status}`} key={row.id}>
+          <article className={`ika-public-category-row status-${row.status}`} key={row.id} role="button" tabIndex={0} aria-expanded={openedCategory === row.id} onClick={() => setOpenedCategory(current => current === row.id ? '' : row.id)} onKeyDown={event => { if (event.target === event.currentTarget && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); setOpenedCategory(current => current === row.id ? '' : row.id) } }}>
             <div className="ika-public-category-main">
               <strong>{row.name}</strong>
               <span>{row.competition}</span>
@@ -114,6 +117,8 @@ export default function PublicCategoryOverview({ data }) {
               {row.progress && <span>{row.progress}</span>}
             </div>
             <span className={`ika-category-tag status-${row.status}`}>{statuses[row.status].label}</span>
+            <span className="ika-category-detail-openhint">{openedCategory === row.id ? 'Zwiń szczegóły kategorii ▲' : 'Sprawdź zawodników i drabinkę ▼'}</span>
+            {openedCategory === row.id && <PublicCategoryDetails key={row.id} row={row} data={data} />}
           </article>
         ))}
         {!filtered.length && <p className="ika-public-category-empty">Brak kategorii spełniających wybrane kryteria.</p>}
