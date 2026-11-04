@@ -19,7 +19,7 @@ function readLive() {
   }
 }
 
-export default function PublicLiveResults() {
+export default function PublicLiveResults({ embedded = false }) {
   const [params, setParams] = useSearchParams()
   const [data, setData] = useState(readLive)
   const selectedParam = params.get('category') || ''
@@ -106,13 +106,13 @@ export default function PublicLiveResults() {
   }
 
   return (
-    <div className="ika-public-live">
-      <PublicHeader />
-      <main className="ika-live-page">
-        <div className="ika-live-heading">
+    <div className={`ika-public-live ${embedded ? 'ika-public-live-embedded' : ''}`}>
+      {!embedded && <PublicHeader />}
+      <div className="ika-live-page">
+        {!embedded && <div className="ika-live-heading">
           <div><span className="eyebrow">IKA POLAND · WYNIKI LIVE</span><h1>Przebieg zawodów</h1><p>Drabinki kumite, wyniki walk, listy kata i noty zapisane przez sędziów. Widok tylko do odczytu.</p></div>
           <span className="ika-live-badge">● Aktualizacja automatyczna</span>
-        </div>
+        </div>}
         <div className="ika-live-layout">
           <aside className="ika-live-choices">
             <h2>Konkurencje</h2>
@@ -152,8 +152,8 @@ export default function PublicLiveResults() {
             </>}
           </section>
         </div>
-        <div className="ika-live-footer"><Link to="/zawodnik">Podgląd startów zawodnika</Link><Link to="/klasyfikacja">Klasyfikacja zawodów</Link>{athleteParam && <Link to={`/zawodnik?athlete=${encodeURIComponent(athleteParam)}`}>Wróć do zawodnika</Link>}</div>
-      </main>
+        {!embedded && <div className="ika-live-footer"><Link to="/zawodnik">Podgląd startów zawodnika</Link><Link to="/klasyfikacja">Klasyfikacja zawodów</Link>{athleteParam && <Link to={`/zawodnik?athlete=${encodeURIComponent(athleteParam)}`}>Wróć do zawodnika</Link>}</div>}
+      </div>
     </div>
   )
 }

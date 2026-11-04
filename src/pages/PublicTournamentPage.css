@@ -22,3 +22,16 @@
 .ika-public-tournament-links a:hover{background:#bd211e}
 .ika-public-tournament-empty{background:#161d29;padding:35px;border-radius:14px;border:1px solid #344154}
 @media(max-width:640px){.ika-public-tournament-main{padding:22px 14px 70px}.ika-public-tournament-event{flex-direction:column}.ika-public-tournament-event>img{width:100%;max-height:190px}.ika-public-tournament-head{padding:20px}}
+
+/* IKA_TOURNAMENT_RESULTS_INSIDE_EVENT_20261104 */
+.ika-tournament-results-block{margin-top:30px;scroll-margin-top:24px}
+.ika-tournament-results-title{margin:0 0 20px}
+.ika-tournament-results-title>span{color:#f04438;font-weight:900;letter-spacing:1.3px;font-size:12px}
+.ika-tournament-results-title h2{color:#fff;font-size:clamp(23px,3vw,32px);margin:9px 0}
+.ika-tournament-results-title p{color:#c5cedf;line-height:1.5;margin:0}
+.ika-public-tournament-page .ika-public-live-embedded{background:transparent;color:#f4f6fb;min-height:0}
+.ika-public-tournament-page .ika-public-live-embedded .ika-live-page{max-width:none;padding:0;margin:0}
+.ika-public-tournament-page .ika-public-live-embedded .ika-live-layout{margin:0}
+.ika-public-tournament-page .ika-live-choices,.ika-public-tournament-page .ika-live-details{min-width:0}
+@media(max-width:720px){.ika-public-tournament-page .ika-public-live-embedded .ika-live-layout{display:grid;grid-template-columns:1fr}}
+/* END IKA_TOURNAMENT_RESULTS_INSIDE_EVENT_20261104 */

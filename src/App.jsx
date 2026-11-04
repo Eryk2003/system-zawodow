@@ -18,6 +18,7 @@ import RankingsPage from './pages/RankingsPage'
 import AthleteIdentifiers from './pages/AthleteIdentifiers'
 import { useAuth } from './lib/AuthContext'
 import { readStationBinding, releaseStation, STATION_EVENT } from './lib/stationLock.js'
+import { db } from './lib/demoStore'
 
 // Tryb stanowiska: przypisany laptop pracuje w panelu tylko swojego tatami.
 // Kontrola uprawnień na poziomie Supabase wymaga oddzielnego wdrożenia RLS.
@@ -65,6 +66,13 @@ function LegacyAthleteRedirect() {
   return <Navigate to={`/zawodnik${location.search}`} replace />
 }
 
+function LegacyLiveToTournament() {
+  const location = useLocation()
+  const tournament = db.getVisibleTournamentForClubs()
+  const destination = tournament?.id ? `/zawody/${encodeURIComponent(tournament.id)}${location.search}` : '/zawody'
+  return <Navigate to={destination} replace />
+}
+
 export default function App() {
   /* ETAP 73: odswiezanie widokow bez przeładowania */
   const [, setLastRefresh] = useState(0)
@@ -84,7 +92,7 @@ export default function App() {
       <Route path="/zawodnik" element={<ParentLookup />} />
       <Route path="/rodzic" element={<LegacyAthleteRedirect />} />
       <Route path="/klasyfikacja" element={<RankingsPage />} />
-      <Route path="/wyniki-live" element={<PublicLiveResults />} />
+      <Route path="/wyniki-live" element={<LegacyLiveToTournament />} />
       <Route path="/zawody" element={<PublicTournamentPage />} />
       <Route path="/zawody/:tournamentId" element={<PublicTournamentPage />} />
       <Route path="/telebim" element={<Telebim />} />
