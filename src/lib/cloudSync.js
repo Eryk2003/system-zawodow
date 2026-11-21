@@ -77,6 +77,15 @@ let initialized = false
 let currentIdentity = { userId: null, role: 'public' }
 let secureTablesAvailable = null
 
+// IKA_EGRESS_OPTIMIZATION_V1_20261121
+// Znane wersje przechowujemy tylko w pamieci. Po przeladowaniu pobieramy pelny stan raz.
+const ikaEgressPublicVersions = new Map()
+let ikaEgressSensitivePublicVersion = null
+let ikaEgressSensitivePrivateVersion = null
+const ikaEgressVersionOfRows = rows => JSON.stringify((rows || [])
+  .map(row => [String(row.owner_id || ''), String(row.updated_at || '')])
+  .sort((a, b) => a[0].localeCompare(b[0])))
+
 const isMissingTableError = (error) => {
   const text = String(error?.message || error || '').toLowerCase()
   return error?.code === '42P01' || text.includes('does not exist') || text.includes('could not find the table')
@@ -103,6 +112,9 @@ const applyRemoteValue = (key, value, updatedAt = null) => {
     if (incoming && incoming === current && localStorage.getItem(key) !== serialized) return
     if (incoming) ika106LastVersion.set(key, Math.max(current, incoming))
   }
+  // Realtime dostarcza kompletna wartosc i czas modyfikacji; kolejne odczyty
+  // sprawdzajace wersje nie musza pobierac tego samego JSON ponownie.
+  if (PUBLIC_CLOUD_KEYS.has(key) && updatedAt) ikaEgressPublicVersions.set(key, String(updatedAt))
   if (localStorage.getItem(key) === serialized) return
   suppressCloudWrite = true
   try { localStorage.setItem(key, serialized) } finally { suppressCloudWrite = false }
@@ -268,6 +280,8 @@ async function hydrateSensitiveState() {
 
   if (currentIdentity.role === 'public') {
     applySensitiveAggregate(publicData)
+    ikaEgressSensitivePublicVersion = ikaEgressVersionOfRows(publicResult.rows)
+    ikaEgressSensitivePrivateVersion = null
     return
   }
 
@@ -276,10 +290,34 @@ async function hydrateSensitiveState() {
 
   if (currentIdentity.role === 'organizer') {
     applySensitiveAggregate(aggregateRows(privateResult.rows))
-    return
+  } else {
+    applySensitiveAggregate(mergeOwnPrivateIntoPublic(publicData, privateResult.rows, currentIdentity.userId))
   }
+  ikaEgressSensitivePublicVersion = ikaEgressVersionOfRows(publicResult.rows)
+  ikaEgressSensitivePrivateVersion = ikaEgressVersionOfRows(privateResult.rows)
+}
 
-  applySensitiveAggregate(mergeOwnPrivateIntoPublic(publicData, privateResult.rows, currentIdentity.userId))
+// Odczytujemy tylko niewielkie metadane. JSON zawodnikow, klubow i zdjec
+// pobieramy w pelni jedynie, gdy zmienila sie wersja na serwerze.
+async function ikaEgressPollSensitiveIfChanged() {
+  if (!supabase) return
+  // Starsza instalacja bez tabel ETAP 66: zachowujemy tryb zgodnosci.
+  if (secureTablesAvailable === false) return hydrateSensitiveState()
+
+  const publicMeta = await supabase.from('public_participant_state').select('owner_id,updated_at')
+  if (publicMeta.error) {
+    if (isMissingTableError(publicMeta.error)) return hydrateSensitiveState()
+    throw publicMeta.error
+  }
+  const nextPublic = ikaEgressVersionOfRows(publicMeta.data)
+  let nextPrivate = null
+  if (currentIdentity.role !== 'public') {
+    const privateMeta = await supabase.from('club_private_state').select('owner_id,updated_at')
+    if (privateMeta.error) throw privateMeta.error
+    nextPrivate = ikaEgressVersionOfRows(privateMeta.data)
+  }
+  if (nextPublic === ikaEgressSensitivePublicVersion && nextPrivate === ikaEgressSensitivePrivateVersion) return
+  await hydrateSensitiveState()
 }
 
 async function syncClubPrivateState() {
@@ -402,34 +440,45 @@ export function queueCloudWrite(key, value) {
   }, delay))
 }
 
-async function hydratePublicState(polling = false) {
-  const { data, error } = await supabase
-    .from('app_shared_state')
-    .select('state_key,state_value,updated_at')
-    .in('state_key', [...PUBLIC_CLOUD_KEYS])
+async function hydratePublicState(polling = false, requestedKeys = null) {
+  if (!supabase) return
+  let keys = requestedKeys ? [...requestedKeys].filter(key => PUBLIC_CLOUD_KEYS.has(key)) : [...PUBLIC_CLOUD_KEYS]
+  if (!keys.length) return
 
+  if (polling) {
+    // Tylko klucz i znacznik czasu: nie pobieramy dużych drabinek, ocen ani
+    // harmonogramow, gdy nic sie nie zmienilo.
+    const { data: meta, error: metaError } = await supabase.from('app_shared_state')
+      .select('state_key,updated_at').in('state_key', keys)
+    if (metaError) throw metaError
+    keys = (meta || []).filter(row => {
+      if (!row?.state_key) return false
+      if (pending.has(row.state_key) || inFlightPublicWrites.has(row.state_key)) return false
+      return ikaEgressPublicVersions.get(row.state_key) !== String(row.updated_at || '')
+    }).map(row => row.state_key)
+    if (!keys.length) return
+  }
+
+  const { data, error } = await supabase.from('app_shared_state')
+    .select('state_key,state_value,updated_at').in('state_key', keys)
   if (error) throw error
 
-  const cloudByKey = new Map((data || []).map((row) => [row.state_key, row]))
-  for (const key of PUBLIC_CLOUD_KEYS) {
-    // Polling must not revert a locally pending or in-flight score or timer change.
+  const cloudByKey = new Map((data || []).map(row => [row.state_key, row]))
+  for (const key of keys) {
     if (polling && (pending.has(key) || inFlightPublicWrites.has(key))) continue
     const remote = cloudByKey.get(key)
     if (remote) {
-      if (polling && localStorage.getItem(key) === JSON.stringify(remote.state_value)) continue
       applyRemoteValue(key, remote.state_value, remote.updated_at)
+      // applyRemoteValue pilnuje, by nie nadpisac nowszych lokalnych ocen.
+      // Dla niezmienionych wartosci rowniez zapamietujemy wersje.
+      if (!ikaEgressPublicVersions.has(key)) ikaEgressPublicVersions.set(key, String(remote.updated_at || ''))
       continue
     }
-    // No bootstrap writes during periodic read-only refresh.
-    if (polling) continue
-    if (currentIdentity.role !== 'organizer') continue
+    // Inicjalizacja nowych kluczy tylko po stronie organizatora.
+    if (polling || currentIdentity.role !== 'organizer') continue
     const raw = localStorage.getItem(key)
     if (raw == null) continue
-    try {
-      await upsertPublicNow(key, JSON.parse(raw))
-    } catch {
-      // Pomijamy pojedynczą uszkodzoną wartość lokalną.
-    }
+    try { await upsertPublicNow(key, JSON.parse(raw)) } catch { /* migracja pomocnicza */ }
   }
 }
 
@@ -518,36 +567,32 @@ async function pollLatestCompetitionData() {
   pollingNow = true
   try {
     await hydratePublicState(true)
-    const privateDirty = privateWritesInProgress > 0 || [...PRIVATE_CLOUD_KEYS].some((key) => pending.has(key))
-    if (!privateDirty) await hydrateSensitiveState()
-    // React routes refresh without changing URL, focus, scroll, timers or the TV window.
+    const privateDirty = privateWritesInProgress > 0 || [...PRIVATE_CLOUD_KEYS].some(key => pending.has(key))
+    if (!privateDirty) await ikaEgressPollSensitiveIfChanged()
     window.dispatchEvent(new Event('ika:periodic-refresh'))
   } catch (error) {
-    console.warn('[IKA cloud] odswiezenie 10 s nieudane:', error?.message || error)
-  } finally {
-    pollingNow = false
-  }
+    console.warn('[IKA cloud] okresowe sprawdzanie zmian nieudane:', error?.message || error)
+  } finally { pollingNow = false }
 }
 
-// Rezerwowe odswiezanie tylko trzech kluczy wynikow. Realtime ma pierwszenstwo.
+// TV i sedzia: szybki awaryjny odczyt samych wersji trzech kluczy LIVE.
+// Realtime nadal zapewnia dostarczenie wyniku natychmiast po zapisaniu.
 async function ika95PollLive() {
   if (!initialized || !supabase || ika95LivePolling) return
   ika95LivePolling = true
-  try {
-    const { data, error } = await supabase.from('app_shared_state')
-      .select('state_key,state_value,updated_at').in('state_key',[...ika95LiveKeys])
-    if (error) throw error
-    for (const row of data || []) if (ika95LiveKeys.has(row.state_key)) applyRemoteValue(row.state_key,row.state_value,row.updated_at)
-  } catch (e) { console.warn('[IKA cloud] szybki odczyt:',e?.message||e) }
+  try { await hydratePublicState(true, ika95LiveKeys) }
+  catch (error) { console.warn('[IKA cloud] awaryjny odczyt LIVE:', error?.message || error) }
   finally { ika95LivePolling = false }
 }
 function startTenSecondRefresh() {
   if (pollingInterval) return
+  // 30 s dla pozostalych stron zamiast pobierania calych struktur co 10 s.
   pollingInterval = window.setInterval(() => {
     pollLatestCompetitionData().catch(() => {})
-  }, 10000)
-  if (/^\/(tatami\/|organizator\/(kata-sedzia|sedzia)\/|telebim(?:\/|$))/.test(window.location.pathname)) {
-    ika95LivePollInterval = window.setInterval(() => { ika95PollLive().catch(()=>{}) },2000)
+  }, 30000)
+  // Priorytet ma Realtime; zapasowa kontrola wersji co 10 s.
+  if (/^\/(tatami\/|organizator\/(panel-sedziego|kata-sedzia|sedzia)\/|telebim(?:\/|$))/.test(window.location.pathname)) {
+    ika95LivePollInterval = window.setInterval(() => { ika95PollLive().catch(() => {}) }, 10000)
   }
 }
 
