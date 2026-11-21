@@ -82,6 +82,12 @@ let secureTablesAvailable = null
 const ikaEgressPublicVersions = new Map()
 let ikaEgressSensitivePublicVersion = null
 let ikaEgressSensitivePrivateVersion = null
+// IKA_POSTGRES_EGRESS_V2_20261121 - wyeliminowanie dublowanych pobran przy logowaniu i zmianach klubow
+const ikaPostgresIdentityKey = identity => String(identity.role || 'public') + ':' + String(identity.userId || '')
+let ikaPostgresHydratedIdentityKey = null
+let ikaPostgresSessionHydration = null
+let ikaPostgresSensitiveEventTimer = null
+let ikaPostgresOrganizerScheduleDirty = false
 const ikaEgressVersionOfRows = rows => JSON.stringify((rows || [])
   .map(row => [String(row.owner_id || ''), String(row.updated_at || '')])
   .sort((a, b) => a[0].localeCompare(b[0])))
@@ -509,6 +515,33 @@ function subscribePublicState() {
     .subscribe()
 }
 
+// Kilka zdarzen dotyczacych zawodnikow lub klubow laczymy w jedno sprawdzenie
+// wersji. Nie pobieramy wszystkich zdjec i zgloszen dla kazdego eventu Realtime.
+function ikaPostgresQueueSensitiveEvent(organizerPrivate = false) {
+  if (organizerPrivate && currentIdentity.role === 'organizer') ikaPostgresOrganizerScheduleDirty = true
+  if (ikaPostgresSensitiveEventTimer != null) return
+  ikaPostgresSensitiveEventTimer = window.setTimeout(async () => {
+    ikaPostgresSensitiveEventTimer = null
+    const shouldInvalidateSchedule = ikaPostgresOrganizerScheduleDirty
+    ikaPostgresOrganizerScheduleDirty = false
+    try {
+      const privateDirty = privateWritesInProgress > 0 || [...PRIVATE_CLOUD_KEYS].some(key => pending.has(key))
+      if (privateDirty) {
+        ikaPostgresQueueSensitiveEvent(shouldInvalidateSchedule)
+        return
+      }
+      await ikaEgressPollSensitiveIfChanged()
+      if (shouldInvalidateSchedule && currentIdentity.role === 'organizer') {
+        suppressCloudWrite = true
+        try { localStorage.setItem('ika_schedule_v3', JSON.stringify([])) }
+        finally { suppressCloudWrite = false }
+      }
+    } catch (error) {
+      console.warn('[IKA cloud] odswiezenie zmian klubow nieudane:', error?.message || error)
+    }
+  }, 650)
+}
+
 function subscribeRoleState() {
   if (!supabase || secureTablesAvailable === false) return
   unsubscribeRoleChannels()
@@ -518,9 +551,7 @@ function subscribeRoleState() {
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'public_participant_state' },
-      () => {
-        hydrateSensitiveState().catch((error) => console.warn('[IKA cloud] odświeżenie publicznych zawodników nieudane:', error?.message || error))
-      },
+      () => { ikaPostgresQueueSensitiveEvent(false) },
     )
     .subscribe()
 
@@ -530,18 +561,7 @@ function subscribeRoleState() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'club_private_state' },
-        () => {
-          hydrateSensitiveState()
-            .then(() => {
-              // Zmiana zgłoszeń klubu unieważnia lokalny automatyczny harmonogram organizatora.
-              // Centrum zawodów przeliczy go ponownie z aktualnych wpisów.
-              if (currentIdentity.role === 'organizer') {
-                suppressCloudWrite = true
-                try { localStorage.setItem('ika_schedule_v3', JSON.stringify([])) } finally { suppressCloudWrite = false }
-              }
-            })
-            .catch((error) => console.warn('[IKA cloud] odświeżenie danych klubowych nieudane:', error?.message || error))
-        },
+        () => { ikaPostgresQueueSensitiveEvent(true) },
       )
       .subscribe()
   }
@@ -549,11 +569,26 @@ function subscribeRoleState() {
 
 export async function refreshCloudSyncForSession() {
   if (!cloudSyncConfigured || !supabase) return { enabled: false }
-  currentIdentity = await resolveIdentity()
+  const resolvedIdentity = await resolveIdentity()
+  const requestedIdentityKey = ikaPostgresIdentityKey(resolvedIdentity)
+  currentIdentity = resolvedIdentity
   try {
-    await hydratePublicState()
-    await hydrateSensitiveState()
-    subscribeRoleState()
+    // onAuthStateChange moze przyjsc kilka razy po zaladowaniu tej samej sesji.
+    // Przy niezmienionym koncie dane juz sa w pamieci; w tle dziala Realtime i kontrola wersji.
+    if (ikaPostgresHydratedIdentityKey !== requestedIdentityKey) {
+      if (ikaPostgresSessionHydration) await ikaPostgresSessionHydration
+      if (ikaPostgresHydratedIdentityKey !== requestedIdentityKey) {
+        const sync = (async () => {
+          await hydratePublicState(true)
+          await hydrateSensitiveState()
+          subscribeRoleState()
+          ikaPostgresHydratedIdentityKey = requestedIdentityKey
+        })()
+        ikaPostgresSessionHydration = sync
+        try { await sync }
+        finally { if (ikaPostgresSessionHydration === sync) ikaPostgresSessionHydration = null }
+      }
+    }
     window.dispatchEvent(new CustomEvent('ika:cloud-identity', { detail: currentIdentity }))
     return { enabled: true, ...currentIdentity, secure: secureTablesAvailable !== false }
   } catch (error) {
@@ -603,6 +638,7 @@ export async function initializeCloudSync() {
     currentIdentity = await resolveIdentity()
     await hydratePublicState()
     await hydrateSensitiveState()
+    ikaPostgresHydratedIdentityKey = ikaPostgresIdentityKey(currentIdentity)
     subscribePublicState()
     subscribeRoleState()
     startTenSecondRefresh()
@@ -626,6 +662,10 @@ export async function initializeCloudSync() {
 }
 
 export function disposeCloudSync() {
+  if (ikaPostgresSensitiveEventTimer != null) window.clearTimeout(ikaPostgresSensitiveEventTimer)
+  ikaPostgresSensitiveEventTimer = null
+  ikaPostgresOrganizerScheduleDirty = false
+  ikaPostgresHydratedIdentityKey = null
   if (pollingInterval) window.clearInterval(pollingInterval)
   pollingInterval = null
   if (ika95LivePollInterval) window.clearInterval(ika95LivePollInterval)
