@@ -5,6 +5,7 @@ import { getKumitePenaltyLabel, getKumiteSideTheme } from '../lib/kumiteRules'
 import KumiteBracket from '../components/KumiteBracket'
 import TechniqueScoreColumns from '../components/TechniqueScoreColumns.jsx'
 import TournamentPodiumTop3 from '../components/TournamentPodiumTop3.jsx'
+import { TatamiKataBroadcast2026, TatamiKumiteBroadcast2026 } from '../components/TatamiBroadcast2026.jsx'
 /* ika104-tv */
 import { tvRound, tvCategory, tvCompetition, tvStage, tvPenaltyLabel } from '../lib/tvEnglish.js'
 
@@ -278,75 +279,10 @@ export default function TatamiDisplay() {
     )
   }
 
-  if (displayMode === 'kata-athlete' && payload.kata) {
-    const result = payload.kata.nextResult || payload.kata.currentResult
-    const athlete = result?.athlete
-    return (
-      <main className="tatami-screen kata-tv-screen kata-athlete-screen">
-        <FullscreenControl />
-        <header className="kata-tv-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>{tvCompetition(payload.competition?.name || 'Kata')}</b><span>{tvCategory(payload.state?.category || payload.kata.session.category)}</span></div>
-          <div><b>{matName}</b><span>Next competitor</span></div>
-        </header>
-        <section className="kata-athlete-stage">
-          <div className="kata-athlete-tv-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div>
-          <span>NEXT COMPETITOR</span>
-          <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1>
-          <p>{athlete?.clubName || ''}</p>
-          {result?.kataName && <div className="kata-tv-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
-          <small>After the performance, the head judge signals and the scores are entered.</small>
-        </section>
-      </main>
-    )
-  }
-
-  if (displayMode === 'kata-scores' && payload.kata) {
-    const result = payload.kata.currentResult || payload.kata.nextResult
-    const athlete = result?.athlete
-    return (
-      <main className="tatami-screen kata-tv-screen kata-scores-screen">
-        <FullscreenControl />
-        <header className="kata-tv-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>JUDGES' SCORES</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || payload.kata.session.category)} • {tvStage(payload.kata.stageName || 'KATA')}</span></div>
-          <div><b>{matName}</b><span>{payload.kata.judgeCount} judges • round {payload.kata.roundNumber || 1}/{payload.kata.totalRounds || 1}</span></div>
-        </header>
-        <section className="kata-scoreboard-stage">
-          <div className="kata-scoreboard-athlete">
-            <div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div>
-            <h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1>
-            <p>{athlete?.clubName || ''}</p>
-            {result?.kataName && <div className="kata-scoreboard-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}
-          </div>
-          <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>
-            {Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index}><span>JUDGE {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong></article>)}
-          </div>
-          <div className="kata-waiting-final">WAITING FOR FINAL SCORE</div>
-        </section>
-      </main>
-    )
-  }
-
-  if (displayMode === 'kata-final' && payload.kata) {
-    const result = payload.kata.finalResult
-    const athlete = result?.athlete
-    const dropped = new Set(result?.droppedIndexes || [])
-    return (
-      <main className="tatami-screen kata-tv-screen kata-final-screen">
-        <FullscreenControl />
-        <header className="kata-tv-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>FINAL SCORE</b><span>{tvCompetition(payload.competition?.name || 'Kata')} • {tvCategory(payload.state?.category || payload.kata.session.category)} • {tvStage(payload.kata.stageName || 'KATA')}</span></div>
-          <div><b>{matName}</b><span>Score saved</span></div>
-        </header>
-        <section className="kata-final-stage">
-          <div className="kata-final-athlete"><div className="kata-scoreboard-photo">{athlete?.photo ? <img src={athlete.photo} alt={`${athlete.firstName} ${athlete.lastName}`} /> : <div>{(athlete?.firstName?.[0] || '')}{(athlete?.lastName?.[0] || '')}</div>}</div><div><h1>{athlete ? `${athlete.firstName} ${athlete.lastName}` : '-'}</h1><p>{athlete?.clubName || ''}</p>{result?.kataName && <div className="kata-final-kata-name"><span>KATA</span><strong>{result.kataName}</strong></div>}</div></div>
-          <div className={`kata-tv-score-grid judges-${payload.kata.judgeCount}`}>{Array.from({ length: payload.kata.judgeCount }, (_, index) => <article key={index} className={dropped.has(index) ? 'dropped' : ''}><span>JUDGE {index + 1}</span><strong>{scoreText(result?.scores?.[index])}</strong>{dropped.has(index) && <small>EXCLUDED</small>}</article>)}</div>
-          <div className="kata-final-total"><span>FINAL SCORE</span><strong>{scoreText(result?.finalScore)}</strong>{payload.kata.judgeCount === 5 && <small>The highest and lowest scores are excluded.</small>}</div>
-        </section>
-      </main>
-    )
+  // IKA-TV-BROADCAST-2026 - ekran kata nie pokazuje stylu karate.
+  if (['kata-athlete', 'kata-scores', 'kata-final'].includes(displayMode) && payload.kata) {
+    const mode = displayMode === 'kata-final' ? 'final' : displayMode === 'kata-scores' ? 'scores' : 'athlete'
+    return <TatamiKataBroadcast2026 payload={payload} matName={matName} mode={mode} fullscreenControl={<FullscreenControl />} />
   }
 
   /* ETAP 106 - podium TOP3 after kata and kumite */
@@ -360,63 +296,9 @@ export default function TatamiDisplay() {
     />
   }
 
+  // IKA-TV-BROADCAST-2026 - przekaz TV bez zmian w regulach wyniku.
   if (displayMode === 'scoreboard' && payload.currentMatch) {
-    const m = payload.currentMatch
-    const isFinished = m.status === 'done' && Boolean(m.winnerId)
-    const redWinner = isFinished && m.winnerId === m.redResolvedId
-    const blueWinner = isFinished && m.winnerId === m.blueResolvedId
-    return (
-      <main className="tatami-screen scoreboard-screen">
-        <FullscreenControl />
-        <header className="scoreboard-header">
-          <div><strong className="ika-brand-inline"><span className="ika-brand-ika">IKA</span> <span className="ika-brand-poland">POLAND</span></strong><span>{payload.tournament.name}</span></div>
-          <div><b>{matName}</b><span>{tvCompetition(payload.competition?.name || '')} • {tvCategory(payload.state?.category || '')}</span></div>
-        </header>
-        <section className="scoreboard-body">
-          <div className={`fighter fighter-red ${sideTheme.red.className} ${isFinished ? (redWinner ? 'ika105-winner' : 'ika105-loser') : ''}`}>
-            <div className="fighter-side">{sideTheme.red.code}</div>
-            <div className="scoreboard-athlete-photo">
-              {m.redAthlete?.photo ? (
-                <img src={m.redAthlete.photo} alt={`${m.redAthlete.firstName} ${m.redAthlete.lastName}`} />
-              ) : (
-                <div className="scoreboard-athlete-photo-fallback">
-                  {(m.redAthlete?.firstName?.[0] || '')}{(m.redAthlete?.lastName?.[0] || '')}
-                </div>
-              )}
-            </div>
-            <h1>{m.redAthlete ? `${m.redAthlete.firstName} ${m.redAthlete.lastName}` : '-'}</h1>
-            <p>{m.redAthlete?.clubName || ''}</p>
-            {redWinner && <div className="ika105-winner-badge">WINNER</div>}
-            
-            {sideTheme.discipline !== 'fantom' && <TechniqueScoreColumns match={m} side="red" mode="tv" />}
-            <TvPenaltyColumns match={m} side="red" />
-          </div>
-          <div className="fight-center">
-            <span>{isFinished ? 'BOUT FINISHED' : `${tvRound(m.roundName)} • BOUT ${m.matchNo}`}</span>
-            <div className="fight-clock">{fmt(m.remaining)}</div>
-            <small>{isFinished ? 'WINNER' : (m.timerRunning ? 'TIMER RUNNING' : 'TIMER STOPPED')}</small><small>HANSOKU = DEFEAT</small>
-          </div>
-          <div className={`fighter ${sideTheme.mode === 'red-white' ? 'fighter-white' : 'fighter-blue'} ${sideTheme.blue.className} ${isFinished ? (blueWinner ? 'ika105-winner' : 'ika105-loser') : ''}`}>
-            <div className="fighter-side">{sideTheme.blue.code}</div>
-            <div className="scoreboard-athlete-photo">
-              {m.blueAthlete?.photo ? (
-                <img src={m.blueAthlete.photo} alt={`${m.blueAthlete.firstName} ${m.blueAthlete.lastName}`} />
-              ) : (
-                <div className="scoreboard-athlete-photo-fallback">
-                  {(m.blueAthlete?.firstName?.[0] || '')}{(m.blueAthlete?.lastName?.[0] || '')}
-                </div>
-              )}
-            </div>
-            <h1>{m.blueAthlete ? `${m.blueAthlete.firstName} ${m.blueAthlete.lastName}` : '-'}</h1>
-            <p>{m.blueAthlete?.clubName || ''}</p>
-            {blueWinner && <div className="ika105-winner-badge">WINNER</div>}
-            
-            {sideTheme.discipline !== 'fantom' && <TechniqueScoreColumns match={m} side="blue" mode="tv" />}
-            <TvPenaltyColumns match={m} side="blue" />
-          </div>
-        </section>
-      </main>
-    )
+    return <TatamiKumiteBroadcast2026 payload={payload} matName={matName} match={payload.currentMatch} sideTheme={sideTheme} fullscreenControl={<FullscreenControl />} />
   }
 
   return (
