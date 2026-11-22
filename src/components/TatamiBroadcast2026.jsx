@@ -94,14 +94,28 @@ export function TatamiKataBroadcast2026({ payload, matName, mode, fullscreenCont
   </main>
 }
 
-function BroadcastCompetitor({ person, side, score, isWinner }) {
+// IKA-TV-PHOTO-PENALTIES-V2: zdjecie zawodnika lub czytelne miejsce na zdjecie.
+function FighterPortrait({ person, side }) {
+  const [failed, setFailed] = React.useState(false)
+  const initials = [person?.firstName?.[0], person?.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '—'
+  return <div className={`ikatv26-fighter-photo ${side}`} aria-label={person?.photo ? `Zdjęcie: ${personName(person)}` : 'Miejsce na zdjęcie zawodnika'}>
+    {person?.photo && !failed
+      ? <img src={person.photo} alt={personName(person)} onError={() => setFailed(true)} />
+      : <div className="ikatv26-fighter-photo-empty"><strong>{initials}</strong><small>PHOTO</small></div>}
+  </div>
+}
+
+function BroadcastCompetitor({ person, side, isWinner }) {
   return <div className={`ikatv26-fighter-info ${side} ${isWinner ? 'winner' : ''}`}>
-    <div className="ikatv26-fighter-club">
-      {countryFlag(person) && <span className="ikatv26-flag">{countryFlag(person)}</span>}
-      <div><strong>{firstNonempty(person?.clubName) || '—'}</strong>{countryLabel(person) && <small>{countryLabel(person)}</small>}</div>
+    <FighterPortrait key={`${side}-${person?.id || personName(person)}`} person={person} side={side} />
+    <div className="ikatv26-fighter-copy">
+      <div className="ikatv26-fighter-club">
+        {countryFlag(person) && <span className="ikatv26-flag">{countryFlag(person)}</span>}
+        <div><strong>{firstNonempty(person?.clubName) || '—'}</strong>{countryLabel(person) && <small>{countryLabel(person)}</small>}</div>
+      </div>
+      <h2>{personName(person)}</h2>
+      {isWinner && <span className="ikatv26-win-tag">WINNER</span>}
     </div>
-    <h2>{personName(person)}</h2>
-    {isWinner && <span className="ikatv26-win-tag">WINNER</span>}
   </div>
 }
 
@@ -109,8 +123,22 @@ function TechniqueCount({ match, side, kind, label }) {
   return <div className="ikatv26-technique"><span>{label}</span><strong>{techniqueCount(match, side, kind)}</strong></div>
 }
 
+// IKA-TV-PHOTO-PENALTIES-V2: przejrzyste pola kar, bez zmian w logice.
+// Kary pozostaja oparte na oryginalnym stanie walki: bez zmian punktacji lub limitow.
 function Penalties({ match, side }) {
-  return <div className="ikatv26-penalties"><span>EXIT: <b>{penaltyLabel(match, side, 'Exit')}</b></span><span>BEHAVIOUR: <b>{penaltyLabel(match, side, 'Behavior')}</b></span></div>
+  const rows = [
+    { key: 'Exit', label: 'EXITING THE MAT' },
+    { key: 'Behavior', label: 'UNSPORTING BEHAVIOUR' },
+  ]
+  return <div className="ikatv26-penalties" aria-label={`Penalties ${side}`}>
+    {rows.map(({ key, label }) => {
+      const level = Number(match?.[`${side}${key}PenaltyLevel`] ?? (key === 'Exit' ? match?.[`${side}PenaltyLevel`] : 0)) || 0
+      return <div key={key} className={`ikatv26-penalty-card ${level > 0 ? 'has-penalty' : 'no-penalty'} ${level >= 4 ? 'is-hansoku' : ''}`}>
+        <span>{label}</span>
+        <strong>{penaltyLabel(match, side, key)}</strong>
+      </div>
+    })}
+  </div>
 }
 
 export function TatamiKumiteBroadcast2026({ payload, matName, match, sideTheme, fullscreenControl }) {

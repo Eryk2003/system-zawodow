@@ -30,3 +30,135 @@
 @media(max-width:1100px){.ikatv26-top{grid-template-columns:minmax(130px,1fr) minmax(220px,1.8fr) minmax(100px,1fr)}.ikatv26-brand small{letter-spacing:.12em}.ikatv26-fighter-info h2{font-size:clamp(24px,3.2vw,50px)!important}.ikatv26-kata-content{grid-template-columns:2fr 1fr}.ikatv26-kata-picture{height:25vh}.ikatv26-kata-person h1{font-size:clamp(27px,3.5vw,57px)!important}}
 @media(max-height:650px){.ikatv26-kata-heading{min-height:9vh}.ikatv26-kata-picture{height:24vh;width:clamp(95px,13vw,200px)}.ikatv26-judges{min-height:13vh}.ikatv26-kumite-board{padding-top:.7vh;padding-bottom:.7vh}.ikatv26-fighters{height:25vh}.ikatv26-bigscore{font-size:clamp(75px,16vh,170px)}.ikatv26-technique strong{font-size:clamp(25px,3vw,50px)}}
 @media(max-width:740px){.ikatv26-top{grid-template-columns:1fr 1.5fr;min-height:70px}.ikatv26-stage{display:none}.ikatv26-brand small{display:none}.ikatv26-kata-heading>b{display:none}.ikatv26-kata-content{grid-template-columns:minmax(0,1fr) minmax(0,.7fr)}.ikatv26-kata-picture{height:20vh;width:18vw;border-radius:8px}.ikatv26-kata-person h1{font-size:clamp(21px,3.7vw,36px)!important}.ikatv26-kata-next strong{font-size:clamp(20px,3.6vw,33px)}.ikatv26-judges{gap:1vw}.ikatv26-judge{min-width:11vw}.ikatv26-kumite-board{grid-template-columns:1fr minmax(100px,25%) 1fr;padding-left:1vw;padding-right:1vw}.ikatv26-kumite-middle>strong{font-size:clamp(35px,7vw,65px)}.ikatv26-center-logo{width:65px;height:65px}.ikatv26-kumite-col{padding:4px}.ikatv26-technique{min-width:28px;width:38%}.ikatv26-technique strong{font-size:25px}.ikatv26-fighters{height:25vh}.ikatv26-fighter-info h2{font-size:clamp(16px,3.4vw,28px)!important}}
+/* IKA-TV-PHOTO-PENALTIES-V2: zdjecia i wyrazne kary TYLKO na TV kumite. */
+.ikatv26-kumite .ikatv26-fighters{
+  height:clamp(160px,27vh,292px);
+  min-height:0;
+}
+.ikatv26-kumite .ikatv26-fighter-info{
+  display:grid;
+  grid-template-columns:clamp(94px,10.4vw,196px) minmax(0,1fr);
+  align-items:center;
+  column-gap:clamp(10px,1.3vw,27px);
+  padding:clamp(8px,1.2vh,17px) clamp(12px,1.6vw,34px);
+  justify-content:stretch;
+  min-height:0;
+  overflow:hidden;
+}
+.ikatv26-kumite .ikatv26-fighter-info.blue,
+.ikatv26-kumite .ikatv26-fighter-info.white{
+  grid-template-columns:minmax(0,1fr) clamp(94px,10.4vw,196px);
+}
+.ikatv26-kumite .ikatv26-fighter-info.blue .ikatv26-fighter-photo,
+.ikatv26-kumite .ikatv26-fighter-info.white .ikatv26-fighter-photo{grid-column:2;grid-row:1}
+.ikatv26-kumite .ikatv26-fighter-info.blue .ikatv26-fighter-copy,
+.ikatv26-kumite .ikatv26-fighter-info.white .ikatv26-fighter-copy{grid-column:1;grid-row:1;text-align:right}
+.ikatv26-kumite .ikatv26-fighter-photo{
+  width:100%;height:100%;max-height:clamp(135px,24vh,252px);
+  align-self:center;
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+  border-radius:12px;
+  border:2px solid rgba(239,244,255,.75);
+  background:#121d31;
+  box-shadow:0 0 0 2px rgba(3,10,22,.4),0 6px 20px rgba(0,0,0,.3);
+}
+.ikatv26-kumite .ikatv26-fighter-photo img{
+  display:block;width:100%;height:100%;object-fit:cover;object-position:center 24%;
+}
+.ikatv26-kumite .ikatv26-fighter-photo-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;gap:8px;
+  background:linear-gradient(145deg,#263953,#0c182a);
+  color:#dce7f8;
+}
+.ikatv26-kumite .ikatv26-fighter-photo-empty strong{
+  font-size:clamp(31px,3.9vw,66px);line-height:1;font-weight:950;
+}
+.ikatv26-kumite .ikatv26-fighter-photo-empty small{
+  font-size:clamp(9px,.75vw,14px);letter-spacing:.15em;font-weight:800;color:#a5b9d2;
+}
+.ikatv26-kumite .ikatv26-fighter-copy{
+  min-width:0;max-height:100%;display:flex;flex-direction:column;
+  justify-content:center;gap:clamp(5px,.9vh,14px);
+}
+.ikatv26-kumite .ikatv26-fighter-info h2{
+  font-size:clamp(20px,2.65vw,56px)!important;line-height:1.05!important;
+  margin:0!important;overflow-wrap:anywhere;word-break:normal;
+  text-wrap:balance;
+}
+.ikatv26-kumite .ikatv26-fighter-club strong{
+  font-size:clamp(13px,1.2vw,24px);line-height:1.15;
+}
+.ikatv26-kumite .ikatv26-fighter-club small{font-size:clamp(10px,.8vw,16px)}
+.ikatv26-kumite .ikatv26-win-tag{
+  position:static;display:inline-block;align-self:flex-start;font-size:clamp(12px,1vw,18px);
+  color:#ffe08d;
+}
+.ikatv26-kumite .ikatv26-fighter-info.blue .ikatv26-win-tag,
+.ikatv26-kumite .ikatv26-fighter-info.white .ikatv26-win-tag{align-self:flex-end}
+/* Dwie duze, rowne karty: rodzaj kary + aktualny poziom. */
+.ikatv26-kumite .ikatv26-penalties{
+  width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  flex-wrap:nowrap;gap:clamp(6px,.65vw,14px);
+  padding:0 0 .2vh;margin-top:auto;text-align:center;
+  color:#d9e7f8;
+}
+.ikatv26-kumite .ikatv26-penalty-card{
+  display:flex;min-height:clamp(64px,9.2vh,102px);min-width:0;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(4px,.5vh,9px);
+  border:1px solid #718099;border-radius:10px;
+  background:rgba(25,39,58,.92);
+  padding:clamp(6px,.75vh,12px) clamp(4px,.55vw,12px);
+}
+.ikatv26-kumite .ikatv26-penalty-card>span{
+  font-size:clamp(10px,.92vw,19px);font-weight:850;
+  line-height:1.13;color:#bcd0ec;letter-spacing:.025em;
+}
+.ikatv26-kumite .ikatv26-penalty-card>strong{
+  font-size:clamp(16px,1.65vw,31px);font-weight:950;
+  color:#fff;line-height:1.05;overflow-wrap:anywhere;
+}
+.ikatv26-kumite .ikatv26-penalty-card.no-penalty>strong{color:#d2deef}
+.ikatv26-kumite .ikatv26-penalty-card.has-penalty{
+  border:2px solid #ffcc66;background:linear-gradient(145deg,#49371d,#30281d);
+}
+.ikatv26-kumite .ikatv26-penalty-card.has-penalty>strong{color:#ffe09a}
+.ikatv26-kumite .ikatv26-penalty-card.is-hansoku{
+  border:3px solid #ff596a;background:linear-gradient(145deg,#5c1926,#34131a);
+}
+.ikatv26-kumite .ikatv26-penalty-card.is-hansoku>strong{color:#fff}
+/* Lekko mniejszy wynik i wiekszy kontrast – bez nachodzenia na kary. */
+.ikatv26-kumite .ikatv26-bigscore{
+  font-size:clamp(83px,17vh,220px);min-height:0;
+}
+@media(max-width:1060px){
+  .ikatv26-kumite .ikatv26-fighter-info{grid-template-columns:clamp(70px,9.5vw,125px) minmax(0,1fr);column-gap:9px;padding:9px 12px}
+  .ikatv26-kumite .ikatv26-fighter-info.blue,.ikatv26-kumite .ikatv26-fighter-info.white{grid-template-columns:minmax(0,1fr) clamp(70px,9.5vw,125px)}
+  .ikatv26-kumite .ikatv26-fighter-info h2{font-size:clamp(18px,2.7vw,35px)!important}
+  .ikatv26-kumite .ikatv26-penalty-card{min-height:60px}
+  .ikatv26-kumite .ikatv26-penalty-card>span{font-size:clamp(9px,.95vw,15px)}
+  .ikatv26-kumite .ikatv26-penalty-card>strong{font-size:clamp(14px,1.45vw,22px)}
+}
+@media(max-height:720px){
+  .ikatv26-kumite .ikatv26-fighters{height:clamp(130px,25vh,190px)}
+  .ikatv26-kumite .ikatv26-fighter-photo{max-height:22vh}
+  .ikatv26-kumite .ikatv26-penalty-card{min-height:clamp(48px,8.3vh,66px);gap:3px;padding:4px}
+  .ikatv26-kumite .ikatv26-penalty-card>span{font-size:clamp(9px,.85vw,13px)}
+  .ikatv26-kumite .ikatv26-penalty-card>strong{font-size:clamp(13px,1.35vw,20px)}
+  .ikatv26-kumite .ikatv26-bigscore{font-size:clamp(62px,14vh,140px)}
+}
+@media(max-width:650px){
+  .ikatv26-kumite .ikatv26-fighters{height:25vh}
+  .ikatv26-kumite .ikatv26-fighter-info{grid-template-columns:55px minmax(0,1fr);gap:6px;padding:6px}
+  .ikatv26-kumite .ikatv26-fighter-info.blue,.ikatv26-kumite .ikatv26-fighter-info.white{grid-template-columns:minmax(0,1fr) 55px}
+  .ikatv26-kumite .ikatv26-fighter-info h2{font-size:clamp(13px,2.8vw,21px)!important}
+  .ikatv26-kumite .ikatv26-fighter-club strong{font-size:11px}
+  .ikatv26-kumite .ikatv26-fighter-club small{font-size:9px}
+  .ikatv26-kumite .ikatv26-penalty-card>span{font-size:8px}
+  .ikatv26-kumite .ikatv26-penalty-card>strong{font-size:12px}
+  .ikatv26-kumite .ikatv26-penalties{gap:3px}
+  .ikatv26-kumite .ikatv26-fighter-photo-empty small{font-size:8px}
+}
