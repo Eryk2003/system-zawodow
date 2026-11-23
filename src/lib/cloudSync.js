@@ -179,8 +179,11 @@ async function upsertPublicNow(key, value) {
         const { error } = await supabase.from('app_shared_state')
           .upsert({ state_key:key, state_value:latest.value, updated_at:updatedAt }, { onConflict:'state_key' })
         if (error) console.warn('[IKA cloud] zapis publiczny nieudany:', key, error.message)
-        else if (ika95LiveKeys.has(key) && publicChannel) {
-          Promise.resolve(publicChannel.send({type:'broadcast',event:'ika95-live',payload:{key,value:latest.value,updatedAt}})).catch(()=>{})
+        else if (publicChannel) {
+          // Realtime carries a small version hint, never the entire JSON snapshot.
+          // Client fetches the changed key once; periodic polling remains a fallback.
+          ikaEgressPublicVersions.set(key, updatedAt)
+          Promise.resolve(publicChannel.send({type:'broadcast',event:'ika95-live',payload:{key,updatedAt}})).catch(()=>{})
         }
       } catch (error) { console.warn('[IKA cloud] zapis publiczny nieudany:',key,error?.message||error) }
     }
@@ -495,22 +498,54 @@ function unsubscribeRoleChannels() {
   participantChannel = null
 }
 
+// IKA_REALTIME_EGRESS_V3_20261123
+// A small Realtime event announces that a public key changed. The current key
+// is fetched once from PostgREST, rather than sending a large JSON twice
+// (Postgres Changes + Broadcast) to every TV, club or parent screen.
+const ikaRealtimeHintTimers = new Map()
+const ikaRealtimeHintBusy = new Set()
+const ikaRealtimeHintDirty = new Set()
+
+async function ikaRealtimeFlushPublicKey(key) {
+  if (ikaRealtimeHintBusy.has(key)) return
+  ikaRealtimeHintBusy.add(key)
+  try {
+    while (ikaRealtimeHintDirty.has(key)) {
+      ikaRealtimeHintDirty.delete(key)
+      try {
+        // One SELECT, not an additional version SELECT. Version guards in
+        // applyRemoteValue stop stale scoreboard results replacing newer data.
+        await hydratePublicState(false, [key])
+      } catch (error) {
+        console.warn('[IKA cloud] realtime hint read failed:', key, error?.message || error)
+        break // fallback version poll retries later
+      }
+    }
+  } finally { ikaRealtimeHintBusy.delete(key) }
+}
+
+function ikaRealtimeQueuePublicHint(key, updatedAt) {
+  if (!PUBLIC_CLOUD_KEYS.has(key)) return
+  if (updatedAt && ikaEgressPublicVersions.get(key) === String(updatedAt) && !ikaRealtimeHintBusy.has(key)) return
+  ikaRealtimeHintDirty.add(key)
+  const oldTimer = ikaRealtimeHintTimers.get(key)
+  if (oldTimer != null) window.clearTimeout(oldTimer)
+  const handle = window.setTimeout(() => {
+    ikaRealtimeHintTimers.delete(key)
+    ikaRealtimeFlushPublicKey(key).catch(() => {})
+  }, 110)
+  ikaRealtimeHintTimers.set(key, handle)
+}
+
 function subscribePublicState() {
   if (!supabase || publicChannel) return
+  // No postgres_changes subscription on app_shared_state: the old handler
+  // received a complete state_value JSON for every write, including the same
+  // live key already sent via broadcast.
   publicChannel = supabase
     .channel('ika-system-zawodow-public-state')
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'app_shared_state' },
-      (payload) => {
-        const row = payload.new || payload.old
-        if (!row?.state_key || !PUBLIC_CLOUD_KEYS.has(row.state_key)) return
-        if (payload.eventType === 'DELETE') return
-        applyRemoteValue(row.state_key, row.state_value, row.updated_at)
-      },
-    )
     .on('broadcast', { event:'ika95-live' }, ({payload}) => {
-      if (ika95LiveKeys.has(payload?.key) && payload.value != null) applyRemoteValue(payload.key,payload.value,payload.updatedAt)
+      if (PUBLIC_CLOUD_KEYS.has(payload?.key)) ikaRealtimeQueuePublicHint(payload.key, payload.updatedAt)
     })
     .subscribe()
 }
@@ -662,6 +697,9 @@ export async function initializeCloudSync() {
 }
 
 export function disposeCloudSync() {
+  for (const timer of ikaRealtimeHintTimers.values()) window.clearTimeout(timer)
+  ikaRealtimeHintTimers.clear()
+  ikaRealtimeHintDirty.clear()
   if (ikaPostgresSensitiveEventTimer != null) window.clearTimeout(ikaPostgresSensitiveEventTimer)
   ikaPostgresSensitiveEventTimer = null
   ikaPostgresOrganizerScheduleDirty = false
